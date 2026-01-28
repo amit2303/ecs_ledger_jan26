@@ -1,65 +1,330 @@
-import Image from "next/image";
+'use client'
+
+import { useEffect, useState } from 'react'
+import { StatCard } from '@/components/StatCard'
+import { Plus, Pencil, Trash2 } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useLongPress } from '@/hooks/useLongPress'
+import { ActionSheet } from '@/components/ActionSheet'
+import { exportToExcel } from '@/utils/exportToExcel'
+import { MoreVertical, Download } from 'lucide-react'
+
+interface DashboardStats {
+  totalClients: number
+  totalVendors: number
+  totalClientDue: number
+  totalVendorDue: number
+  ecsIncome: number
+}
+
+interface CompanySummary {
+  id: number
+  name: string
+  type: 'CLIENT' | 'VENDOR'
+  amountDue: number
+  address?: string
+  ledgerLink?: string
+  contact?: string
+  email?: string
+  packageCount?: number
+}
 
 export default function Home() {
+  const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [companies, setCompanies] = useState<CompanySummary[]>([])
+  const [search, setSearch] = useState('')
+  const router = useRouter()
+
+  // Action Sheet State
+  const [selectedCompany, setSelectedCompany] = useState<CompanySummary | null>(null)
+  const [isSheetOpen, setIsSheetOpen] = useState(false)
+  const [showDashboardActions, setShowDashboardActions] = useState(false)
+
+  // Edit Modal State
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [editForm, setEditForm] = useState<Partial<CompanySummary>>({})
+  const [saving, setSaving] = useState(false)
+
+  // Fetch logic ...
+  const fetchCompanies = () => {
+    fetch(`/api/companies?search=${search}`).then(res => res.json()).then(setCompanies)
+  }
+
+  useEffect(() => {
+    fetch('/api/stats').then(res => res.json()).then(setStats)
+    fetchCompanies()
+  }, [])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchCompanies()
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [search])
+
+  const handleLongPress = (company: CompanySummary) => {
+    // Vibrate if available
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(50)
+    }
+    setSelectedCompany(company)
+    setIsSheetOpen(true)
+  }
+
+  const handleEditClick = () => {
+    if (!selectedCompany) return
+    setEditForm(selectedCompany)
+    setIsEditModalOpen(true)
+  }
+
+  const handleDeleteClick = async () => {
+    if (!selectedCompany) return
+
+    // Client-side dependency check
+    if (selectedCompany.packageCount && selectedCompany.packageCount > 0) {
+      alert('Cannot delete company because it has associated packages. Please delete packages first.')
+      return
+    }
+
+    if (!confirm(`Delete ${selectedCompany.name}?`)) return
+
+    try {
+      const res = await fetch(`/api/companies/${selectedCompany.id}`, { method: 'DELETE' })
+      const data = await res.json()
+
+      if (!res.ok) {
+        alert(data.error || 'Failed to delete company')
+      } else {
+        fetchCompanies()
+        // Refresh stats too
+        fetch('/api/stats').then(res => res.json()).then(setStats)
+      }
+    } catch (err) {
+      alert('Failed to delete company')
+    }
+  }
+
+  const handleUpdateCompany = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedCompany) return
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/companies/${selectedCompany.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm)
+      })
+      if (!res.ok) throw new Error('Failed to update')
+
+      fetchCompanies()
+      setIsEditModalOpen(false)
+    } catch (err) {
+      alert('Failed to update company')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleExportCompanies = () => {
+    const dataToExport = companies.map(c => ({
+      'Type': c.type,
+      'Name': c.name,
+      'Ledger Link': c.ledgerLink || '-',
+      'Phone': c.contact || '-',
+      'Email': c.email || '-',
+      'Address': c.address || '-',
+      'Total Due': c.amountDue || 0
+    }))
+    exportToExcel(dataToExport, `ECS_Company_List_${new Date().toISOString().split('T')[0]}`, 'Companies', 'ECS Ledger - Company List')
+    setShowDashboardActions(false)
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="flex flex-col h-full bg-gray-50 relative overflow-hidden" suppressHydrationWarning>
+      {/* Fixed Stats Grid */}
+      <div className="shrink-0 bg-gray-50 z-10 p-4 pb-0">
+        <div className="grid grid-cols-2 gap-3">
+          <StatCard label="Total Clients" value={stats?.totalClients ?? '-'} showCurrency={false} />
+          <StatCard label="Total Vendors" value={stats?.totalVendors ?? '-'} showCurrency={false} />
+          <StatCard label="Total Client Due" value={stats?.totalClientDue ?? '-'} valueColor="text-green-600" />
+          <StatCard label="Total Vendor Due" value={stats?.totalVendorDue ?? '-'} valueColor="text-ecs-red" />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        {/* Search Bar (Fixed) */}
+        <div className="relative mt-4 flex gap-2">
+          <input
+            type="text"
+            placeholder="Search companies..."
+            className="w-full pl-4 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ecs-gold"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <button
+            onClick={() => setShowDashboardActions(true)}
+            className="p-2 bg-white border border-gray-200 rounded-xl text-gray-500 hover:text-gray-900 active:bg-gray-50"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <MoreVertical className="w-5 h-5" />
+          </button>
         </div>
-      </main>
+      </div>
+
+      {/* Fixed Content Container (List Only) */}
+      <div className="flex-1 flex flex-col min-h-0 p-4 pb-20">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col h-full overflow-hidden">
+          <div className="shrink-0 px-4 py-3 border-b border-gray-100 bg-gray-50 flex justify-between items-center text-xs font-medium text-gray-500 uppercase tracking-widest z-10">
+            <span>Company</span>
+            <span>Due</span>
+          </div>
+          <ul className="flex-1 overflow-y-auto ios-scroll">
+            {companies.map((company, index) => (
+              <CompanyItem
+                key={company.id}
+                company={company}
+                index={index}
+                onLongPress={() => handleLongPress(company)}
+              />
+            ))}
+            {companies.length === 0 && (
+              <li className="p-8 text-center text-gray-400 text-sm">No companies found.</li>
+            )}
+          </ul>
+        </div>
+      </div>
+
+      {/* FAB */}
+      {/* FAB Wrapper to constrain width on desktop */}
+      <div className="fixed bottom-0 left-0 w-full flex justify-center pointer-events-none z-20">
+        <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl relative h-0">
+          <Link
+            href="/add-company"
+            className="absolute bottom-6 right-6 w-14 h-14 bg-ecs-blue text-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform pointer-events-auto"
+          >
+            <Plus className="w-6 h-6" />
+          </Link>
+        </div>
+      </div>
+
+      {/* Action Sheet */}
+      <ActionSheet
+        isOpen={isSheetOpen}
+        onClose={() => setIsSheetOpen(false)}
+        title={selectedCompany?.name}
+        actions={[
+          {
+            label: 'Edit Company',
+            icon: <Pencil className="w-5 h-5" />,
+            onClick: handleEditClick
+          },
+          {
+            label: 'Delete Company',
+            icon: <Trash2 className="w-5 h-5" />,
+            variant: 'danger',
+            onClick: handleDeleteClick
+          }
+        ]}
+      />
+
+      {/* Dashboard Actions Sheet */}
+      <ActionSheet
+        isOpen={showDashboardActions}
+        onClose={() => setShowDashboardActions(false)}
+        title="Dashboard Actions"
+        actions={[
+          {
+            label: 'Download Company List',
+            icon: <Download className="w-5 h-5" />,
+            onClick: handleExportCompanies
+          }
+        ]}
+      />
+
+      {/* Edit Modal (Simple inline implementation) */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white w-full max-w-sm rounded-2xl shadow-xl overflow-hidden animate-in zoom-in-95">
+            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h3 className="font-bold text-gray-900">Edit Company</h3>
+              <button onClick={() => setIsEditModalOpen(false)} className="text-gray-400 hover:text-gray-600">×</button>
+            </div>
+            <form onSubmit={handleUpdateCompany} className="p-4 space-y-3">
+              <input
+                className="w-full p-2 border rounded-lg text-sm"
+                placeholder="Company Name"
+                value={editForm.name}
+                onChange={e => setEditForm({ ...editForm, name: e.target.value })}
+                required
+              />
+              <input
+                className="w-full p-2 border rounded-lg text-sm"
+                placeholder="Address"
+                value={editForm.address || ''}
+                onChange={e => setEditForm({ ...editForm, address: e.target.value })}
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <input
+                  className="w-full p-2 border rounded-lg text-sm"
+                  placeholder="Ledger Link (URL)"
+                  value={editForm.ledgerLink || ''}
+                  onChange={e => setEditForm({ ...editForm, ledgerLink: e.target.value })}
+                />
+                <input
+                  className="w-full p-2 border rounded-lg text-sm"
+                  placeholder="Contact"
+                  value={editForm.contact || ''}
+                  onChange={e => setEditForm({ ...editForm, contact: e.target.value })}
+                />
+              </div>
+              <input
+                className="w-full p-2 border rounded-lg text-sm"
+                placeholder="Email"
+                value={editForm.email || ''}
+                onChange={e => setEditForm({ ...editForm, email: e.target.value })}
+              />
+              <button
+                type="submit"
+                disabled={saving}
+                className="w-full py-3 bg-ecs-blue text-white font-bold rounded-xl mt-2 active:scale-95 transition-transform"
+              >
+                {saving ? 'Saving...' : 'Save Changes'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
-  );
+  )
+}
+
+// Extracted for clean hook usage
+function CompanyItem({ company, index, onLongPress }: { company: CompanySummary, index: number, onLongPress: () => void }) {
+  // We need to carefully handle the click vs long press
+  const bind = useLongPress(() => {
+    onLongPress()
+  })
+
+  return (
+    <li className="border-b border-gray-50 last:border-0">
+      <Link
+        href={`/companies/${company.id}`}
+        {...bind}
+        className="flex items-center justify-between p-4 active:bg-gray-100 transition-colors cursor-pointer select-none"
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-gray-400 text-xs font-mono w-5 block">#{index + 1}</span>
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900">{company.name}</h3>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${company.type === 'CLIENT' ? 'bg-blue-50 text-ecs-blue' : 'bg-red-50 text-ecs-red'}`}>
+              {company.type}
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className={`text-sm font-bold ${company.amountDue > 0 ? 'text-ecs-red' : 'text-green-600'}`}>
+            ₹{(company.amountDue || 0).toLocaleString('en-IN')}
+          </span>
+        </div>
+      </Link>
+    </li>
+  )
 }

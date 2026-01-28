@@ -1,0 +1,141 @@
+[2026-01-27T10:31:24.066Z] POST /api/companies/[id]/documents hit
+[2026-01-27T10:31:24.067Z] ID received: 19
+[2026-01-27T10:31:24.070Z] Files count: 1
+[2026-01-27T10:31:24.071Z] Upload Dir: /Users/amit/Documents/ECS NEW/public/uploads/19
+[2026-01-27T10:31:24.076Z] Directory ensuring complete
+[2026-01-27T10:31:24.076Z] Processing file: OD Closure Request .pdf
+[2026-01-27T10:31:24.078Z] File written: /Users/amit/Documents/ECS NEW/public/uploads/19/1769509884077_od_closure_request_.pdf
+[2026-01-27T10:31:24.078Z] Error: Cannot read properties of undefined (reading 'create')
+[2026-01-27T10:31:24.078Z] Stack: TypeError: Cannot read properties of undefined (reading 'create')
+    at POST (/Users/amit/Documents/ECS NEW/.next/dev/server/chunks/[root-of-the-server]__9e2a935d._.js:411:169)
+    at async AppRouteRouteModule.do (/Users/amit/Documents/ECS NEW/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:37866)
+    at async AppRouteRouteModule.handle (/Users/amit/Documents/ECS NEW/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:45156)
+    at async responseGenerator (/Users/amit/Documents/ECS NEW/.next/dev/server/chunks/[root-of-the-server]__e8ff7e63._.js:15983:38)
+    at async AppRouteRouteModule.handleResponse (/Users/amit/Documents/ECS NEW/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:187713)
+    at async handleResponse (/Users/amit/Documents/ECS NEW/.next/dev/server/chunks/[root-of-the-server]__e8ff7e63._.js:16046:32)
+    at async Module.handler (/Users/amit/Documents/ECS NEW/.next/dev/server/chunks/[root-of-the-server]__e8ff7e63._.js:16099:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/amit/Documents/ECS NEW/node_modules/next/dist/server/base-server.js:1422:9)
+    at async DevServer.renderPageComponent (/Users/amit/Documents/ECS NEW/node_modules/next/dist/server/base-server.js:1474:24)
+    at async DevServer.renderToResponseImpl (/Users/amit/Documents/ECS NEW/node_modules/next/dist/server/base-server.js:1524:32)
+    at async DevServer.pipeImpl (/Users/amit/Documents/ECS NEW/node_modules/next/dist/server/base-server.js:1018:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/amit/Documents/ECS NEW/node_modules/next/dist/server/next-server.js:395:17)
+    at async DevServer.handleRequestImpl (/Users/amit/Documents/ECS NEW/node_modules/next/dist/server/base-server.js:909:17)
+    at async /Users/amit/Documents/ECS NEW/node_modules/next/dist/server/dev/next-dev-server.js:387:20
+    at async Span.traceAsyncFn (/Users/amit/Documents/ECS NEW/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/Users/amit/Documents/ECS NEW/node_modules/next/dist/server/dev/next-dev-server.js:383:24)
+    at async invokeRender (/Users/amit/Documents/ECS NEW/node_modules/next/dist/server/lib/router-server.js:248:21)
+    at async handleRequest (/Users/amit/Documents/ECS NEW/node_modules/next/dist/server/lib/router-server.js:447:24)
+    at async requestHandlerImpl (/Users/amit/Documents/ECS NEW/node_modules/next/dist/server/lib/router-server.js:496:13)
+    at async Server.requestListener (/Users/amit/Documents/ECS NEW/node_modules/next/dist/server/lib/start-server.js:226:13)
+[2026-01-27T10:32:03.265Z] POST /api/companies/[id]/documents hit
+[2026-01-27T10:32:03.267Z] ID received: 19
+[2026-01-27T10:32:03.272Z] Files count: 1
+[2026-01-27T10:32:03.272Z] Upload Dir: /Users/amit/Documents/ECS NEW/public/uploads/19
+[2026-01-27T10:32:03.273Z] Directory ensuring complete
+[2026-01-27T10:32:03.273Z] Processing file: Ground Floor Kitchen.pdf
+[2026-01-27T10:32:03.275Z] File written: /Users/amit/Documents/ECS NEW/public/uploads/19/1769509923274_ground_floor_kitchen.pdf
+[2026-01-27T10:32:03.286Z] Upload successful
+[2026-01-27T10:32:14.733Z] POST /api/companies/[id]/documents hit
+[2026-01-27T10:32:14.735Z] ID received: 19
+[2026-01-27T10:32:14.737Z] Files count: 1
+[2026-01-27T10:32:14.738Z] Upload Dir: /Users/amit/Documents/ECS NEW/public/uploads/19
+[2026-01-27T10:32:14.739Z] Directory ensuring complete
+[2026-01-27T10:32:14.739Z] Processing file: BEE PACKAGE CF  16-01-2026-II.pdf
+[2026-01-27T10:32:14.740Z] File written: /Users/amit/Documents/ECS NEW/public/uploads/19/1769509934740_bee_package_cf__16_01_2026_ii.pdf
+[2026-01-27T10:32:14.743Z] Upload successful
+[2026-01-28T08:29:53.347Z] POST /api/companies/[id]/documents hit
+[2026-01-28T08:29:53.348Z] ID received: 2
+[2026-01-28T08:29:53.355Z] Files count: 1
+[2026-01-28T08:29:53.356Z] Upload Dir: /Users/amit/Documents/ECS NEW/public/uploads/2
+[2026-01-28T08:29:53.357Z] Directory ensuring complete
+[2026-01-28T08:29:53.357Z] Processing file: IMG_7218.HEIC
+[2026-01-28T08:29:53.360Z] File written: /Users/amit/Documents/ECS NEW/public/uploads/2/1769588993358_img_7218.heic
+[2026-01-28T08:29:53.366Z] Upload successful
+[2026-01-28T08:30:11.337Z] POST /api/companies/[id]/documents hit
+[2026-01-28T08:30:11.338Z] ID received: 2
+[2026-01-28T08:30:11.366Z] Files count: 1
+[2026-01-28T08:30:11.368Z] Upload Dir: /Users/amit/Documents/ECS NEW/public/uploads/2
+[2026-01-28T08:30:11.370Z] Directory ensuring complete
+[2026-01-28T08:30:11.372Z] Processing file: Final_Brochure.pdf
+[2026-01-28T08:30:11.386Z] File written: /Users/amit/Documents/ECS NEW/public/uploads/2/1769589011377_final_brochure.pdf
+[2026-01-28T08:30:11.411Z] Upload successful
+[2026-01-28T08:35:25.141Z] POST /api/companies/[id]/documents hit
+[2026-01-28T08:35:25.144Z] ID received: 3
+[2026-01-28T08:35:25.147Z] Files count: 1
+[2026-01-28T08:35:25.148Z] Upload Dir: /Users/amit/Documents/ECS NEW/public/uploads/3
+[2026-01-28T08:35:25.149Z] Directory ensuring complete
+[2026-01-28T08:35:25.149Z] Processing file: 1 (8) Background Removed.png
+[2026-01-28T08:35:25.151Z] File written: /Users/amit/Documents/ECS NEW/public/uploads/3/1769589325150_1__8__background_removed.png
+[2026-01-28T08:35:25.154Z] Upload successful
+[2026-01-28T08:35:50.355Z] POST /api/companies/[id]/documents hit
+[2026-01-28T08:35:50.356Z] ID received: 3
+[2026-01-28T08:35:50.363Z] Files count: 1
+[2026-01-28T08:35:50.364Z] Upload Dir: /Users/amit/Documents/ECS NEW/public/uploads/3
+[2026-01-28T08:35:50.365Z] Directory ensuring complete
+[2026-01-28T08:35:50.365Z] Processing file: IMG_7219.HEIC
+[2026-01-28T08:35:50.369Z] File written: /Users/amit/Documents/ECS NEW/public/uploads/3/1769589350367_img_7219.heic
+[2026-01-28T08:35:50.372Z] Upload successful
+[2026-01-28T08:36:24.268Z] POST /api/companies/[id]/documents hit
+[2026-01-28T08:36:24.269Z] ID received: 2
+[2026-01-28T08:36:24.277Z] Files count: 1
+[2026-01-28T08:36:24.278Z] Upload Dir: /Users/amit/Documents/ECS NEW/public/uploads/2
+[2026-01-28T08:36:24.278Z] Directory ensuring complete
+[2026-01-28T08:36:24.279Z] Processing file: 1769588993358_img_7218.heic
+[2026-01-28T08:36:24.282Z] File written: /Users/amit/Documents/ECS NEW/public/uploads/2/1769589384280_1769588993358_img_7218.heic
+[2026-01-28T08:36:24.300Z] Upload successful
+[2026-01-28T08:37:10.356Z] POST /api/companies/[id]/documents hit
+[2026-01-28T08:37:10.358Z] ID received: 2
+[2026-01-28T08:37:10.366Z] Files count: 1
+[2026-01-28T08:37:10.367Z] Upload Dir: /Users/amit/Documents/ECS NEW/public/uploads/2
+[2026-01-28T08:37:10.368Z] Directory ensuring complete
+[2026-01-28T08:37:10.368Z] Processing file: IMG_7220.HEIC
+[2026-01-28T08:37:10.371Z] File written: /Users/amit/Documents/ECS NEW/public/uploads/2/1769589430370_img_7220.heic
+[2026-01-28T08:37:10.414Z] Upload successful
+[2026-01-28T09:06:53.769Z] POST /api/companies/[id]/documents hit
+[2026-01-28T09:06:53.772Z] ID received: 5
+[2026-01-28T09:06:53.779Z] Files count: 1
+[2026-01-28T09:06:53.780Z] Upload Dir: /Users/amit/Documents/ECS NEW/public/uploads/5
+[2026-01-28T09:06:53.781Z] Directory ensuring complete
+[2026-01-28T09:06:53.781Z] Processing file: IMG_7221.HEIC
+[2026-01-28T09:06:53.785Z] File written: /Users/amit/Documents/ECS NEW/public/uploads/5/1769591213783_img_7221.heic
+[2026-01-28T09:06:53.895Z] Upload successful
+[2026-01-28T10:32:57.452Z] POST /api/companies/[id]/documents hit
+[2026-01-28T10:32:57.454Z] ID received: 2
+[2026-01-28T10:32:57.458Z] Files count: 1
+[2026-01-28T10:32:57.458Z] Upload Dir: /Users/amit/Documents/ECS NEW/public/uploads/2
+[2026-01-28T10:32:57.459Z] Directory ensuring complete
+[2026-01-28T10:32:57.459Z] Processing file: 555_1979_reff2020.pdf
+[2026-01-28T10:32:57.460Z] File written: /Users/amit/Documents/ECS NEW/public/uploads/2/1769596377460_555_1979_reff2020.pdf
+[2026-01-28T10:32:57.546Z] Upload successful
+[2026-01-28T10:33:48.907Z] POST /api/companies/[id]/documents hit
+[2026-01-28T10:33:48.909Z] ID received: 2
+[2026-01-28T10:33:48.912Z] Files count: 1
+[2026-01-28T10:33:48.913Z] Upload Dir: /Users/amit/Documents/ECS NEW/public/uploads/2
+[2026-01-28T10:33:48.913Z] Directory ensuring complete
+[2026-01-28T10:33:48.914Z] Processing file: BEE PACKAGE CF  16-01-2026-II.pdf
+[2026-01-28T10:33:48.915Z] File written: /Users/amit/Documents/ECS NEW/public/uploads/2/1769596428914_bee_package_cf__16_01_2026_ii.pdf
+[2026-01-28T10:33:49.240Z] Upload successful
+[2026-01-28T10:39:12.681Z] POST /api/companies/[id]/documents hit
+[2026-01-28T10:39:12.683Z] ID received: 4
+[2026-01-28T10:39:12.704Z] Files count: 1
+[2026-01-28T10:39:12.705Z] Upload Dir: /Users/amit/Documents/ECS NEW/public/uploads/4
+[2026-01-28T10:39:12.706Z] Directory ensuring complete
+[2026-01-28T10:39:12.706Z] Processing file: 1769589430370_img_7220.heic
+[2026-01-28T10:39:12.713Z] File written: /Users/amit/Documents/ECS NEW/public/uploads/4/1769596752708_1769589430370_img_7220.heic
+[2026-01-28T10:39:12.739Z] Upload successful
+[2026-01-28T10:39:16.636Z] POST /api/companies/[id]/documents hit
+[2026-01-28T10:39:16.637Z] ID received: 4
+[2026-01-28T10:39:16.638Z] Files count: 1
+[2026-01-28T10:39:16.639Z] Upload Dir: /Users/amit/Documents/ECS NEW/public/uploads/4
+[2026-01-28T10:39:16.639Z] Directory ensuring complete
+[2026-01-28T10:39:16.640Z] Processing file: BEE PACKAGE CF  17-01-2026-II.pdf
+[2026-01-28T10:39:16.641Z] File written: /Users/amit/Documents/ECS NEW/public/uploads/4/1769596756640_bee_package_cf__17_01_2026_ii.pdf
+[2026-01-28T10:39:16.645Z] Upload successful
+[2026-01-28T10:39:22.550Z] POST /api/companies/[id]/documents hit
+[2026-01-28T10:39:22.550Z] ID received: 4
+[2026-01-28T10:39:22.553Z] Files count: 1
+[2026-01-28T10:39:22.555Z] Upload Dir: /Users/amit/Documents/ECS NEW/public/uploads/4
+[2026-01-28T10:39:22.555Z] Directory ensuring complete
+[2026-01-28T10:39:22.556Z] Processing file: 2nd Floor Living Area.pdf
+[2026-01-28T10:39:22.562Z] File written: /Users/amit/Documents/ECS NEW/public/uploads/4/1769596762560_2nd_floor_living_area.pdf
+[2026-01-28T10:39:22.565Z] Upload successful
