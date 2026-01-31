@@ -1,16 +1,13 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { Prisma, CompanyType } from '@/generated/client'
-
 export const dynamic = 'force-dynamic'
-
 export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url)
         const search = searchParams.get('search')
         const type = searchParams.get('type') // 'CLIENT' | 'VENDOR' | null
-
-        // Raw SQL for maximum performance (MySQL Version)
+        // UPDATED: Added c.createdAt and changed ORDER BY to ASC
         let query = `
             SELECT 
                 c.id, 
@@ -18,6 +15,7 @@ export async function GET(request: Request) {
                 c.type, 
                 c.ledgerLink,
                 c.updatedAt,
+                c.createdAt,
                 (SELECT COUNT(*) FROM Package p WHERE p.companyId = c.id) as packageCount,
                 (
                     SELECT COALESCE(SUM(ch.amount), 0)
@@ -40,23 +38,18 @@ export async function GET(request: Request) {
             FROM Company c
             WHERE 1=1
         `
-
         const params: any[] = []
-
         if (type) {
             query += ` AND c.type = ?`
             params.push(type)
         }
-
         if (search) {
             query += ` AND c.name LIKE ?`
             params.push(`%${search}%`)
         }
-
-        query += ` ORDER BY lastActivityTimestamp DESC`
-
+        // sort by OLDEST first so #1 is the first one you added
+        query += ` ORDER BY c.createdAt ASC`
         const companiesRaw = await prisma.$queryRawUnsafe(query, ...params) as any[]
-
         // Format for frontend
         const result = companiesRaw.map(c => ({
             id: c.id,
@@ -67,23 +60,19 @@ export async function GET(request: Request) {
             lastActivity: Number(c.lastActivityTimestamp),
             packageCount: Number(c.packageCount)
         }))
-
         return NextResponse.json(result)
     } catch (error: any) {
         console.error('Companies Error:', error)
         return NextResponse.json({ error: 'Failed to fetch companies', details: error.message }, { status: 500 })
     }
 }
-
 export async function POST(request: Request) {
     try {
         const body = await request.json()
         const { name, type, address, ledgerLink, director, contact, email } = body
-
         if (!name || !type) {
             return NextResponse.json({ error: 'Name and Type are required' }, { status: 400 })
         }
-
         const company = await prisma.company.create({
             data: {
                 name,
@@ -95,7 +84,6 @@ export async function POST(request: Request) {
                 email
             }
         })
-
         return NextResponse.json(company)
     } catch (error) {
         console.error('Create Company Error:', error)

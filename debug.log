@@ -139,3 +139,279 @@
 [2026-01-28T10:39:22.556Z] Processing file: 2nd Floor Living Area.pdf
 [2026-01-28T10:39:22.562Z] File written: /Users/amit/Documents/ECS NEW/public/uploads/4/1769596762560_2nd_floor_living_area.pdf
 [2026-01-28T10:39:22.565Z] Upload successful
+[2026-01-28T19:14:21.811Z] POST /api/companies/[id]/documents hit
+[2026-01-28T19:14:21.813Z] ID received: 1
+[2026-01-28T19:14:21.830Z] Files count: 1
+[2026-01-28T19:14:21.831Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/1
+[2026-01-28T19:14:21.832Z] Directory ensuring complete
+[2026-01-28T19:14:21.832Z] Processing file: IMG_7236.png
+[2026-01-28T19:14:21.844Z] File written: /var/www/ecs_ledger_jan26/public/uploads/1/1769627661841_img_7236.png
+[2026-01-28T19:14:21.857Z] Upload successful
+[2026-01-28T19:14:55.137Z] POST /api/companies/[id]/documents hit
+[2026-01-28T19:14:55.137Z] ID received: 1
+[2026-01-28T19:14:55.139Z] Files count: 1
+[2026-01-28T19:14:55.139Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/1
+[2026-01-28T19:14:55.139Z] Directory ensuring complete
+[2026-01-28T19:14:55.140Z] Processing file: IMG_7233.png
+[2026-01-28T19:14:55.141Z] File written: /var/www/ecs_ledger_jan26/public/uploads/1/1769627695140_img_7233.png
+[2026-01-28T19:14:55.156Z] Upload successful
+[2026-01-28T19:15:31.095Z] POST /api/companies/[id]/documents hit
+[2026-01-28T19:15:31.095Z] ID received: 1
+[2026-01-28T19:15:31.097Z] Files count: 1
+[2026-01-28T19:15:31.097Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/1
+[2026-01-28T19:15:31.097Z] Directory ensuring complete
+[2026-01-28T19:15:31.097Z] Processing file: image.jpg
+[2026-01-28T19:15:31.098Z] File written: /var/www/ecs_ledger_jan26/public/uploads/1/1769627731098_image.jpg
+[2026-01-28T19:15:31.105Z] Upload successful
+[2026-01-28T19:19:53.864Z] POST /api/companies/[id]/documents hit
+[2026-01-28T19:19:53.865Z] ID received: 1
+[2026-01-28T19:19:53.926Z] Files count: 1
+[2026-01-28T19:19:53.927Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/1
+[2026-01-28T19:19:53.927Z] Directory ensuring complete
+[2026-01-28T19:19:53.927Z] Processing file: IMG_7222.jpeg
+[2026-01-28T19:19:53.970Z] File written: /var/www/ecs_ledger_jan26/public/uploads/1/1769627993962_img_7222.jpeg
+[2026-01-28T19:19:54.003Z] Upload successful
+[2026-01-28T19:23:06.467Z] POST /api/companies/[id]/documents hit
+[2026-01-28T19:23:06.468Z] ID received: 2
+[2026-01-28T19:23:06.469Z] Files count: 1
+[2026-01-28T19:23:06.470Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/2
+[2026-01-28T19:23:06.470Z] Directory ensuring complete
+[2026-01-28T19:23:06.471Z] Processing file: Bamum.js
+[2026-01-28T19:23:06.472Z] File written: /var/www/ecs_ledger_jan26/public/uploads/2/1769628186471_bamum.js
+[2026-01-28T19:23:06.479Z] Upload successful
+[2026-01-28T19:55:52.310Z] POST /api/companies/[id]/documents hit
+[2026-01-28T19:55:52.320Z] ID received: 2
+[2026-01-28T19:55:52.336Z] Files count: 1
+[2026-01-28T19:55:52.337Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/2
+[2026-01-28T19:55:52.340Z] Directory ensuring complete
+[2026-01-28T19:55:52.342Z] Processing file: IMG_7222.jpeg
+[2026-01-28T19:55:52.358Z] File written: /var/www/ecs_ledger_jan26/public/uploads/2/1769630152353_img_7222.jpeg
+[2026-01-28T19:55:52.368Z] Upload successful
+[2026-01-28T19:56:55.497Z] POST /api/companies/[id]/documents hit
+[2026-01-28T19:56:55.516Z] ID received: 1
+[2026-01-28T19:56:55.798Z] Files count: 1
+[2026-01-28T19:56:55.818Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/1
+[2026-01-28T19:56:55.819Z] Directory ensuring complete
+[2026-01-28T19:56:55.819Z] Processing file: 32 Onetail.pdf
+[2026-01-28T19:56:55.980Z] File written: /var/www/ecs_ledger_jan26/public/uploads/1/1769630215823_32_onetail.pdf
+[2026-01-28T19:56:55.986Z] Upload successful
+[2026-01-29T07:34:56.992Z] POST /api/companies/[id]/documents hit
+[2026-01-29T07:34:57.034Z] ID received: 6
+[2026-01-29T07:34:57.330Z] Files count: 1
+[2026-01-29T07:34:57.345Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/6
+[2026-01-29T07:34:57.356Z] Directory ensuring complete
+[2026-01-29T07:34:57.356Z] Processing file: image.jpg
+[2026-01-29T07:34:57.492Z] File written: /var/www/ecs_ledger_jan26/public/uploads/6/1769672097426_image.jpg
+[2026-01-29T07:34:57.502Z] Upload successful
+[2026-01-29T07:44:44.771Z] POST /api/companies/[id]/documents hit
+[2026-01-29T07:44:44.788Z] ID received: 18
+[2026-01-29T07:44:44.838Z] Files count: 1
+[2026-01-29T07:44:44.853Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/18
+[2026-01-29T07:44:44.866Z] Directory ensuring complete
+[2026-01-29T07:44:44.867Z] Processing file: image.jpg
+[2026-01-29T07:44:44.925Z] File written: /var/www/ecs_ledger_jan26/public/uploads/18/1769672684869_image.jpg
+[2026-01-29T07:44:44.933Z] Upload successful
+[2026-01-29T08:01:35.369Z] POST /api/companies/[id]/documents hit
+[2026-01-29T08:01:35.370Z] ID received: 20
+[2026-01-29T08:01:35.374Z] Files count: 1
+[2026-01-29T08:01:35.375Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/20
+[2026-01-29T08:01:35.375Z] Directory ensuring complete
+[2026-01-29T08:01:35.375Z] Processing file: image.jpg
+[2026-01-29T08:01:35.382Z] File written: /var/www/ecs_ledger_jan26/public/uploads/20/1769673695376_image.jpg
+[2026-01-29T08:01:35.420Z] Upload successful
+[2026-01-29T08:09:05.860Z] POST /api/companies/[id]/documents hit
+[2026-01-29T08:09:05.862Z] ID received: 6
+[2026-01-29T08:09:05.882Z] Files count: 1
+[2026-01-29T08:09:05.882Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/6
+[2026-01-29T08:09:05.883Z] Directory ensuring complete
+[2026-01-29T08:09:05.883Z] Processing file: image.jpg
+[2026-01-29T08:09:05.903Z] File written: /var/www/ecs_ledger_jan26/public/uploads/6/1769674145889_image.jpg
+[2026-01-29T08:09:05.914Z] Upload successful
+[2026-01-29T08:10:12.434Z] POST /api/companies/[id]/documents hit
+[2026-01-29T08:10:12.434Z] ID received: 19
+[2026-01-29T08:10:12.442Z] Files count: 1
+[2026-01-29T08:10:12.455Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/19
+[2026-01-29T08:10:12.481Z] Directory ensuring complete
+[2026-01-29T08:10:12.496Z] Processing file: image.jpg
+[2026-01-29T08:10:12.544Z] File written: /var/www/ecs_ledger_jan26/public/uploads/19/1769674212523_image.jpg
+[2026-01-29T08:10:12.553Z] Upload successful
+[2026-01-29T08:31:10.170Z] POST /api/companies/[id]/documents hit
+[2026-01-29T08:31:10.234Z] ID received: 6
+[2026-01-29T08:31:10.349Z] Files count: 1
+[2026-01-29T08:31:10.363Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/6
+[2026-01-29T08:31:10.371Z] Directory ensuring complete
+[2026-01-29T08:31:10.371Z] Processing file: image.jpg
+[2026-01-29T08:31:10.378Z] File written: /var/www/ecs_ledger_jan26/public/uploads/6/1769675470372_image.jpg
+[2026-01-29T08:31:10.386Z] Upload successful
+[2026-01-29T08:51:23.008Z] POST /api/companies/[id]/documents hit
+[2026-01-29T08:51:23.014Z] ID received: 6
+[2026-01-29T08:51:23.021Z] Files count: 1
+[2026-01-29T08:51:23.022Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/6
+[2026-01-29T08:51:23.022Z] Directory ensuring complete
+[2026-01-29T08:51:23.022Z] Processing file: IMG_7233.png
+[2026-01-29T08:51:23.024Z] File written: /var/www/ecs_ledger_jan26/public/uploads/6/1769676683023_img_7233.png
+[2026-01-29T08:51:23.030Z] Upload successful
+[2026-01-29T08:51:36.089Z] POST /api/companies/[id]/documents hit
+[2026-01-29T08:51:36.090Z] ID received: 6
+[2026-01-29T08:51:36.092Z] Files count: 1
+[2026-01-29T08:51:36.092Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/6
+[2026-01-29T08:51:36.092Z] Directory ensuring complete
+[2026-01-29T08:51:36.093Z] Processing file: IMG_7222.jpeg
+[2026-01-29T08:51:36.100Z] File written: /var/www/ecs_ledger_jan26/public/uploads/6/1769676696094_img_7222.jpeg
+[2026-01-29T08:51:36.167Z] Upload successful
+[2026-01-29T08:56:51.428Z] POST /api/companies/[id]/documents hit
+[2026-01-29T08:56:51.429Z] ID received: 6
+[2026-01-29T08:56:51.443Z] Files count: 1
+[2026-01-29T08:56:51.458Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/6
+[2026-01-29T08:56:51.482Z] Directory ensuring complete
+[2026-01-29T08:56:51.497Z] Processing file: IMG_7232.png
+[2026-01-29T08:56:51.536Z] File written: /var/www/ecs_ledger_jan26/public/uploads/6/1769677011520_img_7232.png
+[2026-01-29T08:56:51.544Z] Upload successful
+[2026-01-29T08:57:52.702Z] POST /api/companies/[id]/documents hit
+[2026-01-29T08:57:52.711Z] ID received: 6
+[2026-01-29T08:57:53.297Z] Files count: 3
+[2026-01-29T08:57:53.323Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/6
+[2026-01-29T08:57:53.328Z] Directory ensuring complete
+[2026-01-29T08:57:53.328Z] Processing file: IMG_7222.jpeg
+[2026-01-29T08:57:53.332Z] File written: /var/www/ecs_ledger_jan26/public/uploads/6/1769677073329_img_7222.jpeg
+[2026-01-29T08:57:53.338Z] Processing file: IMG_7219.jpeg
+[2026-01-29T08:57:53.377Z] File written: /var/www/ecs_ledger_jan26/public/uploads/6/1769677073339_img_7219.jpeg
+[2026-01-29T08:57:53.384Z] Processing file: IMG_7220.jpeg
+[2026-01-29T08:57:53.452Z] File written: /var/www/ecs_ledger_jan26/public/uploads/6/1769677073385_img_7220.jpeg
+[2026-01-29T08:57:53.459Z] Upload successful
+[2026-01-29T11:09:42.650Z] POST /api/companies/[id]/documents hit
+[2026-01-29T11:09:42.653Z] ID received: 7
+[2026-01-29T11:09:42.910Z] Files count: 1
+[2026-01-29T11:09:42.925Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/7
+[2026-01-29T11:09:42.935Z] Directory ensuring complete
+[2026-01-29T11:09:42.935Z] Processing file: image.jpg
+[2026-01-29T11:09:42.949Z] File written: /var/www/ecs_ledger_jan26/public/uploads/7/1769684982941_image.jpg
+[2026-01-29T11:09:42.966Z] Upload successful
+[2026-01-29T14:58:11.376Z] POST /api/companies/[id]/documents hit
+[2026-01-29T14:58:11.378Z] ID received: 6
+[2026-01-29T14:58:11.382Z] Files count: 1
+[2026-01-29T14:58:11.383Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/6
+[2026-01-29T14:58:11.383Z] Directory ensuring complete
+[2026-01-29T14:58:11.383Z] Processing file: IMG_7219.jpeg
+[2026-01-29T14:58:11.395Z] File written: /var/www/ecs_ledger_jan26/public/uploads/6/1769698691384_img_7219.jpeg
+[2026-01-29T14:58:11.404Z] Upload successful
+[2026-01-29T14:58:25.437Z] POST /api/companies/[id]/documents hit
+[2026-01-29T14:58:25.439Z] ID received: 6
+[2026-01-29T14:58:25.441Z] Files count: 1
+[2026-01-29T14:58:25.441Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/6
+[2026-01-29T14:58:25.443Z] Directory ensuring complete
+[2026-01-29T14:58:25.443Z] Processing file: IMG_7236.png
+[2026-01-29T14:58:25.445Z] File written: /var/www/ecs_ledger_jan26/public/uploads/6/1769698705444_img_7236.png
+[2026-01-29T14:58:25.458Z] Upload successful
+[2026-01-29T15:24:34.349Z] POST /api/companies/[id]/documents hit
+[2026-01-29T15:24:34.354Z] ID received: 6
+[2026-01-29T15:24:34.356Z] Files count: 1
+[2026-01-29T15:24:34.356Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/6
+[2026-01-29T15:24:34.357Z] Directory ensuring complete
+[2026-01-29T15:24:34.357Z] Processing file: index.css
+[2026-01-29T15:24:34.358Z] File written: /var/www/ecs_ledger_jan26/public/uploads/6/1769700274357_index.css
+[2026-01-29T15:24:34.368Z] Upload successful
+[2026-01-29T15:25:33.341Z] POST /api/companies/[id]/documents hit
+[2026-01-29T15:25:33.342Z] ID received: 6
+[2026-01-29T15:25:33.345Z] Files count: 1
+[2026-01-29T15:25:33.346Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/6
+[2026-01-29T15:25:33.346Z] Directory ensuring complete
+[2026-01-29T15:25:33.346Z] Processing file: JVB NCs.pdf
+[2026-01-29T15:25:33.353Z] File written: /var/www/ecs_ledger_jan26/public/uploads/6/1769700333350_jvb_ncs.pdf
+[2026-01-29T15:25:33.363Z] Upload successful
+[2026-01-30T08:42:13.434Z] POST /api/companies/[id]/documents hit
+[2026-01-30T08:42:13.440Z] ID received: 47
+[2026-01-30T08:42:13.455Z] Files count: 1
+[2026-01-30T08:42:13.456Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/47
+[2026-01-30T08:42:13.458Z] Directory ensuring complete
+[2026-01-30T08:42:13.459Z] Processing file: BREEZA...jpg
+[2026-01-30T08:42:13.468Z] File written: /var/www/ecs_ledger_jan26/public/uploads/47/1769762533466_breeza...jpg
+[2026-01-30T08:42:13.485Z] Upload successful
+[2026-01-31T06:19:46.854Z] POST /api/companies/[id]/documents hit
+[2026-01-31T06:19:46.862Z] ID received: 26
+[2026-01-31T06:19:46.872Z] Files count: 1
+[2026-01-31T06:19:46.872Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/26
+[2026-01-31T06:19:46.875Z] Directory ensuring complete
+[2026-01-31T06:19:46.877Z] Processing file: 1769840325929277695095402565240.jpg
+[2026-01-31T06:19:46.885Z] File written: /var/www/ecs_ledger_jan26/public/uploads/26/1769840386884_1769840325929277695095402565240.jpg
+[2026-01-31T06:19:46.895Z] Upload successful
+[2026-01-31T09:01:21.048Z] POST /api/companies/[id]/documents hit
+[2026-01-31T09:01:21.052Z] ID received: 37
+[2026-01-31T09:01:21.112Z] Files count: 1
+[2026-01-31T09:01:21.128Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/37
+[2026-01-31T09:01:21.163Z] Directory ensuring complete
+[2026-01-31T09:01:21.170Z] Processing file: image.jpg
+[2026-01-31T09:01:21.174Z] File written: /var/www/ecs_ledger_jan26/public/uploads/37/1769850081172_image.jpg
+[2026-01-31T09:01:21.182Z] Upload successful
+[2026-01-31T09:01:57.510Z] POST /api/companies/[id]/documents hit
+[2026-01-31T09:01:57.511Z] ID received: 37
+[2026-01-31T09:01:57.513Z] Files count: 1
+[2026-01-31T09:01:57.515Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/37
+[2026-01-31T09:01:57.516Z] Directory ensuring complete
+[2026-01-31T09:01:57.516Z] Processing file: image.jpg
+[2026-01-31T09:01:57.519Z] File written: /var/www/ecs_ledger_jan26/public/uploads/37/1769850117518_image.jpg
+[2026-01-31T09:01:57.528Z] Upload successful
+[2026-01-31T09:02:17.598Z] POST /api/companies/[id]/documents hit
+[2026-01-31T09:02:17.599Z] ID received: 37
+[2026-01-31T09:02:17.604Z] Files count: 1
+[2026-01-31T09:02:17.605Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/37
+[2026-01-31T09:02:17.605Z] Directory ensuring complete
+[2026-01-31T09:02:17.605Z] Processing file: image.jpg
+[2026-01-31T09:02:17.615Z] File written: /var/www/ecs_ledger_jan26/public/uploads/37/1769850137613_image.jpg
+[2026-01-31T09:02:17.624Z] Upload successful
+[2026-01-31T09:02:35.642Z] POST /api/companies/[id]/documents hit
+[2026-01-31T09:02:35.643Z] ID received: 37
+[2026-01-31T09:02:35.644Z] Files count: 1
+[2026-01-31T09:02:35.645Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/37
+[2026-01-31T09:02:35.645Z] Directory ensuring complete
+[2026-01-31T09:02:35.645Z] Processing file: image.jpg
+[2026-01-31T09:02:35.657Z] File written: /var/www/ecs_ledger_jan26/public/uploads/37/1769850155654_image.jpg
+[2026-01-31T09:02:35.666Z] Upload successful
+[2026-01-31T09:02:56.155Z] POST /api/companies/[id]/documents hit
+[2026-01-31T09:02:56.156Z] ID received: 37
+[2026-01-31T09:02:56.157Z] Files count: 1
+[2026-01-31T09:02:56.157Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/37
+[2026-01-31T09:02:56.157Z] Directory ensuring complete
+[2026-01-31T09:02:56.157Z] Processing file: image.jpg
+[2026-01-31T09:02:56.167Z] File written: /var/www/ecs_ledger_jan26/public/uploads/37/1769850176164_image.jpg
+[2026-01-31T09:02:56.174Z] Upload successful
+[2026-01-31T09:03:11.288Z] POST /api/companies/[id]/documents hit
+[2026-01-31T09:03:11.288Z] ID received: 37
+[2026-01-31T09:03:11.295Z] Files count: 1
+[2026-01-31T09:03:11.295Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/37
+[2026-01-31T09:03:11.295Z] Directory ensuring complete
+[2026-01-31T09:03:11.296Z] Processing file: image.jpg
+[2026-01-31T09:03:11.327Z] File written: /var/www/ecs_ledger_jan26/public/uploads/37/1769850191313_image.jpg
+[2026-01-31T09:03:11.339Z] Upload successful
+[2026-01-31T09:23:46.083Z] POST /api/companies/[id]/documents hit
+[2026-01-31T09:23:46.085Z] ID received: 37
+[2026-01-31T09:23:46.086Z] Files count: 1
+[2026-01-31T09:23:46.086Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/37
+[2026-01-31T09:23:46.086Z] Directory ensuring complete
+[2026-01-31T09:23:46.087Z] Processing file: image.jpg
+[2026-01-31T09:23:46.088Z] File written: /var/www/ecs_ledger_jan26/public/uploads/37/1769851426087_image.jpg
+[2026-01-31T09:23:46.094Z] Upload successful
+[2026-01-31T09:24:05.655Z] POST /api/companies/[id]/documents hit
+[2026-01-31T09:24:05.655Z] ID received: 37
+[2026-01-31T09:24:05.656Z] Files count: 1
+[2026-01-31T09:24:05.657Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/37
+[2026-01-31T09:24:05.657Z] Directory ensuring complete
+[2026-01-31T09:24:05.657Z] Processing file: 1 (8) Background Removed.png
+[2026-01-31T09:24:05.658Z] File written: /var/www/ecs_ledger_jan26/public/uploads/37/1769851445657_1__8__background_removed.png
+[2026-01-31T09:24:05.664Z] Upload successful
+[2026-01-31T09:40:24.706Z] POST /api/companies/[id]/documents hit
+[2026-01-31T09:40:24.707Z] ID received: 37
+[2026-01-31T09:40:24.816Z] Files count: 1
+[2026-01-31T09:40:24.816Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/37
+[2026-01-31T09:40:24.816Z] Directory ensuring complete
+[2026-01-31T09:40:24.817Z] Processing file: 1769589430370_img_7220.heic
+[2026-01-31T09:40:24.882Z] File written: /var/www/ecs_ledger_jan26/public/uploads/37/1769852424830_1769589430370_img_7220.heic
+[2026-01-31T09:40:24.917Z] Upload successful
+[2026-01-31T10:31:26.110Z] POST /api/companies/[id]/documents hit
+[2026-01-31T10:31:26.112Z] ID received: 34
+[2026-01-31T10:31:26.134Z] Files count: 1
+[2026-01-31T10:31:26.135Z] Upload Dir: /var/www/ecs_ledger_jan26/public/uploads/34
+[2026-01-31T10:31:26.137Z] Directory ensuring complete
+[2026-01-31T10:31:26.137Z] Processing file: image.jpg
+[2026-01-31T10:31:26.150Z] File written: /var/www/ecs_ledger_jan26/public/uploads/34/1769855486148_image.jpg
+[2026-01-31T10:31:26.175Z] Upload successful

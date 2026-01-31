@@ -311,7 +311,6 @@ function CompanyItem({ company, index, onLongPress }: { company: CompanySummary,
         className="flex items-center justify-between p-4 active:bg-gray-100 transition-colors cursor-pointer select-none"
       >
         <div className="flex items-center gap-3">
-          <span className="text-gray-400 text-xs font-mono w-5 block">#{index + 1}</span>
           <div>
             <h3 className="text-sm font-semibold text-gray-900">{company.name}</h3>
             <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${company.type === 'CLIENT' ? 'bg-blue-50 text-ecs-blue' : 'bg-red-50 text-ecs-red'}`}>

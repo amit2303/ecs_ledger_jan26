@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { useLongPress } from '@/hooks/useLongPress'
 import { ActionSheet } from '@/components/ActionSheet'
 import { exportToExcel, exportCompanyFullReport } from '@/utils/exportToExcel'
+import imageCompression from 'browser-image-compression'
 
 interface Transaction {
     id: number
@@ -102,8 +103,32 @@ export default function CompanyDetail({ params }: { params: Promise<{ id: string
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files?.length) return
 
+        const options = {
+            maxSizeMB: 10,
+            maxWidthOrHeight: 1920,
+            useWebWorker: true,
+            initialQuality: 0.6
+        }
+
+        const compressedFiles: File[] = []
+        for (const file of Array.from(e.target.files)) {
+            if (file.type.startsWith('image/')) {
+                try {
+                    console.log(`Compressing ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)...`)
+                    const compressedFile = await imageCompression(file, options)
+                    console.log(`Compressed to ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`)
+                    compressedFiles.push(new File([compressedFile], file.name, { type: file.type }))
+                } catch (error) {
+                    console.error('Compression failed:', error)
+                    compressedFiles.push(file) // Fallback to original
+                }
+            } else {
+                compressedFiles.push(file)
+            }
+        }
+
         const formData = new FormData()
-        Array.from(e.target.files).forEach(file => {
+        compressedFiles.forEach(file => {
             formData.append('files', file)
         })
 

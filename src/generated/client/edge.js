@@ -175,7 +175,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/Users/amit/Documents/ECS NEW/src/generated/client",
+      "value": "/var/www/ecs_ledger_jan26/src/generated/client",
       "fromEnvVar": null
     },
     "config": {
@@ -184,12 +184,12 @@ const config = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "darwin-arm64",
+        "value": "debian-openssl-3.0.x",
         "native": true
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/Users/amit/Documents/ECS NEW/prisma/schema.prisma",
+    "sourceFilePath": "/var/www/ecs_ledger_jan26/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
@@ -203,7 +203,6 @@ const config = {
     "db"
   ],
   "activeProvider": "mysql",
-  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
