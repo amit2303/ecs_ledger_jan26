@@ -1306,11 +1306,13 @@ export namespace Prisma {
   export type PackageCountOutputType = {
     charges: number
     payments: number
+    documents: number
   }
 
   export type PackageCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     charges?: boolean | PackageCountOutputTypeCountChargesArgs
     payments?: boolean | PackageCountOutputTypeCountPaymentsArgs
+    documents?: boolean | PackageCountOutputTypeCountDocumentsArgs
   }
 
   // Custom InputTypes
@@ -1336,6 +1338,13 @@ export namespace Prisma {
    */
   export type PackageCountOutputTypeCountPaymentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: PaymentWhereInput
+  }
+
+  /**
+   * PackageCountOutputType without action
+   */
+  export type PackageCountOutputTypeCountDocumentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DocumentWhereInput
   }
 
 
@@ -2372,16 +2381,19 @@ export namespace Prisma {
   export type DocumentAvgAggregateOutputType = {
     id: number | null
     companyId: number | null
+    packageId: number | null
   }
 
   export type DocumentSumAggregateOutputType = {
     id: number | null
     companyId: number | null
+    packageId: number | null
   }
 
   export type DocumentMinAggregateOutputType = {
     id: number | null
     companyId: number | null
+    packageId: number | null
     url: string | null
     name: string | null
     type: string | null
@@ -2391,6 +2403,7 @@ export namespace Prisma {
   export type DocumentMaxAggregateOutputType = {
     id: number | null
     companyId: number | null
+    packageId: number | null
     url: string | null
     name: string | null
     type: string | null
@@ -2400,6 +2413,7 @@ export namespace Prisma {
   export type DocumentCountAggregateOutputType = {
     id: number
     companyId: number
+    packageId: number
     url: number
     name: number
     type: number
@@ -2411,16 +2425,19 @@ export namespace Prisma {
   export type DocumentAvgAggregateInputType = {
     id?: true
     companyId?: true
+    packageId?: true
   }
 
   export type DocumentSumAggregateInputType = {
     id?: true
     companyId?: true
+    packageId?: true
   }
 
   export type DocumentMinAggregateInputType = {
     id?: true
     companyId?: true
+    packageId?: true
     url?: true
     name?: true
     type?: true
@@ -2430,6 +2447,7 @@ export namespace Prisma {
   export type DocumentMaxAggregateInputType = {
     id?: true
     companyId?: true
+    packageId?: true
     url?: true
     name?: true
     type?: true
@@ -2439,6 +2457,7 @@ export namespace Prisma {
   export type DocumentCountAggregateInputType = {
     id?: true
     companyId?: true
+    packageId?: true
     url?: true
     name?: true
     type?: true
@@ -2534,7 +2553,8 @@ export namespace Prisma {
 
   export type DocumentGroupByOutputType = {
     id: number
-    companyId: number
+    companyId: number | null
+    packageId: number | null
     url: string
     name: string
     type: string
@@ -2563,17 +2583,20 @@ export namespace Prisma {
   export type DocumentSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     companyId?: boolean
+    packageId?: boolean
     url?: boolean
     name?: boolean
     type?: boolean
     createdAt?: boolean
-    company?: boolean | CompanyDefaultArgs<ExtArgs>
+    company?: boolean | Document$companyArgs<ExtArgs>
+    package?: boolean | Document$packageArgs<ExtArgs>
   }, ExtArgs["result"]["document"]>
 
 
   export type DocumentSelectScalar = {
     id?: boolean
     companyId?: boolean
+    packageId?: boolean
     url?: boolean
     name?: boolean
     type?: boolean
@@ -2581,17 +2604,20 @@ export namespace Prisma {
   }
 
   export type DocumentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    company?: boolean | CompanyDefaultArgs<ExtArgs>
+    company?: boolean | Document$companyArgs<ExtArgs>
+    package?: boolean | Document$packageArgs<ExtArgs>
   }
 
   export type $DocumentPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Document"
     objects: {
-      company: Prisma.$CompanyPayload<ExtArgs>
+      company: Prisma.$CompanyPayload<ExtArgs> | null
+      package: Prisma.$PackagePayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
-      companyId: number
+      companyId: number | null
+      packageId: number | null
       url: string
       name: string
       type: string
@@ -2936,7 +2962,8 @@ export namespace Prisma {
    */
   export interface Prisma__DocumentClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    company<T extends CompanyDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CompanyDefaultArgs<ExtArgs>>): Prisma__CompanyClient<$Result.GetResult<Prisma.$CompanyPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    company<T extends Document$companyArgs<ExtArgs> = {}>(args?: Subset<T, Document$companyArgs<ExtArgs>>): Prisma__CompanyClient<$Result.GetResult<Prisma.$CompanyPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    package<T extends Document$packageArgs<ExtArgs> = {}>(args?: Subset<T, Document$packageArgs<ExtArgs>>): Prisma__PackageClient<$Result.GetResult<Prisma.$PackagePayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2968,6 +2995,7 @@ export namespace Prisma {
   interface DocumentFieldRefs {
     readonly id: FieldRef<"Document", 'Int'>
     readonly companyId: FieldRef<"Document", 'Int'>
+    readonly packageId: FieldRef<"Document", 'Int'>
     readonly url: FieldRef<"Document", 'String'>
     readonly name: FieldRef<"Document", 'String'>
     readonly type: FieldRef<"Document", 'String'>
@@ -3268,6 +3296,36 @@ export namespace Prisma {
      * Filter which Documents to delete
      */
     where?: DocumentWhereInput
+  }
+
+  /**
+   * Document.company
+   */
+  export type Document$companyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Company
+     */
+    select?: CompanySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CompanyInclude<ExtArgs> | null
+    where?: CompanyWhereInput
+  }
+
+  /**
+   * Document.package
+   */
+  export type Document$packageArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Package
+     */
+    select?: PackageSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PackageInclude<ExtArgs> | null
+    where?: PackageWhereInput
   }
 
   /**
@@ -4345,6 +4403,7 @@ export namespace Prisma {
     company?: boolean | CompanyDefaultArgs<ExtArgs>
     charges?: boolean | Package$chargesArgs<ExtArgs>
     payments?: boolean | Package$paymentsArgs<ExtArgs>
+    documents?: boolean | Package$documentsArgs<ExtArgs>
     _count?: boolean | PackageCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["package"]>
 
@@ -4361,6 +4420,7 @@ export namespace Prisma {
     company?: boolean | CompanyDefaultArgs<ExtArgs>
     charges?: boolean | Package$chargesArgs<ExtArgs>
     payments?: boolean | Package$paymentsArgs<ExtArgs>
+    documents?: boolean | Package$documentsArgs<ExtArgs>
     _count?: boolean | PackageCountOutputTypeDefaultArgs<ExtArgs>
   }
 
@@ -4370,6 +4430,7 @@ export namespace Prisma {
       company: Prisma.$CompanyPayload<ExtArgs>
       charges: Prisma.$ChargePayload<ExtArgs>[]
       payments: Prisma.$PaymentPayload<ExtArgs>[]
+      documents: Prisma.$DocumentPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -4720,6 +4781,7 @@ export namespace Prisma {
     company<T extends CompanyDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CompanyDefaultArgs<ExtArgs>>): Prisma__CompanyClient<$Result.GetResult<Prisma.$CompanyPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     charges<T extends Package$chargesArgs<ExtArgs> = {}>(args?: Subset<T, Package$chargesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChargePayload<ExtArgs>, T, "findMany"> | Null>
     payments<T extends Package$paymentsArgs<ExtArgs> = {}>(args?: Subset<T, Package$paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findMany"> | Null>
+    documents<T extends Package$documentsArgs<ExtArgs> = {}>(args?: Subset<T, Package$documentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DocumentPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5090,6 +5152,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: PaymentScalarFieldEnum | PaymentScalarFieldEnum[]
+  }
+
+  /**
+   * Package.documents
+   */
+  export type Package$documentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Document
+     */
+    select?: DocumentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DocumentInclude<ExtArgs> | null
+    where?: DocumentWhereInput
+    orderBy?: DocumentOrderByWithRelationInput | DocumentOrderByWithRelationInput[]
+    cursor?: DocumentWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: DocumentScalarFieldEnum | DocumentScalarFieldEnum[]
   }
 
   /**
@@ -7004,6 +7086,7 @@ export namespace Prisma {
   export const DocumentScalarFieldEnum: {
     id: 'id',
     companyId: 'companyId',
+    packageId: 'packageId',
     url: 'url',
     name: 'name',
     type: 'type',
@@ -7214,22 +7297,26 @@ export namespace Prisma {
     OR?: DocumentWhereInput[]
     NOT?: DocumentWhereInput | DocumentWhereInput[]
     id?: IntFilter<"Document"> | number
-    companyId?: IntFilter<"Document"> | number
+    companyId?: IntNullableFilter<"Document"> | number | null
+    packageId?: IntNullableFilter<"Document"> | number | null
     url?: StringFilter<"Document"> | string
     name?: StringFilter<"Document"> | string
     type?: StringFilter<"Document"> | string
     createdAt?: DateTimeFilter<"Document"> | Date | string
-    company?: XOR<CompanyRelationFilter, CompanyWhereInput>
+    company?: XOR<CompanyNullableRelationFilter, CompanyWhereInput> | null
+    package?: XOR<PackageNullableRelationFilter, PackageWhereInput> | null
   }
 
   export type DocumentOrderByWithRelationInput = {
     id?: SortOrder
-    companyId?: SortOrder
+    companyId?: SortOrderInput | SortOrder
+    packageId?: SortOrderInput | SortOrder
     url?: SortOrder
     name?: SortOrder
     type?: SortOrder
     createdAt?: SortOrder
     company?: CompanyOrderByWithRelationInput
+    package?: PackageOrderByWithRelationInput
   }
 
   export type DocumentWhereUniqueInput = Prisma.AtLeast<{
@@ -7237,17 +7324,20 @@ export namespace Prisma {
     AND?: DocumentWhereInput | DocumentWhereInput[]
     OR?: DocumentWhereInput[]
     NOT?: DocumentWhereInput | DocumentWhereInput[]
-    companyId?: IntFilter<"Document"> | number
+    companyId?: IntNullableFilter<"Document"> | number | null
+    packageId?: IntNullableFilter<"Document"> | number | null
     url?: StringFilter<"Document"> | string
     name?: StringFilter<"Document"> | string
     type?: StringFilter<"Document"> | string
     createdAt?: DateTimeFilter<"Document"> | Date | string
-    company?: XOR<CompanyRelationFilter, CompanyWhereInput>
+    company?: XOR<CompanyNullableRelationFilter, CompanyWhereInput> | null
+    package?: XOR<PackageNullableRelationFilter, PackageWhereInput> | null
   }, "id">
 
   export type DocumentOrderByWithAggregationInput = {
     id?: SortOrder
-    companyId?: SortOrder
+    companyId?: SortOrderInput | SortOrder
+    packageId?: SortOrderInput | SortOrder
     url?: SortOrder
     name?: SortOrder
     type?: SortOrder
@@ -7264,7 +7354,8 @@ export namespace Prisma {
     OR?: DocumentScalarWhereWithAggregatesInput[]
     NOT?: DocumentScalarWhereWithAggregatesInput | DocumentScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter<"Document"> | number
-    companyId?: IntWithAggregatesFilter<"Document"> | number
+    companyId?: IntNullableWithAggregatesFilter<"Document"> | number | null
+    packageId?: IntNullableWithAggregatesFilter<"Document"> | number | null
     url?: StringWithAggregatesFilter<"Document"> | string
     name?: StringWithAggregatesFilter<"Document"> | string
     type?: StringWithAggregatesFilter<"Document"> | string
@@ -7332,6 +7423,7 @@ export namespace Prisma {
     company?: XOR<CompanyRelationFilter, CompanyWhereInput>
     charges?: ChargeListRelationFilter
     payments?: PaymentListRelationFilter
+    documents?: DocumentListRelationFilter
   }
 
   export type PackageOrderByWithRelationInput = {
@@ -7343,6 +7435,7 @@ export namespace Prisma {
     company?: CompanyOrderByWithRelationInput
     charges?: ChargeOrderByRelationAggregateInput
     payments?: PaymentOrderByRelationAggregateInput
+    documents?: DocumentOrderByRelationAggregateInput
   }
 
   export type PackageWhereUniqueInput = Prisma.AtLeast<{
@@ -7357,6 +7450,7 @@ export namespace Prisma {
     company?: XOR<CompanyRelationFilter, CompanyWhereInput>
     charges?: ChargeListRelationFilter
     payments?: PaymentListRelationFilter
+    documents?: DocumentListRelationFilter
   }, "id">
 
   export type PackageOrderByWithAggregationInput = {
@@ -7608,12 +7702,14 @@ export namespace Prisma {
     name: string
     type: string
     createdAt?: Date | string
-    company: CompanyCreateNestedOneWithoutDocumentsInput
+    company?: CompanyCreateNestedOneWithoutDocumentsInput
+    package?: PackageCreateNestedOneWithoutDocumentsInput
   }
 
   export type DocumentUncheckedCreateInput = {
     id?: number
-    companyId: number
+    companyId?: number | null
+    packageId?: number | null
     url: string
     name: string
     type: string
@@ -7625,12 +7721,14 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    company?: CompanyUpdateOneRequiredWithoutDocumentsNestedInput
+    company?: CompanyUpdateOneWithoutDocumentsNestedInput
+    package?: PackageUpdateOneWithoutDocumentsNestedInput
   }
 
   export type DocumentUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
-    companyId?: IntFieldUpdateOperationsInput | number
+    companyId?: NullableIntFieldUpdateOperationsInput | number | null
+    packageId?: NullableIntFieldUpdateOperationsInput | number | null
     url?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
@@ -7639,7 +7737,8 @@ export namespace Prisma {
 
   export type DocumentCreateManyInput = {
     id?: number
-    companyId: number
+    companyId?: number | null
+    packageId?: number | null
     url: string
     name: string
     type: string
@@ -7655,7 +7754,8 @@ export namespace Prisma {
 
   export type DocumentUncheckedUpdateManyInput = {
     id?: IntFieldUpdateOperationsInput | number
-    companyId?: IntFieldUpdateOperationsInput | number
+    companyId?: NullableIntFieldUpdateOperationsInput | number | null
+    packageId?: NullableIntFieldUpdateOperationsInput | number | null
     url?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
@@ -7715,6 +7815,7 @@ export namespace Prisma {
     company: CompanyCreateNestedOneWithoutPackagesInput
     charges?: ChargeCreateNestedManyWithoutPackageInput
     payments?: PaymentCreateNestedManyWithoutPackageInput
+    documents?: DocumentCreateNestedManyWithoutPackageInput
   }
 
   export type PackageUncheckedCreateInput = {
@@ -7725,6 +7826,7 @@ export namespace Prisma {
     createdAt?: Date | string
     charges?: ChargeUncheckedCreateNestedManyWithoutPackageInput
     payments?: PaymentUncheckedCreateNestedManyWithoutPackageInput
+    documents?: DocumentUncheckedCreateNestedManyWithoutPackageInput
   }
 
   export type PackageUpdateInput = {
@@ -7734,6 +7836,7 @@ export namespace Prisma {
     company?: CompanyUpdateOneRequiredWithoutPackagesNestedInput
     charges?: ChargeUpdateManyWithoutPackageNestedInput
     payments?: PaymentUpdateManyWithoutPackageNestedInput
+    documents?: DocumentUpdateManyWithoutPackageNestedInput
   }
 
   export type PackageUncheckedUpdateInput = {
@@ -7744,6 +7847,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     charges?: ChargeUncheckedUpdateManyWithoutPackageNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutPackageNestedInput
+    documents?: DocumentUncheckedUpdateManyWithoutPackageNestedInput
   }
 
   export type PackageCreateManyInput = {
@@ -8089,14 +8193,31 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
-  export type CompanyRelationFilter = {
-    is?: CompanyWhereInput
-    isNot?: CompanyWhereInput
+  export type IntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | null
+    notIn?: number[] | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
+  export type CompanyNullableRelationFilter = {
+    is?: CompanyWhereInput | null
+    isNot?: CompanyWhereInput | null
+  }
+
+  export type PackageNullableRelationFilter = {
+    is?: PackageWhereInput | null
+    isNot?: PackageWhereInput | null
   }
 
   export type DocumentCountOrderByAggregateInput = {
     id?: SortOrder
     companyId?: SortOrder
+    packageId?: SortOrder
     url?: SortOrder
     name?: SortOrder
     type?: SortOrder
@@ -8106,11 +8227,13 @@ export namespace Prisma {
   export type DocumentAvgOrderByAggregateInput = {
     id?: SortOrder
     companyId?: SortOrder
+    packageId?: SortOrder
   }
 
   export type DocumentMaxOrderByAggregateInput = {
     id?: SortOrder
     companyId?: SortOrder
+    packageId?: SortOrder
     url?: SortOrder
     name?: SortOrder
     type?: SortOrder
@@ -8120,6 +8243,7 @@ export namespace Prisma {
   export type DocumentMinOrderByAggregateInput = {
     id?: SortOrder
     companyId?: SortOrder
+    packageId?: SortOrder
     url?: SortOrder
     name?: SortOrder
     type?: SortOrder
@@ -8129,6 +8253,23 @@ export namespace Prisma {
   export type DocumentSumOrderByAggregateInput = {
     id?: SortOrder
     companyId?: SortOrder
+    packageId?: SortOrder
+  }
+
+  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | null
+    notIn?: number[] | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
   export type UserCountOrderByAggregateInput = {
@@ -8158,6 +8299,11 @@ export namespace Prisma {
 
   export type UserSumOrderByAggregateInput = {
     id?: SortOrder
+  }
+
+  export type CompanyRelationFilter = {
+    is?: CompanyWhereInput
+    isNot?: CompanyWhereInput
   }
 
   export type ChargeListRelationFilter = {
@@ -8438,12 +8584,38 @@ export namespace Prisma {
     connect?: CompanyWhereUniqueInput
   }
 
-  export type CompanyUpdateOneRequiredWithoutDocumentsNestedInput = {
+  export type PackageCreateNestedOneWithoutDocumentsInput = {
+    create?: XOR<PackageCreateWithoutDocumentsInput, PackageUncheckedCreateWithoutDocumentsInput>
+    connectOrCreate?: PackageCreateOrConnectWithoutDocumentsInput
+    connect?: PackageWhereUniqueInput
+  }
+
+  export type CompanyUpdateOneWithoutDocumentsNestedInput = {
     create?: XOR<CompanyCreateWithoutDocumentsInput, CompanyUncheckedCreateWithoutDocumentsInput>
     connectOrCreate?: CompanyCreateOrConnectWithoutDocumentsInput
     upsert?: CompanyUpsertWithoutDocumentsInput
+    disconnect?: CompanyWhereInput | boolean
+    delete?: CompanyWhereInput | boolean
     connect?: CompanyWhereUniqueInput
     update?: XOR<XOR<CompanyUpdateToOneWithWhereWithoutDocumentsInput, CompanyUpdateWithoutDocumentsInput>, CompanyUncheckedUpdateWithoutDocumentsInput>
+  }
+
+  export type PackageUpdateOneWithoutDocumentsNestedInput = {
+    create?: XOR<PackageCreateWithoutDocumentsInput, PackageUncheckedCreateWithoutDocumentsInput>
+    connectOrCreate?: PackageCreateOrConnectWithoutDocumentsInput
+    upsert?: PackageUpsertWithoutDocumentsInput
+    disconnect?: PackageWhereInput | boolean
+    delete?: PackageWhereInput | boolean
+    connect?: PackageWhereUniqueInput
+    update?: XOR<XOR<PackageUpdateToOneWithWhereWithoutDocumentsInput, PackageUpdateWithoutDocumentsInput>, PackageUncheckedUpdateWithoutDocumentsInput>
+  }
+
+  export type NullableIntFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
   }
 
   export type CompanyCreateNestedOneWithoutPackagesInput = {
@@ -8466,6 +8638,13 @@ export namespace Prisma {
     connect?: PaymentWhereUniqueInput | PaymentWhereUniqueInput[]
   }
 
+  export type DocumentCreateNestedManyWithoutPackageInput = {
+    create?: XOR<DocumentCreateWithoutPackageInput, DocumentUncheckedCreateWithoutPackageInput> | DocumentCreateWithoutPackageInput[] | DocumentUncheckedCreateWithoutPackageInput[]
+    connectOrCreate?: DocumentCreateOrConnectWithoutPackageInput | DocumentCreateOrConnectWithoutPackageInput[]
+    createMany?: DocumentCreateManyPackageInputEnvelope
+    connect?: DocumentWhereUniqueInput | DocumentWhereUniqueInput[]
+  }
+
   export type ChargeUncheckedCreateNestedManyWithoutPackageInput = {
     create?: XOR<ChargeCreateWithoutPackageInput, ChargeUncheckedCreateWithoutPackageInput> | ChargeCreateWithoutPackageInput[] | ChargeUncheckedCreateWithoutPackageInput[]
     connectOrCreate?: ChargeCreateOrConnectWithoutPackageInput | ChargeCreateOrConnectWithoutPackageInput[]
@@ -8478,6 +8657,13 @@ export namespace Prisma {
     connectOrCreate?: PaymentCreateOrConnectWithoutPackageInput | PaymentCreateOrConnectWithoutPackageInput[]
     createMany?: PaymentCreateManyPackageInputEnvelope
     connect?: PaymentWhereUniqueInput | PaymentWhereUniqueInput[]
+  }
+
+  export type DocumentUncheckedCreateNestedManyWithoutPackageInput = {
+    create?: XOR<DocumentCreateWithoutPackageInput, DocumentUncheckedCreateWithoutPackageInput> | DocumentCreateWithoutPackageInput[] | DocumentUncheckedCreateWithoutPackageInput[]
+    connectOrCreate?: DocumentCreateOrConnectWithoutPackageInput | DocumentCreateOrConnectWithoutPackageInput[]
+    createMany?: DocumentCreateManyPackageInputEnvelope
+    connect?: DocumentWhereUniqueInput | DocumentWhereUniqueInput[]
   }
 
   export type CompanyUpdateOneRequiredWithoutPackagesNestedInput = {
@@ -8516,6 +8702,20 @@ export namespace Prisma {
     deleteMany?: PaymentScalarWhereInput | PaymentScalarWhereInput[]
   }
 
+  export type DocumentUpdateManyWithoutPackageNestedInput = {
+    create?: XOR<DocumentCreateWithoutPackageInput, DocumentUncheckedCreateWithoutPackageInput> | DocumentCreateWithoutPackageInput[] | DocumentUncheckedCreateWithoutPackageInput[]
+    connectOrCreate?: DocumentCreateOrConnectWithoutPackageInput | DocumentCreateOrConnectWithoutPackageInput[]
+    upsert?: DocumentUpsertWithWhereUniqueWithoutPackageInput | DocumentUpsertWithWhereUniqueWithoutPackageInput[]
+    createMany?: DocumentCreateManyPackageInputEnvelope
+    set?: DocumentWhereUniqueInput | DocumentWhereUniqueInput[]
+    disconnect?: DocumentWhereUniqueInput | DocumentWhereUniqueInput[]
+    delete?: DocumentWhereUniqueInput | DocumentWhereUniqueInput[]
+    connect?: DocumentWhereUniqueInput | DocumentWhereUniqueInput[]
+    update?: DocumentUpdateWithWhereUniqueWithoutPackageInput | DocumentUpdateWithWhereUniqueWithoutPackageInput[]
+    updateMany?: DocumentUpdateManyWithWhereWithoutPackageInput | DocumentUpdateManyWithWhereWithoutPackageInput[]
+    deleteMany?: DocumentScalarWhereInput | DocumentScalarWhereInput[]
+  }
+
   export type ChargeUncheckedUpdateManyWithoutPackageNestedInput = {
     create?: XOR<ChargeCreateWithoutPackageInput, ChargeUncheckedCreateWithoutPackageInput> | ChargeCreateWithoutPackageInput[] | ChargeUncheckedCreateWithoutPackageInput[]
     connectOrCreate?: ChargeCreateOrConnectWithoutPackageInput | ChargeCreateOrConnectWithoutPackageInput[]
@@ -8542,6 +8742,20 @@ export namespace Prisma {
     update?: PaymentUpdateWithWhereUniqueWithoutPackageInput | PaymentUpdateWithWhereUniqueWithoutPackageInput[]
     updateMany?: PaymentUpdateManyWithWhereWithoutPackageInput | PaymentUpdateManyWithWhereWithoutPackageInput[]
     deleteMany?: PaymentScalarWhereInput | PaymentScalarWhereInput[]
+  }
+
+  export type DocumentUncheckedUpdateManyWithoutPackageNestedInput = {
+    create?: XOR<DocumentCreateWithoutPackageInput, DocumentUncheckedCreateWithoutPackageInput> | DocumentCreateWithoutPackageInput[] | DocumentUncheckedCreateWithoutPackageInput[]
+    connectOrCreate?: DocumentCreateOrConnectWithoutPackageInput | DocumentCreateOrConnectWithoutPackageInput[]
+    upsert?: DocumentUpsertWithWhereUniqueWithoutPackageInput | DocumentUpsertWithWhereUniqueWithoutPackageInput[]
+    createMany?: DocumentCreateManyPackageInputEnvelope
+    set?: DocumentWhereUniqueInput | DocumentWhereUniqueInput[]
+    disconnect?: DocumentWhereUniqueInput | DocumentWhereUniqueInput[]
+    delete?: DocumentWhereUniqueInput | DocumentWhereUniqueInput[]
+    connect?: DocumentWhereUniqueInput | DocumentWhereUniqueInput[]
+    update?: DocumentUpdateWithWhereUniqueWithoutPackageInput | DocumentUpdateWithWhereUniqueWithoutPackageInput[]
+    updateMany?: DocumentUpdateManyWithWhereWithoutPackageInput | DocumentUpdateManyWithWhereWithoutPackageInput[]
+    deleteMany?: DocumentScalarWhereInput | DocumentScalarWhereInput[]
   }
 
   export type PackageCreateNestedOneWithoutChargesInput = {
@@ -8733,6 +8947,33 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
+  export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | null
+    notIn?: number[] | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+
+  export type NestedFloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | null
+    notIn?: number[] | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
   export type NestedDecimalFilter<$PrismaModel = never> = {
     equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
     in?: Decimal[] | DecimalJsLike[] | number[] | string[]
@@ -8766,6 +9007,7 @@ export namespace Prisma {
     createdAt?: Date | string
     charges?: ChargeCreateNestedManyWithoutPackageInput
     payments?: PaymentCreateNestedManyWithoutPackageInput
+    documents?: DocumentCreateNestedManyWithoutPackageInput
   }
 
   export type PackageUncheckedCreateWithoutCompanyInput = {
@@ -8775,6 +9017,7 @@ export namespace Prisma {
     createdAt?: Date | string
     charges?: ChargeUncheckedCreateNestedManyWithoutPackageInput
     payments?: PaymentUncheckedCreateNestedManyWithoutPackageInput
+    documents?: DocumentUncheckedCreateNestedManyWithoutPackageInput
   }
 
   export type PackageCreateOrConnectWithoutCompanyInput = {
@@ -8792,10 +9035,12 @@ export namespace Prisma {
     name: string
     type: string
     createdAt?: Date | string
+    package?: PackageCreateNestedOneWithoutDocumentsInput
   }
 
   export type DocumentUncheckedCreateWithoutCompanyInput = {
     id?: number
+    packageId?: number | null
     url: string
     name: string
     type: string
@@ -8860,7 +9105,8 @@ export namespace Prisma {
     OR?: DocumentScalarWhereInput[]
     NOT?: DocumentScalarWhereInput | DocumentScalarWhereInput[]
     id?: IntFilter<"Document"> | number
-    companyId?: IntFilter<"Document"> | number
+    companyId?: IntNullableFilter<"Document"> | number | null
+    packageId?: IntNullableFilter<"Document"> | number | null
     url?: StringFilter<"Document"> | string
     name?: StringFilter<"Document"> | string
     type?: StringFilter<"Document"> | string
@@ -8899,6 +9145,30 @@ export namespace Prisma {
     create: XOR<CompanyCreateWithoutDocumentsInput, CompanyUncheckedCreateWithoutDocumentsInput>
   }
 
+  export type PackageCreateWithoutDocumentsInput = {
+    date: Date | string
+    description: string
+    createdAt?: Date | string
+    company: CompanyCreateNestedOneWithoutPackagesInput
+    charges?: ChargeCreateNestedManyWithoutPackageInput
+    payments?: PaymentCreateNestedManyWithoutPackageInput
+  }
+
+  export type PackageUncheckedCreateWithoutDocumentsInput = {
+    id?: number
+    companyId: number
+    date: Date | string
+    description: string
+    createdAt?: Date | string
+    charges?: ChargeUncheckedCreateNestedManyWithoutPackageInput
+    payments?: PaymentUncheckedCreateNestedManyWithoutPackageInput
+  }
+
+  export type PackageCreateOrConnectWithoutDocumentsInput = {
+    where: PackageWhereUniqueInput
+    create: XOR<PackageCreateWithoutDocumentsInput, PackageUncheckedCreateWithoutDocumentsInput>
+  }
+
   export type CompanyUpsertWithoutDocumentsInput = {
     update: XOR<CompanyUpdateWithoutDocumentsInput, CompanyUncheckedUpdateWithoutDocumentsInput>
     create: XOR<CompanyCreateWithoutDocumentsInput, CompanyUncheckedCreateWithoutDocumentsInput>
@@ -8935,6 +9205,36 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     packages?: PackageUncheckedUpdateManyWithoutCompanyNestedInput
+  }
+
+  export type PackageUpsertWithoutDocumentsInput = {
+    update: XOR<PackageUpdateWithoutDocumentsInput, PackageUncheckedUpdateWithoutDocumentsInput>
+    create: XOR<PackageCreateWithoutDocumentsInput, PackageUncheckedCreateWithoutDocumentsInput>
+    where?: PackageWhereInput
+  }
+
+  export type PackageUpdateToOneWithWhereWithoutDocumentsInput = {
+    where?: PackageWhereInput
+    data: XOR<PackageUpdateWithoutDocumentsInput, PackageUncheckedUpdateWithoutDocumentsInput>
+  }
+
+  export type PackageUpdateWithoutDocumentsInput = {
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    description?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    company?: CompanyUpdateOneRequiredWithoutPackagesNestedInput
+    charges?: ChargeUpdateManyWithoutPackageNestedInput
+    payments?: PaymentUpdateManyWithoutPackageNestedInput
+  }
+
+  export type PackageUncheckedUpdateWithoutDocumentsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    companyId?: IntFieldUpdateOperationsInput | number
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    description?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    charges?: ChargeUncheckedUpdateManyWithoutPackageNestedInput
+    payments?: PaymentUncheckedUpdateManyWithoutPackageNestedInput
   }
 
   export type CompanyCreateWithoutPackagesInput = {
@@ -9016,6 +9316,33 @@ export namespace Prisma {
 
   export type PaymentCreateManyPackageInputEnvelope = {
     data: PaymentCreateManyPackageInput | PaymentCreateManyPackageInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type DocumentCreateWithoutPackageInput = {
+    url: string
+    name: string
+    type: string
+    createdAt?: Date | string
+    company?: CompanyCreateNestedOneWithoutDocumentsInput
+  }
+
+  export type DocumentUncheckedCreateWithoutPackageInput = {
+    id?: number
+    companyId?: number | null
+    url: string
+    name: string
+    type: string
+    createdAt?: Date | string
+  }
+
+  export type DocumentCreateOrConnectWithoutPackageInput = {
+    where: DocumentWhereUniqueInput
+    create: XOR<DocumentCreateWithoutPackageInput, DocumentUncheckedCreateWithoutPackageInput>
+  }
+
+  export type DocumentCreateManyPackageInputEnvelope = {
+    data: DocumentCreateManyPackageInput | DocumentCreateManyPackageInput[]
     skipDuplicates?: boolean
   }
 
@@ -9113,12 +9440,29 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Payment"> | Date | string
   }
 
+  export type DocumentUpsertWithWhereUniqueWithoutPackageInput = {
+    where: DocumentWhereUniqueInput
+    update: XOR<DocumentUpdateWithoutPackageInput, DocumentUncheckedUpdateWithoutPackageInput>
+    create: XOR<DocumentCreateWithoutPackageInput, DocumentUncheckedCreateWithoutPackageInput>
+  }
+
+  export type DocumentUpdateWithWhereUniqueWithoutPackageInput = {
+    where: DocumentWhereUniqueInput
+    data: XOR<DocumentUpdateWithoutPackageInput, DocumentUncheckedUpdateWithoutPackageInput>
+  }
+
+  export type DocumentUpdateManyWithWhereWithoutPackageInput = {
+    where: DocumentScalarWhereInput
+    data: XOR<DocumentUpdateManyMutationInput, DocumentUncheckedUpdateManyWithoutPackageInput>
+  }
+
   export type PackageCreateWithoutChargesInput = {
     date: Date | string
     description: string
     createdAt?: Date | string
     company: CompanyCreateNestedOneWithoutPackagesInput
     payments?: PaymentCreateNestedManyWithoutPackageInput
+    documents?: DocumentCreateNestedManyWithoutPackageInput
   }
 
   export type PackageUncheckedCreateWithoutChargesInput = {
@@ -9128,6 +9472,7 @@ export namespace Prisma {
     description: string
     createdAt?: Date | string
     payments?: PaymentUncheckedCreateNestedManyWithoutPackageInput
+    documents?: DocumentUncheckedCreateNestedManyWithoutPackageInput
   }
 
   export type PackageCreateOrConnectWithoutChargesInput = {
@@ -9152,6 +9497,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneRequiredWithoutPackagesNestedInput
     payments?: PaymentUpdateManyWithoutPackageNestedInput
+    documents?: DocumentUpdateManyWithoutPackageNestedInput
   }
 
   export type PackageUncheckedUpdateWithoutChargesInput = {
@@ -9161,6 +9507,7 @@ export namespace Prisma {
     description?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     payments?: PaymentUncheckedUpdateManyWithoutPackageNestedInput
+    documents?: DocumentUncheckedUpdateManyWithoutPackageNestedInput
   }
 
   export type PackageCreateWithoutPaymentsInput = {
@@ -9169,6 +9516,7 @@ export namespace Prisma {
     createdAt?: Date | string
     company: CompanyCreateNestedOneWithoutPackagesInput
     charges?: ChargeCreateNestedManyWithoutPackageInput
+    documents?: DocumentCreateNestedManyWithoutPackageInput
   }
 
   export type PackageUncheckedCreateWithoutPaymentsInput = {
@@ -9178,6 +9526,7 @@ export namespace Prisma {
     description: string
     createdAt?: Date | string
     charges?: ChargeUncheckedCreateNestedManyWithoutPackageInput
+    documents?: DocumentUncheckedCreateNestedManyWithoutPackageInput
   }
 
   export type PackageCreateOrConnectWithoutPaymentsInput = {
@@ -9202,6 +9551,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     company?: CompanyUpdateOneRequiredWithoutPackagesNestedInput
     charges?: ChargeUpdateManyWithoutPackageNestedInput
+    documents?: DocumentUpdateManyWithoutPackageNestedInput
   }
 
   export type PackageUncheckedUpdateWithoutPaymentsInput = {
@@ -9211,6 +9561,7 @@ export namespace Prisma {
     description?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     charges?: ChargeUncheckedUpdateManyWithoutPackageNestedInput
+    documents?: DocumentUncheckedUpdateManyWithoutPackageNestedInput
   }
 
   export type PackageCreateManyCompanyInput = {
@@ -9222,6 +9573,7 @@ export namespace Prisma {
 
   export type DocumentCreateManyCompanyInput = {
     id?: number
+    packageId?: number | null
     url: string
     name: string
     type: string
@@ -9234,6 +9586,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     charges?: ChargeUpdateManyWithoutPackageNestedInput
     payments?: PaymentUpdateManyWithoutPackageNestedInput
+    documents?: DocumentUpdateManyWithoutPackageNestedInput
   }
 
   export type PackageUncheckedUpdateWithoutCompanyInput = {
@@ -9243,6 +9596,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     charges?: ChargeUncheckedUpdateManyWithoutPackageNestedInput
     payments?: PaymentUncheckedUpdateManyWithoutPackageNestedInput
+    documents?: DocumentUncheckedUpdateManyWithoutPackageNestedInput
   }
 
   export type PackageUncheckedUpdateManyWithoutCompanyInput = {
@@ -9257,10 +9611,12 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    package?: PackageUpdateOneWithoutDocumentsNestedInput
   }
 
   export type DocumentUncheckedUpdateWithoutCompanyInput = {
     id?: IntFieldUpdateOperationsInput | number
+    packageId?: NullableIntFieldUpdateOperationsInput | number | null
     url?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
@@ -9269,6 +9625,7 @@ export namespace Prisma {
 
   export type DocumentUncheckedUpdateManyWithoutCompanyInput = {
     id?: IntFieldUpdateOperationsInput | number
+    packageId?: NullableIntFieldUpdateOperationsInput | number | null
     url?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     type?: StringFieldUpdateOperationsInput | string
@@ -9288,6 +9645,15 @@ export namespace Prisma {
     date: Date | string
     description: string
     amount: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+  }
+
+  export type DocumentCreateManyPackageInput = {
+    id?: number
+    companyId?: number | null
+    url: string
+    name: string
+    type: string
     createdAt?: Date | string
   }
 
@@ -9334,6 +9700,32 @@ export namespace Prisma {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: StringFieldUpdateOperationsInput | string
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DocumentUpdateWithoutPackageInput = {
+    url?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    company?: CompanyUpdateOneWithoutDocumentsNestedInput
+  }
+
+  export type DocumentUncheckedUpdateWithoutPackageInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    companyId?: NullableIntFieldUpdateOperationsInput | number | null
+    url?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DocumentUncheckedUpdateManyWithoutPackageInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    companyId?: NullableIntFieldUpdateOperationsInput | number | null
+    url?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 

@@ -9,76 +9,74 @@ async function log(msg: string) {
     } catch { }
 }
 
-export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
+export async function POST(request: Request, props: { params: Promise<{ packageId: string }> }) {
     try {
-        await log('POST /api/companies/[id]/documents hit')
+        await log('POST /api/packages/[packageId]/documents hit')
 
-        // Handle params specifically for Next.js 15
         const params = await props.params
-        const id = params.id
-        await log(`ID received: ${id}`)
+        const packageId = parseInt(params.packageId)
+
+        if (isNaN(packageId)) {
+            return NextResponse.json({ error: 'Invalid Package ID' }, { status: 400 })
+        }
 
         const formData = await request.formData()
         const files = formData.getAll('files') as File[]
-        await log(`Files count: ${files?.length}`)
 
         if (!files || files.length === 0) {
-            await log('Error: No files uploaded')
             return NextResponse.json({ error: 'No files uploaded' }, { status: 400 })
         }
 
-        const companyId = parseInt(id)
-        if (isNaN(companyId)) {
-            await log('Error: Invalid Company ID')
-            return NextResponse.json({ error: 'Invalid Company ID' }, { status: 400 })
+        // Verify package exists
+        const pkg = await prisma.package.findUnique({ where: { id: packageId } })
+        if (!pkg) {
+            return NextResponse.json({ error: 'Package not found' }, { status: 404 })
         }
 
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads', id)
-        await log(`Upload Dir: ${uploadDir}`)
-
+        // Store in /public/uploads/packages/[packageId]
+        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'packages', params.packageId)
         await mkdir(uploadDir, { recursive: true })
-        await log('Directory ensuring complete')
 
         const savedDocuments = []
 
         for (const file of files) {
-            await log(`Processing file: ${file.name}`)
             const buffer = Buffer.from(await file.arrayBuffer())
-            // Sanitize filename and add timestamp
             const safeName = file.name.replace(/[^a-z0-9.]/gi, '_').toLowerCase()
             const fileName = `${Date.now()}_${safeName}`
             const filePath = path.join(uploadDir, fileName)
 
             await writeFile(filePath, buffer)
-            await log(`File written: ${filePath}`)
 
             const doc = await prisma.document.create({
                 data: {
-                    companyId,
+                    packageId,
                     name: file.name,
-                    url: `/uploads/${id}/${fileName}`,
-                    type: file.type || 'application/octet-stream' // simpler type storage
+                    url: `/uploads/packages/${params.packageId}/${fileName}`,
+                    type: file.type || 'application/octet-stream'
                 }
             })
             savedDocuments.push(doc)
         }
 
-        await log('Upload successful')
         return NextResponse.json(savedDocuments)
     } catch (error: any) {
         await log(`Error: ${error.message}`)
-        await log(`Stack: ${error.stack}`)
         console.error('Upload Error:', error)
         return NextResponse.json({ error: 'Failed to upload files', details: error.message }, { status: 500 })
     }
 }
 
-export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
+export async function GET(request: Request, props: { params: Promise<{ packageId: string }> }) {
     try {
         const params = await props.params
-        const id = params.id
+        const packageId = parseInt(params.packageId)
+
+        if (isNaN(packageId)) {
+            return NextResponse.json({ error: 'Invalid Package ID' }, { status: 400 })
+        }
+
         const documents = await prisma.document.findMany({
-            where: { companyId: parseInt(id) },
+            where: { packageId },
             orderBy: { createdAt: 'desc' }
         })
         return NextResponse.json(documents)

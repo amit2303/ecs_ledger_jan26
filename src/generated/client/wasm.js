@@ -135,6 +135,7 @@ exports.Prisma.CompanyScalarFieldEnum = {
 exports.Prisma.DocumentScalarFieldEnum = {
   id: 'id',
   companyId: 'companyId',
+  packageId: 'packageId',
   url: 'url',
   name: 'name',
   type: 'type',

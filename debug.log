@@ -415,3 +415,6 @@
 [2026-01-31T10:31:26.137Z] Processing file: image.jpg
 [2026-01-31T10:31:26.150Z] File written: /var/www/ecs_ledger_jan26/public/uploads/34/1769855486148_image.jpg
 [2026-01-31T10:31:26.175Z] Upload successful
+[2026-02-01T09:04:48.058Z] POST /api/packages/[packageId]/documents hit
+[2026-02-01T09:31:56.573Z] POST /api/packages/[packageId]/documents hit
+[2026-02-01T09:36:27.700Z] POST /api/packages/[packageId]/documents hit

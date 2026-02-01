@@ -31,8 +31,10 @@ model Company {
 
 model Document {
   id        Int      @id @default(autoincrement())
-  companyId Int
-  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyId Int?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  packageId Int?
+  package   Package? @relation(fields: [packageId], references: [id], onDelete: Cascade)
   url       String
   name      String
   type      String
@@ -54,6 +56,7 @@ model Package {
   description String
   charges     Charge[]
   payments    Payment[]
+  documents   Document[]
   createdAt   DateTime @default(now())
 }
 

@@ -1,13 +1,13 @@
 'use client'
 
 import { useEffect, useState, use, useRef } from 'react'
-import { ChevronLeft, Plus, ChevronRight, Pencil, Trash2, X, Save, Calendar, MoreVertical, Download, Upload, FileText, Image as ImageIcon, ArrowUpRight } from 'lucide-react'
+import { ChevronLeft, Plus, ChevronRight, Pencil, Trash2, X, Save, Calendar, MoreVertical, Download, ArrowUpRight, FileText } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useLongPress } from '@/hooks/useLongPress'
 import { ActionSheet } from '@/components/ActionSheet'
 import { exportToExcel, exportCompanyFullReport } from '@/utils/exportToExcel'
-import imageCompression from 'browser-image-compression'
+
 
 interface Transaction {
     id: number
@@ -32,7 +32,6 @@ interface CompanyDetail {
     netDue: number
     packages: Transaction[]
     payments: Transaction[]
-    documents?: { id: number; url: string; name: string; type: string }[]
 }
 
 export default function CompanyDetail({ params }: { params: Promise<{ id: string }> }) {
@@ -60,107 +59,19 @@ export default function CompanyDetail({ params }: { params: Promise<{ id: string
     const [isPkgEditModalOpen, setIsPkgEditModalOpen] = useState(false)
     const [pkgEditForm, setPkgEditForm] = useState({ description: '', date: '' })
 
-    // Document State
-    const fileInputRef = useRef<HTMLInputElement>(null)
 
-    // Document State & Handlers
-    const [selectedDoc, setSelectedDoc] = useState<any>(null)
-    const [showDocActions, setShowDocActions] = useState(false)
-
-    const handleDocLongPress = (doc: any) => {
-        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(50)
-        setSelectedDoc(doc)
-        setShowDocActions(true)
-    }
 
     // Company Action Sheet
     const [showCompanyActions, setShowCompanyActions] = useState(false)
 
     useEffect(() => {
         fetchData()
-        fetchDocuments()
+        fetchData()
     }, [id])
 
-    const fetchDocuments = async () => {
-        // This is now included in the main fetch if updating the API, 
-        // OR we can fetch separately. Since I didn't update the GET /api/companies/[id] to include documents relation yet, 
-        // I should probably do that OR fetch separately. 
-        // Actually, let's just create a separate fetch for documents to be cleaner, or reliance on the main company object if extended.
-        // Wait, I didn't verify if I need to update GET /api/companies/[id]. I should check.
-        // I'll stick to fetching documents separately for now to avoid breaking existing logic, or just update company state.
 
-        // Let's assume we will fetch documents from a new endpoint or the main one.
-        // For simplicity, let's adding a specific fetch for docs.
-        try {
-            const res = await fetch(`/api/companies/${id}/documents`)
-            if (res.ok) {
-                const docs = await res.json()
-                setCompany(prev => prev ? ({ ...prev, documents: docs }) : null)
-            }
-        } catch (e) { console.error(e) }
-    }
 
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files?.length) return
 
-        const options = {
-            maxSizeMB: 10,
-            maxWidthOrHeight: 1920,
-            useWebWorker: true,
-            initialQuality: 0.6
-        }
-
-        const compressedFiles: File[] = []
-        for (const file of Array.from(e.target.files)) {
-            if (file.type.startsWith('image/')) {
-                try {
-                    console.log(`Compressing ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)...`)
-                    const compressedFile = await imageCompression(file, options)
-                    console.log(`Compressed to ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`)
-                    compressedFiles.push(new File([compressedFile], file.name, { type: file.type }))
-                } catch (error) {
-                    console.error('Compression failed:', error)
-                    compressedFiles.push(file) // Fallback to original
-                }
-            } else {
-                compressedFiles.push(file)
-            }
-        }
-
-        const formData = new FormData()
-        compressedFiles.forEach(file => {
-            formData.append('files', file)
-        })
-
-        try {
-            const res = await fetch(`/api/companies/${id}/documents`, {
-                method: 'POST',
-                body: formData
-            })
-            if (!res.ok) {
-                const errorData = await res.json().catch(() => ({}))
-                throw new Error(errorData.details || errorData.error || 'Upload failed')
-            }
-
-            // Refresh documents
-            await fetchDocuments()
-            if (fileInputRef.current) fileInputRef.current.value = ''
-        } catch (err: any) {
-            console.error(err)
-            alert(`Failed to upload files: ${err.message}`)
-        }
-    }
-
-    const handleDeleteDocument = async (docId: number) => {
-        if (!confirm('Delete this file?')) return
-        try {
-            const res = await fetch(`/api/documents/${docId}`, { method: 'DELETE' })
-            if (!res.ok) throw new Error('Delete failed')
-            await fetchDocuments()
-        } catch (err) {
-            alert('Failed to delete file')
-        }
-    }
 
     const fetchData = async () => {
         try {
@@ -429,67 +340,7 @@ export default function CompanyDetail({ params }: { params: Promise<{ id: string
                 </div>
 
                 {/* Documents Section */}
-                <div>
-                    <div className="flex items-center justify-between mt-6 mb-3 px-1">
-                        <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Documents</h2>
-                        <button
-                            onClick={() => fileInputRef.current?.click()}
-                            className="flex items-center gap-1.5 text-xs font-bold text-ecs-blue bg-blue-50 px-3 py-1.5 rounded-full active:bg-blue-100 transition-colors"
-                        >
-                            <Upload className="w-3.5 h-3.5" />
-                            Upload
-                        </button>
-                    </div>
 
-                    <input
-                        type="file"
-                        multiple
-                        ref={fileInputRef}
-                        className="hidden"
-                        onChange={handleFileUpload}
-                    />
-
-                    <div className="space-y-2">
-                        {company.documents?.length === 0 && (
-                            <div className="text-center p-6 text-gray-400 text-sm bg-white rounded-xl border border-dashed border-gray-200">
-                                No documents attached.
-                            </div>
-                        )}
-                        {company.documents?.map((doc: any) => (
-                            <DocumentItem
-                                key={doc.id}
-                                doc={doc}
-                                onLongPress={() => handleDocLongPress(doc)}
-                                onDelete={() => handleDeleteDocument(doc.id)}
-                            />
-                        ))}
-                    </div>
-                </div>
-
-                <ActionSheet
-                    isOpen={showDocActions}
-                    onClose={() => setShowDocActions(false)}
-                    title={selectedDoc?.name}
-                    actions={[
-                        {
-                            label: 'View File',
-                            icon: <FileText className="w-5 h-5" />,
-                            onClick: () => {
-                                window.open(selectedDoc?.url, '_blank')
-                                setShowDocActions(false)
-                            }
-                        },
-                        {
-                            label: 'Delete File',
-                            icon: <Trash2 className="w-5 h-5" />,
-                            variant: 'danger',
-                            onClick: () => {
-                                if (selectedDoc) handleDeleteDocument(selectedDoc.id)
-                                setShowDocActions(false)
-                            }
-                        }
-                    ]}
-                />
 
                 {/* ... */}
 
@@ -654,39 +505,4 @@ function PackageItem({ pkg, companyId, onLongPress }: { pkg: any, companyId: num
     )
 }
 
-function DocumentItem({ doc, onLongPress, onDelete }: { doc: any, onLongPress: () => void, onDelete: () => void }) {
-    const bind = useLongPress(onLongPress, () => {
-        window.open(doc.url, '_blank')
-    })
 
-    return (
-        <div
-            {...bind}
-            className="flex items-center p-3 bg-white rounded-xl border border-gray-100 shadow-sm active:bg-gray-50 transition-colors cursor-pointer select-none touch-pan-y"
-        >
-            <div className="relative w-10 h-10 shrink-0 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-100">
-                {doc.type.includes('image') ? (
-                    <ImageIcon className="w-5 h-5 text-ecs-blue" />
-                ) : (
-                    <FileText className="w-5 h-5 text-gray-400" />
-                )}
-            </div>
-
-            <div className="flex-1 min-w-0 px-3">
-                <p className="text-sm font-medium text-gray-900 truncate">{doc.name}</p>
-                <p className="text-[10px] text-gray-400 mt-0.5 uppercase tracking-wide">{doc.type.split('/')[1] || 'FILE'}</p>
-            </div>
-
-            <button
-                onClick={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    onDelete()
-                }}
-                className="p-2 text-gray-400 hover:text-red-500 active:bg-red-50 rounded-full transition-colors"
-            >
-                <Trash2 className="w-4 h-4" />
-            </button>
-        </div>
-    )
-}
