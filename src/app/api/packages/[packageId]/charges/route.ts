@@ -21,8 +21,29 @@ export async function POST(request: Request, props: { params: Promise<{ packageI
                 description: description || 'Charge',
                 amount: Number(amount),
                 date: date ? new Date(date) : new Date(),
+                hasUpdates: true
             }
         })
+
+        // Get companyId from package
+        const pkg = await prisma.package.findUnique({
+            where: { id: packageId },
+            select: { companyId: true }
+        })
+
+        if (pkg) {
+            // Update Package hasUpdates
+            await prisma.package.update({
+                where: { id: packageId },
+                data: { hasUpdates: true }
+            })
+
+            // Update Company hasUpdates
+            await prisma.company.update({
+                where: { id: pkg.companyId },
+                data: { hasUpdates: true }
+            })
+        }
 
         return NextResponse.json(charge)
     } catch (error) {

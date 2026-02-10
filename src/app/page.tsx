@@ -28,6 +28,7 @@ interface CompanySummary {
   contact?: string
   email?: string
   packageCount?: number
+  hasUpdates?: boolean
 }
 
 export default function Home() {
@@ -140,6 +141,20 @@ export default function Home() {
     setShowDashboardActions(false)
   }
 
+  const handleResetUpdates = async () => {
+    if (!selectedCompany) return
+
+    try {
+      const res = await fetch(`/api/companies/${selectedCompany.id}/reset-updates`, { method: 'POST' })
+      if (res.ok) {
+        fetchCompanies()
+        setIsSheetOpen(false)
+      }
+    } catch (err) {
+      console.error('Failed to reset updates', err)
+    }
+  }
+
   return (
     <div className="flex flex-col h-full bg-gray-50 relative overflow-hidden" suppressHydrationWarning>
       {/* Fixed Stats Grid */}
@@ -211,6 +226,11 @@ export default function Home() {
         onClose={() => setIsSheetOpen(false)}
         title={selectedCompany?.name}
         actions={[
+          ...(selectedCompany?.hasUpdates ? [{
+            label: 'Updated in Diary',
+            icon: <div className="w-5 h-5 rounded-full border-2 border-gray-400 flex items-center justify-center"><div className="w-2 h-2 rounded-full bg-gray-400" /></div>,
+            onClick: handleResetUpdates
+          }] : []),
           {
             label: 'Edit Company',
             icon: <Pencil className="w-5 h-5" />,
@@ -312,7 +332,12 @@ function CompanyItem({ company, index, onLongPress }: { company: CompanySummary,
       >
         <div className="flex items-center gap-3">
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">{company.name}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-gray-900">{company.name}</h3>
+              {company.hasUpdates && (
+                <div className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
+              )}
+            </div>
             <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${company.type === 'CLIENT' ? 'bg-blue-50 text-ecs-blue' : 'bg-red-50 text-ecs-red'}`}>
               {company.type}
             </span>

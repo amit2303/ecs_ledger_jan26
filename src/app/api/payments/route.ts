@@ -16,8 +16,29 @@ export async function POST(request: Request) {
                 date: new Date(date),
                 description: description || '',
                 amount: Number(amount),
+                hasUpdates: true
             },
         })
+
+        // Get companyId from package
+        const pkg = await prisma.package.findUnique({
+            where: { id: Number(packageId) },
+            select: { companyId: true }
+        })
+
+        if (pkg) {
+            // Update Package hasUpdates
+            await prisma.package.update({
+                where: { id: Number(packageId) },
+                data: { hasUpdates: true }
+            })
+
+            // Update Company hasUpdates
+            await prisma.company.update({
+                where: { id: pkg.companyId },
+                data: { hasUpdates: true }
+            })
+        }
 
         return NextResponse.json(payment)
     } catch (error) {

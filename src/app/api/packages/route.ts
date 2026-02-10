@@ -15,7 +15,13 @@ export async function POST(request: Request) {
                 companyId: Number(companyId),
                 date: new Date(date),
                 description: description || '',
+                hasUpdates: true
             },
+        })
+
+        await prisma.company.update({
+            where: { id: Number(companyId) },
+            data: { hasUpdates: true }
         })
 
         return NextResponse.json(pkg)

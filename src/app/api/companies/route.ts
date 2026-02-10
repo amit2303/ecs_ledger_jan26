@@ -16,6 +16,7 @@ export async function GET(request: Request) {
                 c.ledgerLink,
                 c.updatedAt,
                 c.createdAt,
+                c.hasUpdates,
                 (SELECT COUNT(*) FROM Package p WHERE p.companyId = c.id) as packageCount,
                 (
                     SELECT COALESCE(SUM(ch.amount), 0)
@@ -58,7 +59,8 @@ export async function GET(request: Request) {
             ledgerLink: c.ledgerLink,
             amountDue: Number(c.totalCharges) - Number(c.totalPayments),
             lastActivity: Number(c.lastActivityTimestamp),
-            packageCount: Number(c.packageCount)
+            packageCount: Number(c.packageCount),
+            hasUpdates: Boolean(c.hasUpdates)
         }))
         return NextResponse.json(result)
     } catch (error: any) {

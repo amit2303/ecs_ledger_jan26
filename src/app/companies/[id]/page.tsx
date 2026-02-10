@@ -16,6 +16,7 @@ interface Transaction {
     amount?: number
     charges?: { amount: number }[]
     payments?: { amount: number }[]
+    hasUpdates?: boolean
 }
 
 interface CompanyDetail {
@@ -487,7 +488,12 @@ function PackageItem({ pkg, companyId, onLongPress }: { pkg: any, companyId: num
         >
             <div className="p-4 flex justify-between items-center">
                 <div className="flex-1 pr-4">
-                    <h3 className="text-sm font-bold text-gray-900">{pkg.description}</h3>
+                    <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-bold text-gray-900">{pkg.description}</h3>
+                        {pkg.hasUpdates && (
+                            <div className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
+                        )}
+                    </div>
                     <p className="text-xs text-gray-400 mt-0.5">{new Date(pkg.date).toLocaleDateString()}</p>
                 </div>
                 <div className="text-right flex items-center gap-3">

@@ -24,6 +24,7 @@ model Company {
   email     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  hasUpdates Boolean @default(false)
   
   packages  Package[]
   documents Document[]
@@ -58,6 +59,7 @@ model Package {
   payments    Payment[]
   documents   Document[]
   createdAt   DateTime @default(now())
+  hasUpdates  Boolean  @default(false)
 }
 
 model Charge {
@@ -68,6 +70,7 @@ model Charge {
   amount      Decimal
   date        DateTime @default(now())
   createdAt   DateTime @default(now())
+  hasUpdates  Boolean  @default(false)
 }
 
 model Payment {
@@ -78,4 +81,5 @@ model Payment {
   description String
   amount      Decimal
   createdAt   DateTime @default(now())
+  hasUpdates  Boolean  @default(false)
 }

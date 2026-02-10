@@ -15,6 +15,7 @@ interface Transaction {
     date: string
     description: string
     amount: number
+    hasUpdates?: boolean
 }
 
 interface PackageDetail {
@@ -867,7 +868,12 @@ function ChargeItem({ charge, onLongPress }: { charge: Transaction, onLongPress:
             className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex justify-between items-center group relative active:bg-gray-50 select-none cursor-pointer"
         >
             <div className="flex-1 min-w-0 pr-4">
-                <p className="text-sm font-bold text-gray-900 break-words">{charge.description}</p>
+                <div className="flex items-center gap-2">
+                    <p className="text-sm font-bold text-gray-900 break-words">{charge.description}</p>
+                    {charge.hasUpdates && (
+                        <div className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
+                    )}
+                </div>
             </div>
             <div className="flex items-center gap-3 shrink-0">
                 <span className={`font-bold ${Number(charge.amount) < 0 ? 'text-red-600' : 'text-ecs-blue'}`}>
@@ -887,7 +893,12 @@ function PaymentItem({ payment, onLongPress }: { payment: Transaction, onLongPre
             className="p-4 flex justify-between items-center group active:bg-gray-50 select-none cursor-pointer"
         >
             <div className="flex-1 min-w-0 pr-4">
-                <p className="text-sm font-bold text-gray-900 break-words">{payment.description}</p>
+                <div className="flex items-center gap-2">
+                    <p className="text-sm font-bold text-gray-900 break-words">{payment.description}</p>
+                    {payment.hasUpdates && (
+                        <div className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
+                    )}
+                </div>
                 <p className="text-xs text-gray-400 mt-0.5">{new Date(payment.date).toLocaleDateString()}</p>
             </div>
             <div className="flex items-center gap-3 shrink-0">

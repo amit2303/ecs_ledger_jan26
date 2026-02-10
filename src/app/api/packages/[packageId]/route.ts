@@ -39,8 +39,15 @@ export async function PUT(request: Request, props: { params: Promise<{ packageId
             where: { id: packageId },
             data: {
                 description,
-                date: date ? new Date(date) : undefined
+                date: date ? new Date(date) : undefined,
+                hasUpdates: true
             }
+        })
+
+        // Propagate update to Company
+        await prisma.company.update({
+            where: { id: updatedPackage.companyId },
+            data: { hasUpdates: true }
         })
 
         return NextResponse.json(updatedPackage)
@@ -78,6 +85,12 @@ export async function DELETE(request: Request, props: { params: Promise<{ packag
         }
 
         await prisma.package.delete({ where: { id: packageId } })
+
+        // Propagate update to Company
+        await prisma.company.update({
+            where: { id: pkg.companyId },
+            data: { hasUpdates: true }
+        })
 
         return NextResponse.json({ message: 'Package deleted successfully' })
     } catch (error) {

@@ -19,8 +19,20 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
             data: {
                 description,
                 amount: Number(amount),
-                date: date ? new Date(date) : undefined
-            }
+                date: date ? new Date(date) : undefined,
+                hasUpdates: true
+            },
+            include: { package: true }
+        })
+
+        // Propagate update to Package and Company
+        await prisma.package.update({
+            where: { id: updatedCharge.packageId },
+            data: { hasUpdates: true }
+        })
+        await prisma.company.update({
+            where: { id: updatedCharge.package.companyId },
+            data: { hasUpdates: true }
         })
 
         return NextResponse.json(updatedCharge)
@@ -36,7 +48,24 @@ export async function DELETE(request: Request, props: { params: Promise<{ id: st
         const id = parseInt(params.id)
         if (isNaN(id)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 })
 
+        const charge = await prisma.charge.findUnique({
+            where: { id },
+            include: { package: true }
+        })
+
+        if (!charge) return NextResponse.json({ error: 'Charge not found' }, { status: 404 })
+
         await prisma.charge.delete({ where: { id } })
+
+        // Propagate update to Package and Company
+        await prisma.package.update({
+            where: { id: charge.packageId },
+            data: { hasUpdates: true }
+        })
+        await prisma.company.update({
+            where: { id: charge.package.companyId },
+            data: { hasUpdates: true }
+        })
 
         return NextResponse.json({ message: 'Charge deleted successfully' })
     } catch (error) {

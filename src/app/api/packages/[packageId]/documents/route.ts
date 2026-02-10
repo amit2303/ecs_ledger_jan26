@@ -55,7 +55,30 @@ export async function POST(request: Request, props: { params: Promise<{ packageI
                     type: file.type || 'application/octet-stream'
                 }
             })
+
             savedDocuments.push(doc)
+        }
+
+        // Update company hasUpdates flag
+        if (savedDocuments.length > 0) {
+            const pkg = await prisma.package.findUnique({
+                where: { id: packageId },
+                select: { companyId: true }
+            })
+
+            if (pkg) {
+                // Update Package hasUpdates
+                await prisma.package.update({
+                    where: { id: packageId },
+                    data: { hasUpdates: true }
+                })
+
+                // Update Company hasUpdates
+                await prisma.company.update({
+                    where: { id: pkg.companyId },
+                    data: { hasUpdates: true }
+                })
+            }
         }
 
         return NextResponse.json(savedDocuments)
