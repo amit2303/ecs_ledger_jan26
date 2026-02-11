@@ -45,7 +45,7 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
     // Charge State
     const [showAddCharge, setShowAddCharge] = useState(false)
     const [editingChargeId, setEditingChargeId] = useState<number | null>(null)
-    const [chargeForm, setChargeForm] = useState({ description: '', amount: '' })
+    const [chargeForm, setChargeForm] = useState({ description: '', amount: '', date: new Date().toISOString().split('T')[0] })
     const [isDiscount, setIsDiscount] = useState(false)
     const [savingCharge, setSavingCharge] = useState(false)
 
@@ -162,7 +162,7 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                 body: JSON.stringify({
                     description: chargeForm.description,
                     amount: isDiscount ? -Math.abs(Number(chargeForm.amount)) : Math.abs(Number(chargeForm.amount)),
-                    date: new Date().toISOString()
+                    date: chargeForm.date ? new Date(chargeForm.date).toISOString() : new Date().toISOString()
                 })
             })
 
@@ -194,12 +194,16 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
         setEditingChargeId(charge.id)
         const amt = Number(charge.amount)
         setIsDiscount(amt < 0)
-        setChargeForm({ description: charge.description, amount: String(Math.abs(amt)) })
+        setChargeForm({
+            description: charge.description,
+            amount: String(Math.abs(amt)),
+            date: new Date(charge.date).toISOString().split('T')[0]
+        })
         setShowAddCharge(true)
     }
 
     const resetChargeForm = () => {
-        setChargeForm({ description: '', amount: '' })
+        setChargeForm({ description: '', amount: '', date: new Date().toISOString().split('T')[0] })
         setEditingChargeId(null)
         setIsDiscount(false)
         setShowAddCharge(false)
@@ -395,22 +399,34 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
     }
 
     return (
-        <div className="flex flex-col h-full bg-gray-50 relative overflow-hidden">
-            <header className="bg-white border-b border-gray-200 sticky top-0 z-10 shrink-0">
+        <div className="absolute inset-0 flex flex-col w-full h-full bg-gray-50 overflow-hidden">
+            <header className="bg-white border-b border-gray-200 shrink-0 z-10">
                 <div className="flex items-center gap-2 p-2">
                     <Link href={`/companies/${id}`} className="p-2 text-gray-500 hover:text-gray-900">
                         <ChevronLeft className="w-6 h-6" />
                     </Link>
                     <div className="flex-1 min-w-0">
                         {isEditingPkg ? (
-                            <input
-                                value={pkgEditForm.description}
-                                onChange={e => setPkgEditForm({ ...pkgEditForm, description: e.target.value })}
-                                className="w-full text-lg font-bold text-ecs-blue border-b border-ecs-blue outline-none"
-                                autoFocus
-                            />
+                            <div className="flex flex-col gap-1 w-full">
+                                <input
+                                    value={pkgEditForm.description}
+                                    onChange={e => setPkgEditForm({ ...pkgEditForm, description: e.target.value })}
+                                    className="w-full text-lg font-bold text-ecs-blue border-b border-ecs-blue outline-none bg-transparent"
+                                    autoFocus
+                                    placeholder="Description"
+                                />
+                                <input
+                                    type="date"
+                                    value={pkgEditForm.date}
+                                    onChange={e => setPkgEditForm({ ...pkgEditForm, date: e.target.value })}
+                                    className="w-full text-xs text-gray-500 border-b border-gray-200 outline-none bg-transparent py-1"
+                                />
+                            </div>
                         ) : (
-                            <h1 className="text-lg font-bold text-ecs-blue leading-tight truncate">{pkg.description}</h1>
+                            <>
+                                <h1 className="text-lg font-bold text-ecs-blue leading-tight truncate">{pkg.description}</h1>
+                                <p className="text-xs text-gray-400 mt-0.5">{pkg.date ? new Date(pkg.date).toLocaleDateString() : 'No Date'}</p>
+                            </>
                         )}
                     </div>
 
@@ -468,249 +484,257 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                 </div>
             </header>
 
-            <div className="flex-1 overflow-auto ios-scroll p-4">
-                {activeTab === 'AMOUNT' ? (
-                    <div className="space-y-4">
-                        <div className="space-y-3">
-                            {/* Add/Edit Charge Form */}
-                            {showAddCharge ? (
-                                <form onSubmit={handleSaveCharge} className="bg-white rounded-xl shadow-md border border-blue-100 p-4 space-y-3 animate-in fade-in zoom-in-95 duration-200">
-                                    <h3 className="text-sm font-bold text-gray-700 mb-2">{editingChargeId ? 'Edit Charge' : 'New Charge'}</h3>
-                                    <div>
-                                        <input
-                                            autoFocus
-                                            type="text"
-                                            placeholder="Description"
-                                            className="w-full px-3 py-3 border border-gray-200 rounded-lg text-base bg-gray-50 focus:bg-white focus:ring-2 focus:ring-ecs-gold outline-none transition-all"
-                                            value={chargeForm.description}
-                                            onChange={e => setChargeForm({ ...chargeForm, description: e.target.value })}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            placeholder="Amount"
-                                            className="w-full px-3 py-3 border border-gray-200 rounded-lg text-base bg-gray-50 focus:bg-white focus:ring-2 focus:ring-ecs-gold outline-none transition-all"
-                                            value={chargeForm.amount}
-                                            onChange={e => {
-                                                const val = e.target.value
-                                                if (Number(val) < 0) return
-                                                setChargeForm({ ...chargeForm, amount: val })
-                                            }}
-                                            required
-                                        />
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <input
-                                            type="checkbox"
-                                            id="isDiscount"
-                                            className="w-4 h-4 text-ecs-blue rounded focus:ring-ecs-blue"
-                                            checked={isDiscount}
-                                            onChange={e => setIsDiscount(e.target.checked)}
-                                        />
-                                        <label htmlFor="isDiscount" className="text-sm font-medium text-gray-700">Apply as Discount</label>
-                                    </div>
-                                    <div className="flex gap-2 pt-2">
-                                        <button
-                                            type="button"
-                                            onClick={resetChargeForm}
-                                            className="flex-1 py-2 text-sm font-semibold text-gray-500 bg-gray-100 rounded-lg active:bg-gray-200"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            type="submit"
-                                            disabled={savingCharge}
-                                            className="flex-1 py-2 text-sm font-semibold text-white bg-ecs-blue rounded-lg shadow active:scale-95 transition-all disabled:opacity-70 flex items-center justify-center gap-2"
-                                        >
-                                            {savingCharge ? 'Saving...' : <><Save className="w-4 h-4" /> Save</>}
-                                        </button>
-                                    </div>
-                                </form>
-                            ) : null}
-
-                            {/* Charges List */}
-                            {(pkg.charges || []).length === 0 ? (
-                                <p className="text-center text-sm text-gray-400 py-4 italic">No charges added yet.</p>
-                            ) : (
-                                <ul className="space-y-3">
-                                    {(pkg.charges || []).map((charge) => (
-                                        <ChargeItem
-                                            key={charge.id}
-                                            charge={charge}
-                                            onLongPress={() => handleChargeLongPress(charge)}
-                                        />
-                                    ))}
-                                </ul>
-                            )}
-                        </div>
-
-                        {/* Documents Section */}
-                        <div className="space-y-3 pt-4 border-t border-gray-100">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-gray-400 text-[10px] uppercase font-bold tracking-wider">Documents</h3>
-                                <button
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-ecs-blue rounded-lg text-xs font-bold active:bg-blue-100 transition-colors"
-                                >
-                                    <Upload className="w-3.5 h-3.5" />
-                                    Upload
-                                </button>
-                            </div>
-
-                            <input
-                                type="file"
-                                multiple
-                                ref={fileInputRef}
-                                className="hidden"
-                                onChange={handleFileUpload}
-                            />
-
-                            {documents.length === 0 ? (
-                                <div className="text-center p-6 text-gray-400 text-sm bg-white rounded-xl border border-dashed border-gray-200 flex flex-col items-center justify-center gap-2">
-                                    <p>No documents attached.</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-2">
-                                    {documents.map((doc: any) => (
-                                        <DocumentItem
-                                            key={doc.id}
-                                            doc={doc}
-                                            onLongPress={() => handleDocLongPress(doc)}
-                                            onDelete={() => handleDeleteDocument(doc.id)}
-                                            onPreview={(d) => {
-                                                if (d.type?.startsWith('image/')) {
-                                                    setPreviewDoc({ url: d.url, name: d.name })
-                                                } else {
-                                                    window.open(d.url, '_blank')
-                                                }
-                                            }}
-                                        />
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+            {/* Fixed Content Container */}
+            <div className="flex-1 flex flex-col min-h-0 p-4">
+                <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden">
+                    <div className="shrink-0 px-4 py-3 border-b border-gray-100 bg-gray-50 flex justify-between items-center text-xs font-medium text-gray-500 uppercase tracking-widest z-10">
+                        <span>Description</span>
+                        <span>Amount</span>
                     </div>
-                ) : (
-                    <div className="space-y-4">
-                        <div className="space-y-3">
-                            {/* Add Payment Form */}
-                            {showAddPayment ? (
-                                <form onSubmit={handleSavePayment} className="bg-white rounded-xl shadow-md border border-blue-100 p-4 space-y-3 animate-in fade-in zoom-in-95 duration-200">
-                                    <h3 className="text-sm font-bold text-gray-700 mb-2">{editingPaymentId ? 'Edit Payment' : 'New Payment'}</h3>
-                                    <div className="flex gap-2">
-                                        <div className="flex-1">
-                                            <input
-                                                type="date"
-                                                required
-                                                className="w-full px-3 py-3 border border-gray-200 rounded-lg text-base bg-gray-50 focus:bg-white focus:ring-2 focus:ring-ecs-gold outline-none transition-all"
-                                                value={paymentForm.date}
-                                                onChange={e => setPaymentForm({ ...paymentForm, date: e.target.value })}
-                                            />
+
+                    <div className="flex-1 overflow-y-auto ios-scroll pb-24">
+                        {activeTab === 'AMOUNT' ? (
+                            <div className="space-y-4">
+                                <div className="space-y-3">
+                                    {/* Add/Edit Charge Form */}
+                                    {showAddCharge ? (
+                                        <div className="px-4 pt-4">
+                                            <form onSubmit={handleSaveCharge} className="bg-white rounded-xl shadow-md border border-blue-100 p-4 space-y-3 animate-in fade-in zoom-in-95 duration-200">
+                                                <h3 className="text-sm font-bold text-gray-700 mb-2">{editingChargeId ? 'Edit Charge' : 'New Charge'}</h3>
+                                                <div className="space-y-3">
+                                                    <div>
+                                                        <input
+                                                            type="date"
+                                                            required
+                                                            className="w-full px-3 py-3 border border-gray-200 rounded-lg text-base bg-gray-50 focus:bg-white focus:ring-2 focus:ring-ecs-blue outline-none transition-all"
+                                                            value={chargeForm.date}
+                                                            onChange={e => setChargeForm({ ...chargeForm, date: e.target.value })}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <input
+                                                            type="number"
+                                                            min="0"
+                                                            placeholder="Amount"
+                                                            className="w-full px-3 py-3 border border-gray-200 rounded-lg text-base bg-gray-50 focus:bg-white focus:ring-2 focus:ring-ecs-blue outline-none transition-all"
+                                                            value={chargeForm.amount}
+                                                            onChange={e => {
+                                                                const val = e.target.value
+                                                                if (Number(val) < 0) return
+                                                                setChargeForm({ ...chargeForm, amount: val })
+                                                            }}
+                                                            required
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <input
+                                                        autoFocus
+                                                        type="text"
+                                                        placeholder="Description (optional)"
+                                                        className="w-full px-3 py-3 border border-gray-200 rounded-lg text-base bg-gray-50 focus:bg-white focus:ring-2 focus:ring-ecs-blue outline-none transition-all"
+                                                        value={chargeForm.description}
+                                                        onChange={e => setChargeForm({ ...chargeForm, description: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        type="checkbox"
+                                                        id="isDiscount"
+                                                        className="w-4 h-4 text-ecs-blue rounded focus:ring-ecs-blue"
+                                                        checked={isDiscount}
+                                                        onChange={e => setIsDiscount(e.target.checked)}
+                                                    />
+                                                    <label htmlFor="isDiscount" className="text-sm font-medium text-gray-700">Apply as Discount</label>
+                                                </div>
+                                                <div className="flex gap-2 pt-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={resetChargeForm}
+                                                        className="flex-1 py-2 text-sm font-semibold text-gray-500 bg-gray-100 rounded-lg active:bg-gray-200"
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                    <button
+                                                        type="submit"
+                                                        disabled={savingCharge}
+                                                        className="flex-1 py-2 text-sm font-semibold text-white bg-ecs-blue rounded-lg shadow active:scale-95 transition-all disabled:opacity-70 flex items-center justify-center gap-2"
+                                                    >
+                                                        {savingCharge ? 'Saving...' : <><Save className="w-4 h-4" /> Save</>}
+                                                    </button>
+                                                </div>
+                                            </form>
                                         </div>
-                                        <div className="flex-1">
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                placeholder="Amount"
-                                                className="w-full px-3 py-3 border border-gray-200 rounded-lg text-base bg-gray-50 focus:bg-white focus:ring-2 focus:ring-ecs-gold outline-none transition-all"
-                                                value={paymentForm.amount}
-                                                onChange={e => {
-                                                    const val = e.target.value
-                                                    if (Number(val) < 0) return
-                                                    setPaymentForm({ ...paymentForm, amount: val })
-                                                }}
-                                                required
-                                            />
+                                    ) : null}
+
+                                    {/* Charges List */}
+                                    {(pkg.charges || []).length === 0 ? (
+                                        <p className="text-center text-sm text-gray-400 py-4 italic">No charges added yet.</p>
+                                    ) : (
+                                        <ul className="divide-y divide-gray-50">
+                                            {(pkg.charges || []).map((charge) => (
+                                                <ChargeItem
+                                                    key={charge.id}
+                                                    charge={charge}
+                                                    onLongPress={() => handleChargeLongPress(charge)}
+                                                />
+                                            ))}
+                                        </ul>
+                                    )}
+                                </div>
+
+                                {/* Documents Section */}
+                                <div className="space-y-3 p-4 border-t border-gray-100">
+                                    <h3 className="text-gray-400 text-[10px] uppercase font-bold tracking-wider">Documents</h3>
+
+                                    <input
+                                        type="file"
+                                        multiple
+                                        ref={fileInputRef}
+                                        className="hidden"
+                                        onChange={handleFileUpload}
+                                    />
+
+                                    {documents.length === 0 ? (
+                                        <div className="text-center p-6 text-gray-400 text-sm bg-white rounded-xl border border-dashed border-gray-200 flex flex-col items-center justify-center gap-2">
+                                            <p>No documents attached.</p>
                                         </div>
-                                    </div>
+                                    ) : (
+                                        <div className="space-y-2">
+                                            {documents.map((doc: any) => (
+                                                <DocumentItem
+                                                    key={doc.id}
+                                                    doc={doc}
+                                                    onLongPress={() => handleDocLongPress(doc)}
+                                                    onDelete={() => handleDeleteDocument(doc.id)}
+                                                    onPreview={(d) => {
+                                                        if (d.type?.startsWith('image/')) {
+                                                            setPreviewDoc({ url: d.url, name: d.name })
+                                                        } else {
+                                                            window.open(d.url, '_blank')
+                                                        }
+                                                    }}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="space-y-3">
+                                    {/* Add Payment Form */}
+                                    {showAddPayment ? (
+                                        <div className="px-4 pt-4">
+                                            <form onSubmit={handleSavePayment} className="bg-white rounded-xl shadow-md border border-blue-100 p-4 space-y-3 animate-in fade-in zoom-in-95 duration-200">
+                                                <h3 className="text-sm font-bold text-gray-700 mb-2">{editingPaymentId ? 'Edit Payment' : 'New Payment'}</h3>
+                                                <div className="space-y-3">
+                                                    <div>
+                                                        <input
+                                                            type="date"
+                                                            required
+                                                            className="w-full px-3 py-3 border border-gray-200 rounded-lg text-base bg-gray-50 focus:bg-white focus:ring-2 focus:ring-ecs-blue outline-none transition-all"
+                                                            value={paymentForm.date}
+                                                            onChange={e => setPaymentForm({ ...paymentForm, date: e.target.value })}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <input
+                                                            type="number"
+                                                            min="0"
+                                                            placeholder="Amount"
+                                                            className="w-full px-3 py-3 border border-gray-200 rounded-lg text-base bg-gray-50 focus:bg-white focus:ring-2 focus:ring-ecs-blue outline-none transition-all"
+                                                            value={paymentForm.amount}
+                                                            onChange={e => {
+                                                                const val = e.target.value
+                                                                if (Number(val) < 0) return
+                                                                setPaymentForm({ ...paymentForm, amount: val })
+                                                            }}
+                                                            required
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <input
+                                                        autoFocus
+                                                        type="text"
+                                                        placeholder="Description (optional)"
+                                                        className="w-full px-3 py-3 border border-gray-200 rounded-lg text-base bg-gray-50 focus:bg-white focus:ring-2 focus:ring-ecs-blue outline-none transition-all"
+                                                        value={paymentForm.description}
+                                                        onChange={e => setPaymentForm({ ...paymentForm, description: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div className="flex gap-2 pt-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={resetPaymentForm}
+                                                        className="flex-1 py-2 text-sm font-semibold text-gray-500 bg-gray-100 rounded-lg active:bg-gray-200"
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                    <button
+                                                        type="submit"
+                                                        disabled={savingPayment}
+                                                        className="flex-1 py-2 text-sm font-semibold text-white bg-ecs-blue rounded-lg shadow active:scale-95 transition-all disabled:opacity-70 flex items-center justify-center gap-2"
+                                                    >
+                                                        {savingPayment ? 'Saving...' : <><Save className="w-4 h-4" /> Save</>}
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    ) : null}
+
                                     <div>
-                                        <input
-                                            autoFocus
-                                            type="text"
-                                            placeholder="Description (optional)"
-                                            className="w-full px-3 py-3 border border-gray-200 rounded-lg text-base bg-gray-50 focus:bg-white focus:ring-2 focus:ring-ecs-gold outline-none transition-all"
-                                            value={paymentForm.description}
-                                            onChange={e => setPaymentForm({ ...paymentForm, description: e.target.value })}
-                                        />
+                                        {pkg.payments.length === 0 ? (
+                                            <p className="text-center text-sm text-gray-400 py-8">No payments received yet.</p>
+                                        ) : (
+                                            <ul className="divide-y divide-gray-50">
+                                                {pkg.payments.map((pay) => (
+                                                    <PaymentItem
+                                                        key={pay.id}
+                                                        payment={pay}
+                                                        onLongPress={() => handlePaymentLongPress(pay)}
+                                                    />
+                                                ))}
+                                            </ul>
+                                        )}
                                     </div>
-                                    <div className="flex gap-2 pt-2">
-                                        <button
-                                            type="button"
-                                            onClick={resetPaymentForm}
-                                            className="flex-1 py-2 text-sm font-semibold text-gray-500 bg-gray-100 rounded-lg active:bg-gray-200"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            type="submit"
-                                            disabled={savingPayment}
-                                            className="flex-1 py-2 text-sm font-semibold text-white bg-ecs-blue rounded-lg shadow active:scale-95 transition-all disabled:opacity-70 flex items-center justify-center gap-2"
-                                        >
-                                            {savingPayment ? 'Saving...' : <><Save className="w-4 h-4" /> Save</>}
-                                        </button>
+                                </div>
+
+                                {/* Documents Section */}
+                                <div className="space-y-3 p-4 border-t border-gray-100">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-gray-400 text-[10px] uppercase font-bold tracking-wider">Documents</h3>
                                     </div>
-                                </form>
-                            ) : null}
 
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                                {pkg.payments.length === 0 ? (
-                                    <p className="text-center text-sm text-gray-400 py-8">No payments received yet.</p>
-                                ) : (
-                                    <ul className="divide-y divide-gray-50">
-                                        {pkg.payments.map((pay) => (
-                                            <PaymentItem
-                                                key={pay.id}
-                                                payment={pay}
-                                                onLongPress={() => handlePaymentLongPress(pay)}
-                                            />
-                                        ))}
-                                    </ul>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Documents Section */}
-                        <div className="space-y-3 pt-4 border-t border-gray-100">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-gray-400 text-[10px] uppercase font-bold tracking-wider">Documents</h3>
-                                <button
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-ecs-blue rounded-lg text-xs font-bold active:bg-blue-100 transition-colors"
-                                >
-                                    <Upload className="w-3.5 h-3.5" />
-                                    Upload
-                                </button>
-                            </div>
-
-                            {documents.length === 0 ? (
-                                <div className="text-center p-6 text-gray-400 text-sm bg-white rounded-xl border border-dashed border-gray-200 flex flex-col items-center justify-center gap-2">
-                                    <p>No documents attached.</p>
+                                    {documents.length === 0 ? (
+                                        <div className="text-center p-6 text-gray-400 text-sm bg-white rounded-xl border border-dashed border-gray-200 flex flex-col items-center justify-center gap-2">
+                                            <p>No documents attached.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-2">
+                                            {documents.map((doc: any) => (
+                                                <DocumentItem
+                                                    key={doc.id}
+                                                    doc={doc}
+                                                    onLongPress={() => handleDocLongPress(doc)}
+                                                    onDelete={() => handleDeleteDocument(doc.id)}
+                                                    onPreview={(d) => {
+                                                        if (d.type?.startsWith('image/')) {
+                                                            setPreviewDoc({ url: d.url, name: d.name })
+                                                        } else {
+                                                            window.open(d.url, '_blank')
+                                                        }
+                                                    }}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
-                            ) : (
-                                <div className="space-y-2">
-                                    {documents.map((doc: any) => (
-                                        <DocumentItem
-                                            key={doc.id}
-                                            doc={doc}
-                                            onLongPress={() => handleDocLongPress(doc)}
-                                            onDelete={() => handleDeleteDocument(doc.id)}
-                                            onPreview={(d) => {
-                                                if (d.type?.startsWith('image/')) {
-                                                    setPreviewDoc({ url: d.url, name: d.name })
-                                                } else {
-                                                    window.open(d.url, '_blank')
-                                                }
-                                            }}
-                                        />
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </div>
-                )}
+                </div>
             </div>
 
             {/* Package Actions Sheet */}
@@ -753,10 +777,17 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                 ]}
             />
 
-            {/* Floating Action Button (FAB) */}
+            {/* Floating Action Buttons */}
             <div className="fixed bottom-0 left-0 w-full flex justify-center pointer-events-none z-20">
                 <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl relative h-0">
                     <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="absolute bottom-6 left-6 w-14 h-14 bg-white text-ecs-blue border border-gray-200 rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform pointer-events-auto"
+                    >
+                        <Upload className="w-6 h-6" />
+                    </button>
+                    <button
+
                         onClick={() => {
                             if (activeTab === 'AMOUNT') {
                                 if (showAddCharge) {
@@ -865,7 +896,7 @@ function ChargeItem({ charge, onLongPress }: { charge: Transaction, onLongPress:
     return (
         <li
             {...bind}
-            className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex justify-between items-center group relative active:bg-gray-50 select-none cursor-pointer"
+            className="p-4 flex justify-between items-center group relative active:bg-gray-50 select-none cursor-pointer"
         >
             <div className="flex-1 min-w-0 pr-4">
                 <div className="flex items-center gap-2">

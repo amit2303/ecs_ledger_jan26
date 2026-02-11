@@ -53,13 +53,13 @@ export default function AddPackage({ params }: { params: Promise<{ id: string }>
                 <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 space-y-4">
                     <div>
                         <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Date</label>
-                        <input required type="date" className="w-full px-3 py-2 border border-blue-100 rounded-lg outline-none focus:ring-2 focus:ring-ecs-gold"
+                        <input required type="date" className="w-full px-3 py-2 border border-blue-100 rounded-lg outline-none focus:ring-2 focus:ring-ecs-blue"
                             value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })}
                         />
                     </div>
                     <div>
                         <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Package Name</label>
-                        <input required type="text" className="w-full px-3 py-2 border border-blue-100 rounded-lg outline-none focus:ring-2 focus:ring-ecs-gold"
+                        <input required autoFocus type="text" className="w-full px-3 py-2 border border-blue-100 rounded-lg outline-none focus:ring-2 focus:ring-ecs-blue"
                             value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })}
                         />
                     </div>

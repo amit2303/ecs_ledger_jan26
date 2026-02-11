@@ -26,7 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="bg-gray-100 h-screen text-gray-900 font-sans antialiased selection:bg-blue-100 overflow-hidden">
+      <body className="bg-gray-100 fixed inset-0 w-full h-full text-gray-900 font-sans antialiased selection:bg-blue-100 overflow-hidden">
         <main className="w-full h-full mx-auto bg-white shadow-xl flex flex-col relative md:max-w-md lg:max-w-lg xl:max-w-xl overflow-hidden">
           <GlobalHeader />
           <div className="flex-1 overflow-hidden relative flex flex-col">

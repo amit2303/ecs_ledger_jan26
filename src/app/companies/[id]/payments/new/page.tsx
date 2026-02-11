@@ -54,19 +54,19 @@ export default function AddPayment({ params }: { params: Promise<{ id: string }>
                 <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 space-y-4">
                     <div>
                         <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Amount</label>
-                        <input autoFocus required type="number" className="w-full px-3 py-2 border border-blue-100 rounded-lg text-lg font-semibold outline-none focus:ring-2 focus:ring-green-500"
+                        <input autoFocus required type="number" className="w-full px-3 py-2 border border-blue-100 rounded-lg text-lg font-semibold outline-none focus:ring-2 focus:ring-ecs-blue"
                             value={formData.amount} onChange={e => setFormData({ ...formData, amount: e.target.value })}
                         />
                     </div>
                     <div>
                         <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Date</label>
-                        <input required type="date" className="w-full px-3 py-2 border border-blue-100 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
+                        <input required type="date" className="w-full px-3 py-2 border border-blue-100 rounded-lg outline-none focus:ring-2 focus:ring-ecs-blue"
                             value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })}
                         />
                     </div>
                     <div>
                         <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Description</label>
-                        <input required type="text" className="w-full px-3 py-2 border border-blue-100 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
+                        <input required type="text" className="w-full px-3 py-2 border border-blue-100 rounded-lg outline-none focus:ring-2 focus:ring-ecs-blue"
                             value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })}
                         />
                     </div>

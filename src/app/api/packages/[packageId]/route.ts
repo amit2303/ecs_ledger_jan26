@@ -33,12 +33,10 @@ export async function PUT(request: Request, props: { params: Promise<{ packageId
         const body = await request.json()
         const { description, date } = body
 
-        if (!description) return NextResponse.json({ error: 'Description is required' }, { status: 400 })
-
         const updatedPackage = await prisma.package.update({
             where: { id: packageId },
             data: {
-                description,
+                description: description || '',
                 date: date ? new Date(date) : undefined,
                 hasUpdates: true
             }

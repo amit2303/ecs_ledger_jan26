@@ -320,151 +320,156 @@ export default function CompanyDetail({ params }: { params: Promise<{ id: string
                 )}
             </header>
 
-            <div className="flex-1 overflow-auto ios-scroll pb-24 p-4 space-y-4">
-                {/* Packages Section */}
-                <div>
-                    <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-1">Packages</h2>
-                    {company.packages.length === 0 ? (
-                        <div className="text-center p-8 text-gray-400 text-sm bg-white rounded-xl border border-dashed border-gray-200">No packages added.</div>
-                    ) : (
-                        <div className="space-y-3">
-                            {company.packages.map((pkg: any) => (
-                                <PackageItem
-                                    key={pkg.id}
-                                    pkg={pkg}
-                                    companyId={company.id}
-                                    onLongPress={() => handlePackageLongPress(pkg)}
-                                />
-                            ))}
+            {/* Content Container with bottom padding for FAB */}
+            <div className="flex-1 flex flex-col min-h-0 p-4 pb-24">
+                <div className="flex-1 overflow-y-auto ios-scroll space-y-4">
+                    {/* Packages Section */}
+                    {/* Packages Section */}
+                    <div className="flex-1 flex flex-col min-h-0 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div className="shrink-0 px-4 py-3 border-b border-gray-100 bg-gray-50 flex justify-between items-center text-xs font-medium text-gray-500 uppercase tracking-widest z-10">
+                            <span>Package</span>
+                            <span>Amount</span>
                         </div>
-                    )}
-                </div>
 
-                {/* Documents Section */}
-
-
-                {/* ... */}
-
-                <div className="fixed bottom-0 left-0 w-full flex justify-center pointer-events-none z-20">
-                    <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl relative h-0">
-                        <Link
-                            href={`/companies/${id}/packages/new`}
-                            className="absolute bottom-6 right-6 w-14 h-14 bg-ecs-blue text-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform pointer-events-auto"
-                        >
-                            <Plus className="w-6 h-6" />
-                        </Link>
+                        <div className="flex-1 overflow-y-auto ios-scroll">
+                            {company.packages.length === 0 ? (
+                                <div className="text-center p-8 text-gray-400 text-sm">No packages added.</div>
+                            ) : (
+                                <div className="divide-y divide-gray-50">
+                                    {company.packages.map((pkg: any) => (
+                                        <PackageItem
+                                            key={pkg.id}
+                                            pkg={pkg}
+                                            companyId={company.id}
+                                            onLongPress={() => handlePackageLongPress(pkg)}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <ActionSheet
-                    isOpen={isSheetOpen}
-                    onClose={() => setIsSheetOpen(false)}
-                    title={selectedPackage?.description}
-                    actions={[
-                        {
-                            label: 'Edit Package',
-                            icon: <Pencil className="w-5 h-5" />,
-                            onClick: handleEditPackageClick
-                        },
-                        {
-                            label: 'Delete Package',
-                            icon: <Trash2 className="w-5 h-5" />,
-                            variant: 'danger',
-                            onClick: handleDeletePackageClick
+            {/* FAB */}
+            <div className="fixed bottom-0 left-0 w-full flex justify-center pointer-events-none z-20">
+                <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl relative h-0">
+                    <Link
+                        href={`/companies/${id}/packages/new`}
+                        className="absolute bottom-6 right-6 w-14 h-14 bg-ecs-blue text-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform pointer-events-auto"
+                    >
+                        <Plus className="w-6 h-6" />
+                    </Link>
+                </div>
+            </div>
+
+            <ActionSheet
+                isOpen={isSheetOpen}
+                onClose={() => setIsSheetOpen(false)}
+                title={selectedPackage?.description}
+                actions={[
+                    {
+                        label: 'Edit Package',
+                        icon: <Pencil className="w-5 h-5" />,
+                        onClick: handleEditPackageClick
+                    },
+                    {
+                        label: 'Delete Package',
+                        icon: <Trash2 className="w-5 h-5" />,
+                        variant: 'danger',
+                        onClick: handleDeletePackageClick
+                    }
+                ]}
+            />
+
+            {/* Company Actions Sheet */}
+            <ActionSheet
+                isOpen={showCompanyActions}
+                onClose={() => setShowCompanyActions(false)}
+                title={company.name}
+                actions={[
+                    {
+                        label: 'Edit Company',
+                        icon: <Pencil className="w-5 h-5" />,
+                        onClick: () => {
+                            setShowCompanyActions(false)
+                            setIsEditing(true)
                         }
-                    ]}
-                />
-
-                {/* Company Actions Sheet */}
-                <ActionSheet
-                    isOpen={showCompanyActions}
-                    onClose={() => setShowCompanyActions(false)}
-                    title={company.name}
-                    actions={[
-                        {
-                            label: 'Edit Company',
-                            icon: <Pencil className="w-5 h-5" />,
-                            onClick: () => {
-                                setShowCompanyActions(false)
-                                setIsEditing(true)
-                            }
-                        },
-                        {
-                            label: 'Download Packages',
-                            icon: <Download className="w-5 h-5" />,
-                            onClick: () => {
-                                if (!company || !company.packages) return
-                                const data = company.packages.map((p: any) => ({
-                                    'Description': p.description,
-                                    'Amount': p.amount,
-                                    'Net Due': p.netDue,
-                                    'Total Paid': p.amount - p.netDue,
-                                    'Status': p.netDue > 0 ? 'Pending' : 'Paid',
-                                    'Created At': new Date(p.date || Date.now()).toLocaleDateString()
-                                }))
-                                exportToExcel(data, `${company.name}_Packages_${new Date().toISOString().split('T')[0]}`, 'Packages', `${company.name} - Packages List`)
-                                setShowCompanyActions(false)
-                            }
-                        },
-                        {
-                            label: 'Download Full Report',
-                            icon: <FileText className="w-5 h-5" />,
-                            onClick: () => {
-                                if (!company || !company.packages) return
-                                exportCompanyFullReport(company.name, company.packages as any)
-                                setShowCompanyActions(false)
-                            }
-                        },
-                        {
-                            label: 'Delete Company',
-                            icon: <Trash2 className="w-5 h-5" />,
-                            variant: 'danger',
-                            onClick: () => {
-                                setShowCompanyActions(false)
-                                handleDeleteCompany()
-                            }
+                    },
+                    {
+                        label: 'Download Packages',
+                        icon: <Download className="w-5 h-5" />,
+                        onClick: () => {
+                            if (!company || !company.packages) return
+                            const data = company.packages.map((p: any) => ({
+                                'Description': p.description,
+                                'Amount': p.amount,
+                                'Net Due': p.netDue,
+                                'Total Paid': p.amount - p.netDue,
+                                'Status': p.netDue > 0 ? 'Pending' : 'Paid',
+                                'Created At': new Date(p.date || Date.now()).toLocaleDateString()
+                            }))
+                            exportToExcel(data, `${company.name}_Packages_${new Date().toISOString().split('T')[0]}`, 'Packages', `${company.name} - Packages List`)
+                            setShowCompanyActions(false)
                         }
-                    ]}
-                />
+                    },
+                    {
+                        label: 'Download Full Report',
+                        icon: <FileText className="w-5 h-5" />,
+                        onClick: () => {
+                            if (!company || !company.packages) return
+                            exportCompanyFullReport(company.name, company.packages as any)
+                            setShowCompanyActions(false)
+                        }
+                    },
+                    {
+                        label: 'Delete Company',
+                        icon: <Trash2 className="w-5 h-5" />,
+                        variant: 'danger',
+                        onClick: () => {
+                            setShowCompanyActions(false)
+                            handleDeleteCompany()
+                        }
+                    }
+                ]}
+            />
 
-                {/* Edit Package Modal */}
-                {isPkgEditModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
-                        <div className="bg-white w-full max-w-sm rounded-2xl shadow-xl overflow-hidden animate-in zoom-in-95">
-                            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                                <h3 className="font-bold text-gray-900">Edit Package</h3>
-                                <button onClick={() => setIsPkgEditModalOpen(false)} className="text-gray-400 hover:text-gray-600">×</button>
-                            </div>
-                            <form onSubmit={handleUpdatePackage} className="p-4 space-y-3">
+            {/* Edit Package Modal */}
+            {isPkgEditModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
+                    <div className="bg-white w-full max-w-sm rounded-2xl shadow-xl overflow-hidden animate-in zoom-in-95">
+                        <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                            <h3 className="font-bold text-gray-900">Edit Package</h3>
+                            <button onClick={() => setIsPkgEditModalOpen(false)} className="text-gray-400 hover:text-gray-600">×</button>
+                        </div>
+                        <form onSubmit={handleUpdatePackage} className="p-4 space-y-3">
+                            <input
+                                className="w-full p-2 border rounded-lg text-sm"
+                                placeholder="Description (e.g., Wedding 2024)"
+                                value={pkgEditForm.description}
+                                onChange={e => setPkgEditForm({ ...pkgEditForm, description: e.target.value })}
+                            />
+                            <div className="relative">
+                                <Calendar className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
                                 <input
-                                    className="w-full p-2 border rounded-lg text-sm"
-                                    placeholder="Description (e.g., Wedding 2024)"
-                                    value={pkgEditForm.description}
-                                    onChange={e => setPkgEditForm({ ...pkgEditForm, description: e.target.value })}
+                                    type="date"
+                                    className="w-full pl-9 p-2 border rounded-lg text-sm"
+                                    value={pkgEditForm.date}
+                                    onChange={e => setPkgEditForm({ ...pkgEditForm, date: e.target.value })}
                                     required
                                 />
-                                <div className="relative">
-                                    <Calendar className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
-                                    <input
-                                        type="date"
-                                        className="w-full pl-9 p-2 border rounded-lg text-sm"
-                                        value={pkgEditForm.date}
-                                        onChange={e => setPkgEditForm({ ...pkgEditForm, date: e.target.value })}
-                                        required
-                                    />
-                                </div>
-                                <button
-                                    type="submit"
-                                    disabled={saving}
-                                    className="w-full py-3 bg-ecs-blue text-white font-bold rounded-xl mt-2 active:scale-95 transition-transform"
-                                >
-                                    {saving ? 'Saving...' : 'Save Changes'}
-                                </button>
-                            </form>
-                        </div>
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={saving}
+                                className="w-full py-3 bg-ecs-blue text-white font-bold rounded-xl mt-2 active:scale-95 transition-transform"
+                            >
+                                {saving ? 'Saving...' : 'Save Changes'}
+                            </button>
+                        </form>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
         </div>
     )
 }
@@ -484,9 +489,9 @@ function PackageItem({ pkg, companyId, onLongPress }: { pkg: any, companyId: num
     return (
         <div
             {...bind}
-            className="block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden active:bg-gray-50 transition-colors hover:bg-gray-50 relative group cursor-pointer select-none touch-pan-y"
+            className="block p-4 active:bg-gray-50 transition-colors hover:bg-gray-50 relative group cursor-pointer select-none touch-pan-y"
         >
-            <div className="p-4 flex justify-between items-center">
+            <div className="flex justify-between items-center">
                 <div className="flex-1 pr-4">
                     <div className="flex items-center gap-2">
                         <h3 className="text-sm font-bold text-gray-900">{pkg.description}</h3>

@@ -35,6 +35,7 @@ export default function Home() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [companies, setCompanies] = useState<CompanySummary[]>([])
   const [search, setSearch] = useState('')
+  const [filter, setFilter] = useState<'ALL' | 'CLIENT' | 'VENDOR'>('ALL')
   const router = useRouter()
 
   // Action Sheet State
@@ -155,31 +156,48 @@ export default function Home() {
     }
   }
 
+  const filteredCompanies = companies.filter(c => {
+    if (filter === 'ALL') return true
+    return c.type === filter
+  })
+
   return (
     <div className="flex flex-col h-full bg-gray-50 relative overflow-hidden" suppressHydrationWarning>
       {/* Fixed Stats Grid */}
       <div className="shrink-0 bg-gray-50 z-10 p-4 pb-0">
         <div className="grid grid-cols-2 gap-3">
-          <StatCard label="Total Clients" value={stats?.totalClients ?? '-'} showCurrency={false} />
-          <StatCard label="Total Vendors" value={stats?.totalVendors ?? '-'} showCurrency={false} />
           <StatCard label="Total Client Due" value={stats?.totalClientDue ?? '-'} valueColor="text-green-600" />
           <StatCard label="Total Vendor Due" value={stats?.totalVendorDue ?? '-'} valueColor="text-ecs-red" />
+          <StatCard
+            label="Total Clients"
+            value={stats?.totalClients ?? '-'}
+            showCurrency={false}
+            onClick={() => setFilter(filter === 'CLIENT' ? 'ALL' : 'CLIENT')}
+            isActive={filter === 'CLIENT'}
+          />
+          <StatCard
+            label="Total Vendors"
+            value={stats?.totalVendors ?? '-'}
+            showCurrency={false}
+            onClick={() => setFilter(filter === 'VENDOR' ? 'ALL' : 'VENDOR')}
+            isActive={filter === 'VENDOR'}
+          />
         </div>
 
         {/* Search Bar (Fixed) */}
-        <div className="relative mt-4 flex gap-2">
+        <div className="relative mt-4 flex gap-3 h-14">
           <input
             type="text"
-            placeholder="Search companies..."
-            className="w-full pl-4 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ecs-gold"
+            placeholder="Search client or vendor"
+            className="h-full w-full pl-5 pr-5 bg-white border border-gray-200 rounded-2xl text-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-ecs-blue placeholder:text-gray-400"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           <button
             onClick={() => setShowDashboardActions(true)}
-            className="p-2 bg-white border border-gray-200 rounded-xl text-gray-500 hover:text-gray-900 active:bg-gray-50"
+            className="h-full aspect-square bg-white border border-gray-200 rounded-2xl text-gray-500 hover:text-gray-900 active:bg-gray-50 shadow-sm flex items-center justify-center"
           >
-            <MoreVertical className="w-5 h-5" />
+            <MoreVertical className="w-6 h-6" />
           </button>
         </div>
       </div>
@@ -192,7 +210,7 @@ export default function Home() {
             <span>Due</span>
           </div>
           <ul className="flex-1 overflow-y-auto ios-scroll">
-            {companies.map((company, index) => (
+            {filteredCompanies.map((company, index) => (
               <CompanyItem
                 key={company.id}
                 company={company}
@@ -200,7 +218,7 @@ export default function Home() {
                 onLongPress={() => handleLongPress(company)}
               />
             ))}
-            {companies.length === 0 && (
+            {filteredCompanies.length === 0 && (
               <li className="p-8 text-center text-gray-400 text-sm">No companies found.</li>
             )}
           </ul>

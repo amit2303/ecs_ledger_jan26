@@ -21,8 +21,12 @@
   /* Chrome/Safari */
 }
 
+html,
 body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
   background-color: #f2f2f7;
-  /* iOS grouped background */
   color: #000;
 }

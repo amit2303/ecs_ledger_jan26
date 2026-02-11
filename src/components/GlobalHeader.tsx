@@ -25,7 +25,7 @@ export function GlobalHeader() {
 
     return (
         <header className="px-5 py-4 bg-white border-b border-gray-100 shrink-0 flex items-center gap-3 z-30">
-            <div className="w-14 h-14 relative">
+            <div className="w-20 h-20 relative">
                 <img src="/logo.jpg" alt="ECS Logo" className="w-full h-full object-contain" />
             </div>
             <div>

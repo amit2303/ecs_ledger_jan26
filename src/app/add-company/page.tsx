@@ -69,42 +69,42 @@ export default function AddCompany() {
 
                         <div>
                             <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Company Name</label>
-                            <input required type="text" className="w-full px-3 py-2 border border-blue-100 rounded-lg focus:ring-2 focus:ring-ecs-gold outline-none"
+                            <input required type="text" className="w-full px-3 py-2 border border-blue-100 rounded-lg focus:ring-2 focus:ring-ecs-blue outline-none"
                                 value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })}
                             />
                         </div>
 
                         <div>
                             <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Ledger Link</label>
-                            <input type="text" className="w-full px-3 py-2 border border-blue-100 rounded-lg focus:ring-2 focus:ring-ecs-gold outline-none"
+                            <input type="text" className="w-full px-3 py-2 border border-blue-100 rounded-lg focus:ring-2 focus:ring-ecs-blue outline-none"
                                 value={formData.ledgerLink} onChange={e => setFormData({ ...formData, ledgerLink: e.target.value })}
                             />
                         </div>
 
                         <div>
                             <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Director Name</label>
-                            <input type="text" className="w-full px-3 py-2 border border-blue-100 rounded-lg focus:ring-2 focus:ring-ecs-gold outline-none"
+                            <input type="text" className="w-full px-3 py-2 border border-blue-100 rounded-lg focus:ring-2 focus:ring-ecs-blue outline-none"
                                 value={formData.director} onChange={e => setFormData({ ...formData, director: e.target.value })}
                             />
                         </div>
 
                         <div>
                             <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Contact Details</label>
-                            <input type="text" className="w-full px-3 py-2 border border-blue-100 rounded-lg focus:ring-2 focus:ring-ecs-gold outline-none"
+                            <input type="text" className="w-full px-3 py-2 border border-blue-100 rounded-lg focus:ring-2 focus:ring-ecs-blue outline-none"
                                 value={formData.contact} onChange={e => setFormData({ ...formData, contact: e.target.value })}
                             />
                         </div>
 
                         <div>
                             <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Email</label>
-                            <input type="email" className="w-full px-3 py-2 border border-blue-100 rounded-lg focus:ring-2 focus:ring-ecs-gold outline-none"
+                            <input type="email" className="w-full px-3 py-2 border border-blue-100 rounded-lg focus:ring-2 focus:ring-ecs-blue outline-none"
                                 value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })}
                             />
                         </div>
 
                         <div>
                             <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Address</label>
-                            <textarea rows={3} className="w-full px-3 py-2 border border-blue-100 rounded-lg focus:ring-2 focus:ring-ecs-gold outline-none resize-none"
+                            <textarea rows={3} className="w-full px-3 py-2 border border-blue-100 rounded-lg focus:ring-2 focus:ring-ecs-blue outline-none resize-none"
                                 value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })}
                             />
                         </div>

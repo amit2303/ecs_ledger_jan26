@@ -10,14 +10,14 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
         const body = await request.json()
         const { description, amount, date } = body
 
-        if (!description || !amount) {
-            return NextResponse.json({ error: 'Description and amount are required' }, { status: 400 })
+        if (amount === undefined || amount === null) {
+            return NextResponse.json({ error: 'Amount is required' }, { status: 400 })
         }
 
         const updatedCharge = await prisma.charge.update({
             where: { id },
             data: {
-                description,
+                description: description || '',
                 amount: Number(amount),
                 date: date ? new Date(date) : undefined,
                 hasUpdates: true

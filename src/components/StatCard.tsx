@@ -9,16 +9,28 @@ interface StatCardProps {
     className?: string
     valueColor?: string
     showCurrency?: boolean
+    onClick?: () => void
+    isActive?: boolean
 }
 
-export function StatCard({ label, value, icon: Icon, className = '', valueColor = 'text-gray-900', showCurrency = true }: StatCardProps) {
+export function StatCard({ label, value, icon: Icon, className = '', valueColor = 'text-gray-900', showCurrency = true, onClick, isActive }: StatCardProps) {
+    const labelColor = isActive ? 'text-amber-800' : 'text-gray-500'
+    const displayValueColor = isActive ? 'text-amber-900' : valueColor
+    const iconColor = isActive ? 'text-amber-600' : 'text-gray-400'
+    const containerClasses = isActive
+        ? 'bg-amber-50 border-amber-200 shadow-md ring-1 ring-amber-100'
+        : 'bg-white border-gray-100 shadow-sm'
+
     return (
-        <div className={`bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col items-start ${className}`}>
-            <span className="text-gray-500 text-xs font-medium uppercase tracking-wider mb-1">{label}</span>
-            <div className={`text-xl font-bold ${valueColor}`}>
+        <div
+            onClick={onClick}
+            className={`${containerClasses} rounded-2xl p-4 border transition-all flex flex-col items-start ${className} ${onClick ? 'cursor-pointer active:scale-[98%]' : ''}`}
+        >
+            <span className={`${labelColor} text-xs font-medium uppercase tracking-wider mb-1`}>{label}</span>
+            <div className={`text-xl font-bold ${displayValueColor}`}>
                 {typeof value === 'number' && showCurrency ? `₹${value.toLocaleString('en-IN')}` : value}
             </div>
-            {Icon && <Icon className="w-4 h-4 text-gray-400 mt-2" />}
+            {Icon && <Icon className={`w-4 h-4 ${iconColor} mt-2`} />}
         </div>
     )
 }
