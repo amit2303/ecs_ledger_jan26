@@ -485,8 +485,8 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
             </header>
 
             {/* Fixed Content Container */}
-            <div className="flex-1 flex flex-col min-h-0 p-4">
-                <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden">
+            <div className="flex-1 flex flex-col min-h-0">
+                <div className="flex-1 bg-white flex flex-col overflow-hidden">
                     <div className="shrink-0 px-4 py-3 border-b border-gray-100 bg-gray-50 flex justify-between items-center text-xs font-medium text-gray-500 uppercase tracking-widest z-10">
                         <span>Description</span>
                         <span>Amount</span>

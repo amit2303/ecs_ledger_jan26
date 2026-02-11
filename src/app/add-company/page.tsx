@@ -50,9 +50,9 @@ export default function AddCompany() {
                 <h1 className="text-lg font-bold text-ecs-blue">Add New Company</h1>
             </header>
 
-            <div className="flex-1 p-4">
+            <div className="flex-1">
                 <form id="add-company-form" onSubmit={handleSubmit} className="space-y-4 pb-20">
-                    <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 space-y-4">
+                    <div className="bg-white p-4 space-y-4 border-b border-gray-100">
                         <div>
                             <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Company Type</label>
                             <div className="flex gap-2">

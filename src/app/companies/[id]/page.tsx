@@ -320,18 +320,18 @@ export default function CompanyDetail({ params }: { params: Promise<{ id: string
                 )}
             </header>
 
-            {/* Content Container with bottom padding for FAB */}
-            <div className="flex-1 flex flex-col min-h-0 p-4 pb-24">
+            {/* Content Container (List Only) */}
+            <div className="flex-1 flex flex-col min-h-0">
                 <div className="flex-1 overflow-y-auto ios-scroll space-y-4">
                     {/* Packages Section */}
                     {/* Packages Section */}
-                    <div className="flex-1 flex flex-col min-h-0 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="flex-1 flex flex-col min-h-0 bg-white overflow-hidden">
                         <div className="shrink-0 px-4 py-3 border-b border-gray-100 bg-gray-50 flex justify-between items-center text-xs font-medium text-gray-500 uppercase tracking-widest z-10">
                             <span>Package</span>
                             <span>Amount</span>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto ios-scroll">
+                        <div className="flex-1 overflow-y-auto ios-scroll pb-24">
                             {company.packages.length === 0 ? (
                                 <div className="text-center p-8 text-gray-400 text-sm">No packages added.</div>
                             ) : (

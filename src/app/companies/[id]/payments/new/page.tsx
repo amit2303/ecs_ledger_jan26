@@ -50,8 +50,8 @@ export default function AddPayment({ params }: { params: Promise<{ id: string }>
                 <h1 className="text-lg font-bold text-ecs-blue">Add Payment</h1>
             </header>
 
-            <form onSubmit={handleSubmit} className="p-4 space-y-4">
-                <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="bg-white p-4 space-y-4 border-b border-gray-100">
                     <div>
                         <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Amount</label>
                         <input autoFocus required type="number" className="w-full px-3 py-2 border border-blue-100 rounded-lg text-lg font-semibold outline-none focus:ring-2 focus:ring-ecs-blue"
@@ -72,9 +72,11 @@ export default function AddPayment({ params }: { params: Promise<{ id: string }>
                     </div>
                 </div>
 
-                <button disabled={loading} type="submit" className="w-full py-3.5 bg-green-600 text-white font-bold rounded-xl shadow-lg active:scale-[98%] transition-transform disabled:opacity-70">
-                    {loading ? 'Saving...' : 'Save Payment'}
-                </button>
+                <div className="px-4">
+                    <button disabled={loading} type="submit" className="w-full py-3.5 bg-green-600 text-white font-bold rounded-xl shadow-lg active:scale-[98%] transition-transform disabled:opacity-70">
+                        {loading ? 'Saving...' : 'Save Payment'}
+                    </button>
+                </div>
             </form>
         </div>
     )

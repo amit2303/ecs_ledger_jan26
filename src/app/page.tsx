@@ -203,13 +203,13 @@ export default function Home() {
       </div>
 
       {/* Fixed Content Container (List Only) */}
-      <div className="flex-1 flex flex-col min-h-0 p-4 pb-20">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col h-full overflow-hidden">
+      <div className="flex-1 flex flex-col min-h-0">
+        <div className="bg-white flex flex-col h-full overflow-hidden">
           <div className="shrink-0 px-4 py-3 border-b border-gray-100 bg-gray-50 flex justify-between items-center text-xs font-medium text-gray-500 uppercase tracking-widest z-10">
             <span>Company</span>
             <span>Due</span>
           </div>
-          <ul className="flex-1 overflow-y-auto ios-scroll">
+          <ul className="flex-1 overflow-y-auto ios-scroll pb-24">
             {filteredCompanies.map((company, index) => (
               <CompanyItem
                 key={company.id}
