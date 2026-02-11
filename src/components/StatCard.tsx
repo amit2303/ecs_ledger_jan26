@@ -24,10 +24,10 @@ export function StatCard({ label, value, icon: Icon, className = '', valueColor 
     return (
         <div
             onClick={onClick}
-            className={`${containerClasses} rounded-2xl p-4 border transition-all flex flex-col items-start ${className} ${onClick ? 'cursor-pointer active:scale-[98%]' : ''}`}
+            className={`${containerClasses} rounded-xl p-3 border transition-all flex flex-col items-start ${className} ${onClick ? 'cursor-pointer active:scale-[98%]' : ''}`}
         >
-            <span className={`${labelColor} text-xs font-medium uppercase tracking-wider mb-1`}>{label}</span>
-            <div className={`text-xl font-bold ${displayValueColor}`}>
+            <span className={`${labelColor} text-[10px] font-bold uppercase tracking-wider mb-1`}>{label}</span>
+            <div className={`text-lg font-black ${displayValueColor}`}>
                 {typeof value === 'number' && showCurrency ? `₹${value.toLocaleString('en-IN')}` : value}
             </div>
             {Icon && <Icon className={`w-4 h-4 ${iconColor} mt-2`} />}

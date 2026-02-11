@@ -285,10 +285,10 @@ export default function CompanyDetail({ params }: { params: Promise<{ id: string
                 )}
 
                 {!isEditing && (
-                    <div className="px-5 pb-5 pt-1 grid grid-cols-2 gap-y-3 gap-x-8 text-sm border-t border-gray-50 mt-2 pt-4">
+                    <div className="px-5 pb-4 pt-0 grid grid-cols-2 gap-y-3 gap-x-8 text-sm border-t border-gray-50 mt-1 pt-3">
                         <div>
                             <p className="text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-0.5">Net Due</p>
-                            <span className={`text-lg font-bold ${company.netDue > 0 ? 'text-ecs-red' : 'text-green-600'}`}>
+                            <span className={`text-lg font-black ${company.netDue > 0 ? 'text-ecs-red' : 'text-green-600'}`}>
                                 ₹{company.netDue.toLocaleString('en-IN')}
                             </span>
                         </div>
@@ -310,11 +310,11 @@ export default function CompanyDetail({ params }: { params: Promise<{ id: string
                         </div>
                         <div>
                             <p className="text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-0.5">Total Pkg</p>
-                            <p className="font-medium text-gray-900">₹{company.totalPackageAmount.toLocaleString('en-IN')}</p>
+                            <p className="font-bold text-gray-900">₹{company.totalPackageAmount.toLocaleString('en-IN')}</p>
                         </div>
                         <div>
                             <p className="text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-0.5">Total Paid</p>
-                            <p className="font-medium text-green-600">₹{company.totalPaymentsReceived.toLocaleString('en-IN')}</p>
+                            <p className="font-bold text-green-600">₹{company.totalPaymentsReceived.toLocaleString('en-IN')}</p>
                         </div>
                     </div>
                 )}
@@ -322,32 +322,26 @@ export default function CompanyDetail({ params }: { params: Promise<{ id: string
 
             {/* Content Container (List Only) */}
             <div className="flex-1 flex flex-col min-h-0">
-                <div className="flex-1 overflow-y-auto ios-scroll space-y-4">
-                    {/* Packages Section */}
-                    {/* Packages Section */}
-                    <div className="flex-1 flex flex-col min-h-0 bg-white overflow-hidden">
-                        <div className="shrink-0 px-4 py-3 border-b border-gray-100 bg-gray-50 flex justify-between items-center text-xs font-medium text-gray-500 uppercase tracking-widest z-10">
-                            <span>Package</span>
-                            <span>Amount</span>
-                        </div>
+                <div className="shrink-0 px-5 py-3 border-b border-gray-200/50 bg-gray-50/80 backdrop-blur-sm flex justify-between items-center text-[10px] font-bold text-gray-400 uppercase tracking-widest z-10">
+                    <span>Package</span>
+                    <span>Amount</span>
+                </div>
 
-                        <div className="flex-1 overflow-y-auto ios-scroll pb-24">
-                            {company.packages.length === 0 ? (
-                                <div className="text-center p-8 text-gray-400 text-sm">No packages added.</div>
-                            ) : (
-                                <div className="divide-y divide-gray-50">
-                                    {company.packages.map((pkg: any) => (
-                                        <PackageItem
-                                            key={pkg.id}
-                                            pkg={pkg}
-                                            companyId={company.id}
-                                            onLongPress={() => handlePackageLongPress(pkg)}
-                                        />
-                                    ))}
-                                </div>
-                            )}
+                <div className="flex-1 overflow-y-auto ios-scroll px-2 pt-2 pb-24">
+                    {company.packages.length === 0 ? (
+                        <div className="bg-white rounded-xl border border-dashed border-gray-200 p-8 text-center text-gray-400 text-sm">No packages added.</div>
+                    ) : (
+                        <div className="flex flex-col">
+                            {company.packages.map((pkg: any) => (
+                                <PackageItem
+                                    key={pkg.id}
+                                    pkg={pkg}
+                                    companyId={company.id}
+                                    onLongPress={() => handlePackageLongPress(pkg)}
+                                />
+                            ))}
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
 
@@ -489,25 +483,25 @@ function PackageItem({ pkg, companyId, onLongPress }: { pkg: any, companyId: num
     return (
         <div
             {...bind}
-            className="block p-4 active:bg-gray-50 transition-colors hover:bg-gray-50 relative group cursor-pointer select-none touch-pan-y"
+            className="mb-2 last:mb-20 bg-white rounded-xl shadow-sm border border-gray-100 p-3 active:scale-[98%] transition-all relative group cursor-pointer select-none touch-pan-y"
         >
             <div className="flex justify-between items-center">
                 <div className="flex-1 pr-4">
                     <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-bold text-gray-900">{pkg.description}</h3>
+                        <h3 className="text-sm font-bold text-gray-900 leading-tight">{pkg.description}</h3>
                         {pkg.hasUpdates && (
-                            <div className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
+                            <div className="w-2 h-2 rounded-full bg-red-500 shrink-0 shadow-sm" />
                         )}
                     </div>
-                    <p className="text-xs text-gray-400 mt-0.5">{new Date(pkg.date).toLocaleDateString()}</p>
+                    <p className="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-wider">{new Date(pkg.date).toLocaleDateString()}</p>
                 </div>
                 <div className="text-right flex items-center gap-3">
-                    <div>
-                        <span className="block text-sm font-bold text-ecs-blue">₹{pkgAmount.toLocaleString('en-IN')}</span>
+                    <div className="flex flex-col items-end">
+                        <span className="text-base font-black text-ecs-blue leading-none">₹{pkgAmount.toLocaleString('en-IN')}</span>
                         {pkgBalance > 0 ? (
-                            <span className="text-[10px] font-bold text-ecs-red uppercase">Bal: ₹{pkgBalance.toLocaleString('en-IN')}</span>
+                            <span className="text-[10px] font-bold text-ecs-red uppercase mt-1 px-1.5 py-0.5 bg-red-50 rounded">Bal: ₹{pkgBalance.toLocaleString('en-IN')}</span>
                         ) : (
-                            <span className="text-[10px] font-bold text-green-600 uppercase">Paid</span>
+                            <span className="text-[10px] font-bold text-green-600 uppercase mt-1 px-1.5 py-0.5 bg-green-50 rounded">Paid</span>
                         )}
                     </div>
                 </div>

@@ -185,44 +185,42 @@ export default function Home() {
         </div>
 
         {/* Search Bar (Fixed) */}
-        <div className="relative mt-4 flex gap-3 h-14">
+        <div className="relative mt-4 flex gap-3 h-11">
           <input
             type="text"
             placeholder="Search client or vendor"
-            className="h-full w-full pl-5 pr-5 bg-white border border-gray-200 rounded-2xl text-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-ecs-blue placeholder:text-gray-400"
+            className="h-full w-full pl-4 pr-4 bg-white border border-gray-200 rounded-xl text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-ecs-blue placeholder:text-gray-400"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           <button
             onClick={() => setShowDashboardActions(true)}
-            className="h-full aspect-square bg-white border border-gray-200 rounded-2xl text-gray-500 hover:text-gray-900 active:bg-gray-50 shadow-sm flex items-center justify-center"
+            className="h-full aspect-square bg-white border border-gray-200 rounded-xl text-gray-500 hover:text-gray-900 active:bg-gray-50 shadow-sm flex items-center justify-center"
           >
-            <MoreVertical className="w-6 h-6" />
+            <MoreVertical className="w-5 h-5" />
           </button>
         </div>
       </div>
 
       {/* Fixed Content Container (List Only) */}
       <div className="flex-1 flex flex-col min-h-0">
-        <div className="bg-white flex flex-col h-full overflow-hidden">
-          <div className="shrink-0 px-4 py-3 border-b border-gray-100 bg-gray-50 flex justify-between items-center text-xs font-medium text-gray-500 uppercase tracking-widest z-10">
-            <span>Company</span>
-            <span>Due</span>
-          </div>
-          <ul className="flex-1 overflow-y-auto ios-scroll pb-24">
-            {filteredCompanies.map((company, index) => (
-              <CompanyItem
-                key={company.id}
-                company={company}
-                index={index}
-                onLongPress={() => handleLongPress(company)}
-              />
-            ))}
-            {filteredCompanies.length === 0 && (
-              <li className="p-8 text-center text-gray-400 text-sm">No companies found.</li>
-            )}
-          </ul>
+        <div className="shrink-0 px-5 py-3 border-b border-gray-200/50 bg-gray-50/80 backdrop-blur-sm flex justify-between items-center text-[10px] font-bold text-gray-400 uppercase tracking-widest z-10">
+          <span>Company</span>
+          <span>Due</span>
         </div>
+        <ul className="flex-1 overflow-y-auto ios-scroll px-2 pt-2 pb-24">
+          {filteredCompanies.map((company, index) => (
+            <CompanyItem
+              key={company.id}
+              company={company}
+              index={index}
+              onLongPress={() => handleLongPress(company)}
+            />
+          ))}
+          {filteredCompanies.length === 0 && (
+            <li className="p-8 text-center text-gray-400 text-sm">No companies found.</li>
+          )}
+        </ul>
       </div>
 
       {/* FAB */}
@@ -336,33 +334,39 @@ export default function Home() {
 
 // Extracted for clean hook usage
 function CompanyItem({ company, index, onLongPress }: { company: CompanySummary, index: number, onLongPress: () => void }) {
-  // We need to carefully handle the click vs long press
   const bind = useLongPress(() => {
     onLongPress()
   })
 
   return (
-    <li className="border-b border-gray-50 last:border-0">
+    <li className="mb-2 last:mb-20">
       <Link
         href={`/companies/${company.id}`}
         {...bind}
-        className="flex items-center justify-between p-4 active:bg-gray-100 transition-colors cursor-pointer select-none"
+        className="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm border border-gray-100 active:scale-[98%] transition-all cursor-pointer select-none"
       >
         <div className="flex items-center gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-semibold text-gray-900">{company.name}</h3>
+              <h3 className="text-sm font-bold text-gray-900 leading-tight">{company.name}</h3>
               {company.hasUpdates && (
-                <div className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
+                <div className="w-2 h-2 rounded-full bg-red-500 shrink-0 shadow-sm" />
               )}
             </div>
-            <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${company.type === 'CLIENT' ? 'bg-blue-50 text-ecs-blue' : 'bg-red-50 text-ecs-red'}`}>
-              {company.type}
-            </span>
+            <div className="flex items-center gap-2 mt-1">
+              <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider ${company.type === 'CLIENT' ? 'bg-blue-50 text-ecs-blue' : 'bg-red-50 text-ecs-red'}`}>
+                {company.type}
+              </span>
+              {company.packageCount !== undefined && (
+                <span className="text-[10px] text-gray-400 font-medium">
+                  {company.packageCount} {company.packageCount === 1 ? 'Package' : 'Packages'}
+                </span>
+              )}
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`text-sm font-bold ${company.amountDue > 0 ? 'text-ecs-red' : 'text-green-600'}`}>
+          <span className={`text-base font-black ${company.amountDue > 0 ? 'text-ecs-red' : 'text-green-600'}`}>
             ₹{(company.amountDue || 0).toLocaleString('en-IN')}
           </span>
         </div>
