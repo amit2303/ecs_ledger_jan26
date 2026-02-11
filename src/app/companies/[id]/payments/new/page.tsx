@@ -47,25 +47,25 @@ export default function AddPayment({ params }: { params: Promise<{ id: string }>
                 <Link href={`/companies/${id}`} className="p-1 -ml-1 text-gray-400 hover:text-gray-600">
                     <ChevronLeft className="w-6 h-6" />
                 </Link>
-                <h1 className="text-lg font-bold text-gray-900">Add Payment</h1>
+                <h1 className="text-lg font-medium text-gray-900">Add Payment</h1>
             </header>
 
             <div className="flex-1 overflow-y-auto ios-scroll px-2 pt-2 pb-24">
                 <form id="add-payment-form" onSubmit={handleSubmit} className="space-y-4">
                     <div className="bg-white p-3 space-y-4 rounded-xl shadow-sm border border-gray-100">
                         <div>
-                            <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 tracking-wider">Amount</label>
+                            <label className="block text-xs font-medium text-gray-400 uppercase mb-1.5 tracking-wider">Amount</label>
                             <input
                                 autoFocus
                                 required
                                 type="number"
-                                className="w-full px-3 py-2.5 border border-gray-100 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-ecs-blue outline-none transition-all font-bold text-lg text-green-600"
+                                className="w-full px-3 py-2.5 border border-gray-100 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-ecs-blue outline-none transition-all font-medium text-lg text-green-600"
                                 value={formData.amount}
                                 onChange={e => setFormData({ ...formData, amount: e.target.value })}
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 tracking-wider">Date</label>
+                            <label className="block text-xs font-medium text-gray-400 uppercase mb-1.5 tracking-wider">Date</label>
                             <input
                                 required
                                 type="date"
@@ -75,7 +75,7 @@ export default function AddPayment({ params }: { params: Promise<{ id: string }>
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 tracking-wider">Description</label>
+                            <label className="block text-xs font-medium text-gray-400 uppercase mb-1.5 tracking-wider">Description</label>
                             <input
                                 required
                                 type="text"
@@ -94,7 +94,7 @@ export default function AddPayment({ params }: { params: Promise<{ id: string }>
                         form="add-payment-form"
                         disabled={loading}
                         type="submit"
-                        className="w-full py-3.5 bg-green-600 text-white font-bold rounded-xl shadow-lg active:scale-[98%] transition-transform disabled:opacity-70"
+                        className="w-full py-3.5 bg-green-600 text-white font-medium rounded-xl shadow-lg active:scale-[98%] transition-transform disabled:opacity-70"
                     >
                         {loading ? 'Saving...' : 'Save Payment'}
                     </button>

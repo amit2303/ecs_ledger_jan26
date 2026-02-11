@@ -70,7 +70,7 @@ export default function ChangePasswordPage() {
                 <Link href="/" className="p-1 -ml-1 text-gray-400 hover:text-gray-600">
                     <ArrowLeft className="w-6 h-6" />
                 </Link>
-                <h1 className="text-lg font-bold text-gray-900">Update Credentials</h1>
+                <h1 className="text-lg font-medium text-gray-900">Update Credentials</h1>
             </header>
 
             <div className="flex-1 overflow-y-auto ios-scroll px-2 pt-2 pb-24">
@@ -88,7 +88,7 @@ export default function ChangePasswordPage() {
                         )}
 
                         <div>
-                            <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 tracking-wider">Current Password</label>
+                            <label className="block text-xs font-medium text-gray-400 uppercase mb-1.5 tracking-wider">Current Password</label>
                             <input
                                 required
                                 type="password"
@@ -102,7 +102,7 @@ export default function ChangePasswordPage() {
                         <div className="pt-2 border-t border-gray-50 my-4"></div>
 
                         <div>
-                            <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 tracking-wider">New Username</label>
+                            <label className="block text-xs font-medium text-gray-400 uppercase mb-1.5 tracking-wider">New Username</label>
                             <input
                                 type="text"
                                 value={newUsername}
@@ -113,7 +113,7 @@ export default function ChangePasswordPage() {
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 tracking-wider">New Password</label>
+                            <label className="block text-xs font-medium text-gray-400 uppercase mb-1.5 tracking-wider">New Password</label>
                             <input
                                 type="password"
                                 value={newPassword}
@@ -125,7 +125,7 @@ export default function ChangePasswordPage() {
 
                         {newPassword && (
                             <div className="animate-in fade-in slide-in-from-top-1">
-                                <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 tracking-wider">Confirm New Password</label>
+                                <label className="block text-xs font-medium text-gray-400 uppercase mb-1.5 tracking-wider">Confirm New Password</label>
                                 <input
                                     required
                                     type="password"
@@ -145,7 +145,7 @@ export default function ChangePasswordPage() {
                         form="change-password-form"
                         disabled={loading}
                         type="submit"
-                        className="w-full py-3.5 bg-ecs-blue text-white font-bold rounded-xl shadow-lg active:scale-[98%] transition-transform disabled:opacity-70"
+                        className="w-full py-3.5 bg-ecs-blue text-white font-medium rounded-xl shadow-lg active:scale-[98%] transition-transform disabled:opacity-70"
                     >
                         {loading ? 'Updating...' : 'Save Changes'}
                     </button>

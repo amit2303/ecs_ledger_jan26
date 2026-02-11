@@ -204,7 +204,7 @@ export default function Home() {
 
       {/* Fixed Content Container (List Only) */}
       <div className="flex-1 flex flex-col min-h-0">
-        <div className="shrink-0 px-5 py-3 border-b border-gray-200/50 bg-gray-50/80 backdrop-blur-sm flex justify-between items-center text-[10px] font-bold text-gray-400 uppercase tracking-widest z-10">
+        <div className="shrink-0 px-5 py-3 border-b border-gray-200/50 bg-gray-50/80 backdrop-blur-sm flex justify-between items-center text-[10px] font-medium text-gray-400 uppercase tracking-widest z-10">
           <span>Company</span>
           <span>Due</span>
         </div>
@@ -280,7 +280,7 @@ export default function Home() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
           <div className="bg-white w-full max-w-sm rounded-2xl shadow-xl overflow-hidden animate-in zoom-in-95">
             <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <h3 className="font-bold text-gray-900">Edit Company</h3>
+              <h3 className="font-medium text-gray-900">Edit Company</h3>
               <button onClick={() => setIsEditModalOpen(false)} className="text-gray-400 hover:text-gray-600">×</button>
             </div>
             <form onSubmit={handleUpdateCompany} className="p-4 space-y-3">
@@ -320,7 +320,7 @@ export default function Home() {
               <button
                 type="submit"
                 disabled={saving}
-                className="w-full py-3 bg-ecs-blue text-white font-bold rounded-xl mt-2 active:scale-95 transition-transform"
+                className="w-full py-3 bg-ecs-blue text-white font-medium rounded-xl mt-2 active:scale-95 transition-transform"
               >
                 {saving ? 'Saving...' : 'Save Changes'}
               </button>
@@ -348,13 +348,13 @@ function CompanyItem({ company, index, onLongPress }: { company: CompanySummary,
         <div className="flex items-center gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold text-gray-900 leading-tight">{company.name}</h3>
+              <h3 className="text-sm font-medium text-gray-900 leading-tight">{company.name}</h3>
               {company.hasUpdates && (
                 <div className="w-2 h-2 rounded-full bg-red-500 shrink-0 shadow-sm" />
               )}
             </div>
             <div className="flex items-center gap-2 mt-1">
-              <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider ${company.type === 'CLIENT' ? 'bg-blue-50 text-ecs-blue' : 'bg-red-50 text-ecs-red'}`}>
+              <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-medium uppercase tracking-wider ${company.type === 'CLIENT' ? 'bg-blue-50 text-ecs-blue' : 'bg-red-50 text-ecs-red'}`}>
                 {company.type}
               </span>
               {company.packageCount !== undefined && (
@@ -366,7 +366,7 @@ function CompanyItem({ company, index, onLongPress }: { company: CompanySummary,
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`text-base font-black ${company.amountDue > 0 ? 'text-ecs-red' : 'text-green-600'}`}>
+          <span className={`text-lg font-medium ${company.amountDue > 0 ? 'text-ecs-red' : 'text-green-600'}`}>
             ₹{(company.amountDue || 0).toLocaleString('en-IN')}
           </span>
         </div>

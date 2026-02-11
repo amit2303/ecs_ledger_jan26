@@ -47,20 +47,20 @@ export default function AddCompany() {
                 <Link href="/" className="p-1 -ml-1 text-gray-400 hover:text-gray-600">
                     <ChevronLeft className="w-6 h-6" />
                 </Link>
-                <h1 className="text-lg font-bold text-gray-900">Add New Company</h1>
+                <h1 className="text-lg font-medium text-gray-900">Add New Company</h1>
             </header>
 
             <div className="flex-1 overflow-y-auto px-2 pt-2 pb-24">
                 <form id="add-company-form" onSubmit={handleSubmit} className="space-y-4">
                     <div className="bg-white p-3 space-y-4 rounded-xl shadow-sm border border-gray-100">
                         <div>
-                            <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 tracking-wider">Company Type</label>
+                            <label className="block text-xs font-medium text-gray-400 uppercase mb-1.5 tracking-wider">Company Type</label>
                             <div className="flex gap-2">
-                                <label className={`flex-1 py-2.5 text-center text-sm font-bold rounded-lg border cursor-pointer transition-all ${formData.type === 'CLIENT' ? 'bg-blue-50 border-blue-200 text-ecs-blue ring-2 ring-blue-50' : 'border-gray-100 text-gray-500'}`}>
+                                <label className={`flex-1 py-2.5 text-center text-sm font-medium rounded-lg border cursor-pointer transition-all ${formData.type === 'CLIENT' ? 'bg-blue-50 border-blue-200 text-ecs-blue ring-2 ring-blue-50' : 'border-gray-100 text-gray-500'}`}>
                                     <input type="radio" name="type" className="hidden" checked={formData.type === 'CLIENT'} onChange={() => setFormData({ ...formData, type: 'CLIENT' })} />
                                     Client
                                 </label>
-                                <label className={`flex-1 py-2.5 text-center text-sm font-bold rounded-lg border cursor-pointer transition-all ${formData.type === 'VENDOR' ? 'bg-red-50 border-red-200 text-ecs-red ring-2 ring-red-50' : 'border-gray-100 text-gray-500'}`}>
+                                <label className={`flex-1 py-2.5 text-center text-sm font-medium rounded-lg border cursor-pointer transition-all ${formData.type === 'VENDOR' ? 'bg-red-50 border-red-200 text-ecs-red ring-2 ring-red-50' : 'border-gray-100 text-gray-500'}`}>
                                     <input type="radio" name="type" className="hidden" checked={formData.type === 'VENDOR'} onChange={() => setFormData({ ...formData, type: 'VENDOR' })} />
                                     Vendor
                                 </label>
@@ -68,42 +68,42 @@ export default function AddCompany() {
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 tracking-wider">Company Name</label>
+                            <label className="block text-xs font-medium text-gray-400 uppercase mb-1.5 tracking-wider">Company Name</label>
                             <input required type="text" className="w-full px-3 py-2.5 border border-gray-100 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-ecs-blue outline-none transition-all font-medium text-gray-900"
                                 value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })}
                             />
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 tracking-wider">Ledger Link</label>
+                            <label className="block text-xs font-medium text-gray-400 uppercase mb-1.5 tracking-wider">Ledger Link</label>
                             <input type="text" className="w-full px-3 py-2.5 border border-gray-100 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-ecs-blue outline-none transition-all font-medium text-gray-900"
                                 value={formData.ledgerLink} onChange={e => setFormData({ ...formData, ledgerLink: e.target.value })}
                             />
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 tracking-wider">Director Name</label>
+                            <label className="block text-xs font-medium text-gray-400 uppercase mb-1.5 tracking-wider">Director Name</label>
                             <input type="text" className="w-full px-3 py-2.5 border border-gray-100 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-ecs-blue outline-none transition-all font-medium text-gray-900"
                                 value={formData.director} onChange={e => setFormData({ ...formData, director: e.target.value })}
                             />
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 tracking-wider">Contact Details</label>
+                            <label className="block text-xs font-medium text-gray-400 uppercase mb-1.5 tracking-wider">Contact Details</label>
                             <input type="text" className="w-full px-3 py-2.5 border border-gray-100 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-ecs-blue outline-none transition-all font-medium text-gray-900"
                                 value={formData.contact} onChange={e => setFormData({ ...formData, contact: e.target.value })}
                             />
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 tracking-wider">Email</label>
+                            <label className="block text-xs font-medium text-gray-400 uppercase mb-1.5 tracking-wider">Email</label>
                             <input type="email" className="w-full px-3 py-2.5 border border-gray-100 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-ecs-blue outline-none transition-all font-medium text-gray-900"
                                 value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })}
                             />
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 tracking-wider">Address</label>
+                            <label className="block text-xs font-medium text-gray-400 uppercase mb-1.5 tracking-wider">Address</label>
                             <textarea rows={3} className="w-full px-3 py-2.5 border border-gray-100 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-ecs-blue outline-none transition-all font-medium text-gray-900 resize-none"
                                 value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })}
                             />
@@ -118,7 +118,7 @@ export default function AddCompany() {
                         form="add-company-form"
                         disabled={loading}
                         type="submit"
-                        className="w-full py-3.5 bg-ecs-blue text-white font-bold rounded-xl shadow-lg active:scale-[98%] transition-transform disabled:opacity-70"
+                        className="w-full py-3.5 bg-ecs-blue text-white font-medium rounded-xl shadow-lg active:scale-[98%] transition-transform disabled:opacity-70"
                     >
                         {loading ? 'Creating...' : 'Create Company'}
                     </button>

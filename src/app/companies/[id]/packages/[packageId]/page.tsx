@@ -411,7 +411,7 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                                 <input
                                     value={pkgEditForm.description}
                                     onChange={e => setPkgEditForm({ ...pkgEditForm, description: e.target.value })}
-                                    className="w-full text-lg font-bold text-ecs-blue border-b border-ecs-blue outline-none bg-transparent"
+                                    className="w-full text-lg font-medium text-ecs-blue border-b border-ecs-blue outline-none bg-transparent"
                                     autoFocus
                                     placeholder="Description"
                                 />
@@ -424,7 +424,7 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                             </div>
                         ) : (
                             <>
-                                <h1 className="text-lg font-bold text-ecs-blue leading-tight truncate">{pkg.description}</h1>
+                                <h1 className="text-lg font-medium text-ecs-blue leading-tight truncate">{pkg.description}</h1>
                                 <p className="text-xs text-gray-400 mt-0.5">{pkg.date ? new Date(pkg.date).toLocaleDateString() : 'No Date'}</p>
                             </>
                         )}
@@ -449,20 +449,20 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                 <div className="px-5 pb-4 pt-3 text-sm border-t border-gray-50 mt-1">
                     <div className="mb-2">
                         <div className="flex flex-col">
-                            <p className="text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-0.5">Total Charges</p>
-                            <p className="font-black text-gray-900 text-xl">₹{pkgTotalAmount.toLocaleString('en-IN')}</p>
+                            <p className="text-gray-400 text-[10px] uppercase font-medium tracking-wider mb-0.5">Total Charges</p>
+                            <p className="font-medium text-gray-900 text-xl">₹{pkgTotalAmount.toLocaleString('en-IN')}</p>
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-x-8">
                         <div>
-                            <p className="text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-0.5">Net Due</p>
-                            <span className={`text-lg font-black ${pkgBalance > 0 ? 'text-ecs-red' : 'text-green-600'}`}>
+                            <p className="text-gray-400 text-[10px] uppercase font-medium tracking-wider mb-0.5">Net Due</p>
+                            <span className={`text-lg font-medium ${pkgBalance > 0 ? 'text-ecs-red' : 'text-green-600'}`}>
                                 ₹{pkgBalance.toLocaleString('en-IN')}
                             </span>
                         </div>
                         <div>
-                            <p className="text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-0.5">Total Paid</p>
-                            <p className="font-black text-green-600 text-lg">₹{pkgTotalPaid.toLocaleString('en-IN')}</p>
+                            <p className="text-gray-400 text-[10px] uppercase font-medium tracking-wider mb-0.5">Total Paid</p>
+                            <p className="font-medium text-green-600 text-lg">₹{pkgTotalPaid.toLocaleString('en-IN')}</p>
                         </div>
                     </div>
                 </div>
@@ -471,13 +471,13 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                 <div className="flex border-t border-gray-50 bg-white">
                     <button
                         onClick={() => setActiveTab('AMOUNT')}
-                        className={`flex-1 py-2.5 text-sm font-bold text-center transition-colors ${activeTab === 'AMOUNT' ? 'text-ecs-blue border-b-2 border-ecs-blue bg-blue-50/30' : 'text-gray-500 hover:text-gray-700'}`}
+                        className={`flex-1 py-2.5 text-sm font-medium text-center transition-colors ${activeTab === 'AMOUNT' ? 'text-ecs-blue border-b-2 border-ecs-blue bg-blue-50/30' : 'text-gray-500 hover:text-gray-700'}`}
                     >
                         Charges
                     </button>
                     <button
                         onClick={() => setActiveTab('PAYMENTS')}
-                        className={`flex-1 py-2.5 text-sm font-bold text-center transition-colors ${activeTab === 'PAYMENTS' ? 'text-ecs-blue border-b-2 border-ecs-blue bg-blue-50/30' : 'text-gray-500 hover:text-gray-700'}`}
+                        className={`flex-1 py-2.5 text-sm font-medium text-center transition-colors ${activeTab === 'PAYMENTS' ? 'text-ecs-blue border-b-2 border-ecs-blue bg-blue-50/30' : 'text-gray-500 hover:text-gray-700'}`}
                     >
                         Payments
                     </button>
@@ -486,7 +486,7 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
 
             {/* Fixed Content Container */}
             <div className="flex-1 flex flex-col min-h-0">
-                <div className="shrink-0 px-5 py-3 border-b border-gray-200/50 bg-gray-50/80 backdrop-blur-sm flex justify-between items-center text-[10px] font-bold text-gray-400 uppercase tracking-widest z-10">
+                <div className="shrink-0 px-5 py-3 border-b border-gray-200/50 bg-gray-50/80 backdrop-blur-sm flex justify-between items-center text-[10px] font-medium text-gray-400 uppercase tracking-widest z-10">
                     <span>Description</span>
                     <span>Amount</span>
                 </div>
@@ -499,7 +499,7 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                                 {showAddCharge ? (
                                     <div className="px-4 pt-4">
                                         <form onSubmit={handleSaveCharge} className="bg-white rounded-xl shadow-md border border-blue-100 p-3 space-y-3 animate-in fade-in zoom-in-95 duration-200">
-                                            <h3 className="text-sm font-bold text-gray-700 mb-2">{editingChargeId ? 'Edit Charge' : 'New Charge'}</h3>
+                                            <h3 className="text-sm font-medium text-gray-700 mb-2">{editingChargeId ? 'Edit Charge' : 'New Charge'}</h3>
                                             <div className="space-y-3">
                                                 <div>
                                                     <input
@@ -550,14 +550,14 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                                                 <button
                                                     type="button"
                                                     onClick={resetChargeForm}
-                                                    className="flex-1 py-2 text-sm font-semibold text-gray-500 bg-gray-100 rounded-lg active:bg-gray-200"
+                                                    className="flex-1 py-2 text-sm font-medium text-gray-500 bg-gray-100 rounded-lg active:bg-gray-200"
                                                 >
                                                     Cancel
                                                 </button>
                                                 <button
                                                     type="submit"
                                                     disabled={savingCharge}
-                                                    className="flex-1 py-2 text-sm font-semibold text-white bg-ecs-blue rounded-lg shadow active:scale-95 transition-all disabled:opacity-70 flex items-center justify-center gap-2"
+                                                    className="flex-1 py-2 text-sm font-medium text-white bg-ecs-blue rounded-lg shadow active:scale-95 transition-all disabled:opacity-70 flex items-center justify-center gap-2"
                                                 >
                                                     {savingCharge ? 'Saving...' : <><Save className="w-4 h-4" /> Save</>}
                                                 </button>
@@ -584,7 +584,7 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
 
                             {/* Documents Section */}
                             <div className="space-y-3 p-4 border-t border-gray-100">
-                                <h3 className="text-gray-400 text-[10px] uppercase font-bold tracking-wider">Documents</h3>
+                                <h3 className="text-gray-400 text-[10px] uppercase font-medium tracking-wider">Documents</h3>
 
                                 <input
                                     type="file"
@@ -626,7 +626,7 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                                 {showAddPayment ? (
                                     <div className="px-4 pt-4">
                                         <form onSubmit={handleSavePayment} className="bg-white rounded-xl shadow-md border border-blue-100 p-3 space-y-3 animate-in fade-in zoom-in-95 duration-200">
-                                            <h3 className="text-sm font-bold text-gray-700 mb-2">{editingPaymentId ? 'Edit Payment' : 'New Payment'}</h3>
+                                            <h3 className="text-sm font-medium text-gray-700 mb-2">{editingPaymentId ? 'Edit Payment' : 'New Payment'}</h3>
                                             <div className="space-y-3">
                                                 <div>
                                                     <input
@@ -667,14 +667,14 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                                                 <button
                                                     type="button"
                                                     onClick={resetPaymentForm}
-                                                    className="flex-1 py-2 text-sm font-semibold text-gray-500 bg-gray-100 rounded-lg active:bg-gray-200"
+                                                    className="flex-1 py-2 text-sm font-medium text-gray-500 bg-gray-100 rounded-lg active:bg-gray-200"
                                                 >
                                                     Cancel
                                                 </button>
                                                 <button
                                                     type="submit"
                                                     disabled={savingPayment}
-                                                    className="flex-1 py-2 text-sm font-semibold text-white bg-ecs-blue rounded-lg shadow active:scale-95 transition-all disabled:opacity-70 flex items-center justify-center gap-2"
+                                                    className="flex-1 py-2 text-sm font-medium text-white bg-ecs-blue rounded-lg shadow active:scale-95 transition-all disabled:opacity-70 flex items-center justify-center gap-2"
                                                 >
                                                     {savingPayment ? 'Saving...' : <><Save className="w-4 h-4" /> Save</>}
                                                 </button>
@@ -699,9 +699,9 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                                 )}
                             </div>
 
-                            {/* Documents Section (Duplicate for Payments tab if desired or move outside ternary) */}
+                            {/* Documents Section */}
                             <div className="space-y-3 p-4 border-t border-gray-100">
-                                <h3 className="text-gray-400 text-[10px] uppercase font-bold tracking-wider">Documents</h3>
+                                <h3 className="text-gray-400 text-[10px] uppercase font-medium tracking-wider">Documents</h3>
                                 {documents.length === 0 ? (
                                     <div className="text-center p-6 text-gray-400 text-sm bg-white rounded-xl border border-dashed border-gray-200 flex flex-col items-center justify-center gap-2">
                                         <p>No documents attached.</p>
@@ -827,7 +827,7 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
             <ActionSheet
                 isOpen={isPaymentSheetOpen}
                 onClose={() => setIsPaymentSheetOpen(false)}
-                title={`Payment: ₹${selectedPayment?.amount}`}
+                title={selectedPayment ? `Payment: ₹${selectedPayment.amount}` : 'Payment'}
                 actions={[
                     {
                         label: 'Edit Payment',
@@ -900,7 +900,7 @@ function ChargeItem({ charge, onLongPress }: { charge: Transaction, onLongPress:
                 <p className="text-[10px] font-medium text-gray-400 mt-1 uppercase tracking-wider">{new Date(charge.date).toLocaleDateString()}</p>
             </div>
             <div className="flex items-center gap-3 shrink-0">
-                <span className={`text-base font-black ${Number(charge.amount) < 0 ? 'text-red-600' : 'text-ecs-blue'}`}>
+                <span className={`text-lg font-medium ${Number(charge.amount) < 0 ? 'text-red-600' : 'text-ecs-blue'}`}>
                     {Number(charge.amount) < 0 ? '-' : ''}₹{Math.abs(Number(charge.amount)).toLocaleString('en-IN')}
                 </span>
             </div>
@@ -926,7 +926,7 @@ function PaymentItem({ payment, onLongPress }: { payment: Transaction, onLongPre
                 <p className="text-[10px] font-medium text-gray-400 mt-1 uppercase tracking-wider">{new Date(payment.date).toLocaleDateString()}</p>
             </div>
             <div className="flex items-center gap-3 shrink-0">
-                <span className="text-base font-black text-green-600">+ ₹{Number(payment.amount).toLocaleString('en-IN')}</span>
+                <span className="text-lg font-medium text-green-600">+ ₹{Number(payment.amount).toLocaleString('en-IN')}</span>
             </div>
         </li>
     )

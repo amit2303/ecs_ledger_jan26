@@ -218,11 +218,11 @@ export default function CompanyDetail({ params }: { params: Promise<{ id: string
                                 type="text"
                                 value={editForm.name}
                                 onChange={e => setEditForm({ ...editForm, name: e.target.value })}
-                                className="w-full text-xl font-bold text-gray-900 border-b border-ecs-blue outline-none"
+                                className="w-full text-xl font-medium text-gray-900 border-b border-ecs-blue outline-none"
                                 autoFocus
                             />
                         ) : (
-                            <h1 className="text-xl font-bold text-gray-900 leading-none truncate">{company.name}</h1>
+                            <h1 className="text-xl font-medium text-gray-900 leading-none truncate">{company.name}</h1>
                         )}
                         <p className="text-xs text-gray-400 truncate mt-1">{company.address || 'No Address'}</p>
                     </div>
@@ -287,19 +287,19 @@ export default function CompanyDetail({ params }: { params: Promise<{ id: string
                 {!isEditing && (
                     <div className="px-5 pb-4 pt-0 grid grid-cols-2 gap-y-3 gap-x-8 text-sm border-t border-gray-50 mt-1 pt-3">
                         <div>
-                            <p className="text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-0.5">Net Due</p>
-                            <span className={`text-lg font-black ${company.netDue > 0 ? 'text-ecs-red' : 'text-green-600'}`}>
+                            <p className="text-gray-400 text-[10px] uppercase font-medium tracking-wider mb-0.5">Net Due</p>
+                            <span className={`text-lg font-medium ${company.netDue > 0 ? 'text-ecs-red' : 'text-green-600'}`}>
                                 ₹{company.netDue.toLocaleString('en-IN')}
                             </span>
                         </div>
                         <div>
-                            <p className="text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-0.5">Ledger Link</p>
+                            <p className="text-gray-400 text-[10px] uppercase font-medium tracking-wider mb-0.5">Ledger Link</p>
                             {company.ledgerLink ? (
                                 <a
                                     href={company.ledgerLink}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center gap-1 font-bold text-ecs-blue truncate hover:underline group"
+                                    className="flex items-center gap-1 font-medium text-ecs-blue truncate hover:underline group"
                                 >
                                     OPEN
                                     <ArrowUpRight className="w-3.5 h-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
@@ -309,12 +309,12 @@ export default function CompanyDetail({ params }: { params: Promise<{ id: string
                             )}
                         </div>
                         <div>
-                            <p className="text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-0.5">Total Pkg</p>
-                            <p className="font-bold text-gray-900">₹{company.totalPackageAmount.toLocaleString('en-IN')}</p>
+                            <p className="text-gray-400 text-[10px] uppercase font-medium tracking-wider mb-0.5">Total Pkg</p>
+                            <p className="font-medium text-gray-900">₹{company.totalPackageAmount.toLocaleString('en-IN')}</p>
                         </div>
                         <div>
-                            <p className="text-gray-400 text-[10px] uppercase font-bold tracking-wider mb-0.5">Total Paid</p>
-                            <p className="font-bold text-green-600">₹{company.totalPaymentsReceived.toLocaleString('en-IN')}</p>
+                            <p className="text-gray-400 text-[10px] uppercase font-medium tracking-wider mb-0.5">Total Paid</p>
+                            <p className="font-medium text-green-600">₹{company.totalPaymentsReceived.toLocaleString('en-IN')}</p>
                         </div>
                     </div>
                 )}
@@ -322,7 +322,7 @@ export default function CompanyDetail({ params }: { params: Promise<{ id: string
 
             {/* Content Container (List Only) */}
             <div className="flex-1 flex flex-col min-h-0">
-                <div className="shrink-0 px-5 py-3 border-b border-gray-200/50 bg-gray-50/80 backdrop-blur-sm flex justify-between items-center text-[10px] font-bold text-gray-400 uppercase tracking-widest z-10">
+                <div className="shrink-0 px-5 py-3 border-b border-gray-200/50 bg-gray-50/80 backdrop-blur-sm flex justify-between items-center text-[10px] font-medium text-gray-400 uppercase tracking-widest z-10">
                     <span>Package</span>
                     <span>Amount</span>
                 </div>
@@ -433,7 +433,7 @@ export default function CompanyDetail({ params }: { params: Promise<{ id: string
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
                     <div className="bg-white w-full max-w-sm rounded-2xl shadow-xl overflow-hidden animate-in zoom-in-95">
                         <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                            <h3 className="font-bold text-gray-900">Edit Package</h3>
+                            <h3 className="font-medium text-gray-900">Edit Package</h3>
                             <button onClick={() => setIsPkgEditModalOpen(false)} className="text-gray-400 hover:text-gray-600">×</button>
                         </div>
                         <form onSubmit={handleUpdatePackage} className="p-4 space-y-3">
@@ -456,7 +456,7 @@ export default function CompanyDetail({ params }: { params: Promise<{ id: string
                             <button
                                 type="submit"
                                 disabled={saving}
-                                className="w-full py-3 bg-ecs-blue text-white font-bold rounded-xl mt-2 active:scale-95 transition-transform"
+                                className="w-full py-3 bg-ecs-blue text-white font-medium rounded-xl mt-2 active:scale-95 transition-transform"
                             >
                                 {saving ? 'Saving...' : 'Save Changes'}
                             </button>
@@ -488,20 +488,20 @@ function PackageItem({ pkg, companyId, onLongPress }: { pkg: any, companyId: num
             <div className="flex justify-between items-center">
                 <div className="flex-1 pr-4">
                     <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-bold text-gray-900 leading-tight">{pkg.description}</h3>
+                        <h3 className="text-sm font-medium text-gray-900 leading-tight">{pkg.description}</h3>
                         {pkg.hasUpdates && (
                             <div className="w-2 h-2 rounded-full bg-red-500 shrink-0 shadow-sm" />
                         )}
                     </div>
-                    <p className="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-wider">{new Date(pkg.date).toLocaleDateString()}</p>
+                    <p className="text-[10px] font-medium text-gray-400 mt-1 uppercase tracking-wider">{new Date(pkg.date).toLocaleDateString()}</p>
                 </div>
                 <div className="text-right flex items-center gap-3">
                     <div className="flex flex-col items-end">
-                        <span className="text-base font-black text-ecs-blue leading-none">₹{pkgAmount.toLocaleString('en-IN')}</span>
+                        <span className="text-lg font-medium text-ecs-blue leading-none">₹{pkgAmount.toLocaleString('en-IN')}</span>
                         {pkgBalance > 0 ? (
-                            <span className="text-[10px] font-bold text-ecs-red uppercase mt-1 px-1.5 py-0.5 bg-red-50 rounded">Bal: ₹{pkgBalance.toLocaleString('en-IN')}</span>
+                            <span className="text-[10px] font-medium text-ecs-red uppercase mt-1 px-1.5 py-0.5 bg-red-50 rounded">Bal: ₹{pkgBalance.toLocaleString('en-IN')}</span>
                         ) : (
-                            <span className="text-[10px] font-bold text-green-600 uppercase mt-1 px-1.5 py-0.5 bg-green-50 rounded">Paid</span>
+                            <span className="text-[10px] font-medium text-green-600 uppercase mt-1 px-1.5 py-0.5 bg-green-50 rounded">Paid</span>
                         )}
                     </div>
                 </div>

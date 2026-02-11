@@ -44,7 +44,7 @@ export function ActionSheet({ isOpen, onClose, title, actions }: ActionSheetProp
                 <div className="flex flex-col max-h-[80vh]">
                     {/* Header */}
                     <div className="flex items-center justify-between p-4 border-b border-gray-100">
-                        <span className="font-bold text-gray-900 text-sm md:text-base">{title || 'Options'}</span>
+                        <span className="font-medium text-gray-900 text-sm md:text-base">{title || 'Options'}</span>
                         <button
                             onClick={onClose}
                             className="p-1 text-gray-400 hover:text-gray-600 rounded-full"
@@ -63,8 +63,8 @@ export function ActionSheet({ isOpen, onClose, title, actions }: ActionSheetProp
                                     onClose()
                                 }}
                                 className={`w-full flex items-center gap-3 px-4 py-4 rounded-xl text-left font-medium transition-colors ${action.variant === 'danger'
-                                        ? 'text-red-500 bg-red-50 hover:bg-red-100'
-                                        : 'text-gray-700 hover:bg-gray-100'
+                                    ? 'text-red-500 bg-red-50 hover:bg-red-100'
+                                    : 'text-gray-700 hover:bg-gray-100'
                                     }`}
                             >
                                 {action.icon && <span className="opacity-70">{action.icon}</span>}
@@ -76,7 +76,7 @@ export function ActionSheet({ isOpen, onClose, title, actions }: ActionSheetProp
                     <div className="p-4 pt-2">
                         <button
                             onClick={onClose}
-                            className="w-full py-3 bg-gray-100 text-gray-600 font-semibold rounded-xl active:scale-95 transition-transform"
+                            className="w-full py-3 bg-gray-100 text-gray-600 font-medium rounded-xl active:scale-95 transition-transform"
                         >
                             Cancel
                         </button>

@@ -24,13 +24,13 @@ export function GlobalHeader() {
     }
 
     return (
-        <header className="px-5 py-4 bg-white border-b border-gray-100 shrink-0 flex items-center gap-3 z-30">
-            <div className="w-20 h-20 relative">
+        <header className="px-5 py-3 bg-white border-b border-gray-100 shrink-0 flex items-center gap-3 z-30">
+            <div className="w-14 h-14 relative">
                 <img src="/logo.jpg" alt="ECS Logo" className="w-full h-full object-contain" />
             </div>
             <div>
-                <h1 className="text-base font-bold text-ecs-blue leading-none whitespace-nowrap">Expert Consultancy Services</h1>
-                <p className="text-xs text-gray-500 mt-0.5">Financial Dashboard</p>
+                <h1 className="text-sm font-medium text-ecs-blue leading-none whitespace-nowrap">Expert Consultancy Services</h1>
+                <p className="text-[10px] text-gray-500 mt-1">Financial Dashboard</p>
             </div>
             <div className="flex-1"></div>
             <HeaderActions />

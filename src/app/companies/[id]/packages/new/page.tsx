@@ -46,14 +46,14 @@ export default function AddPackage({ params }: { params: Promise<{ id: string }>
                 <Link href={`/companies/${id}`} className="p-1 -ml-1 text-gray-400 hover:text-gray-600">
                     <ChevronLeft className="w-6 h-6" />
                 </Link>
-                <h1 className="text-lg font-bold text-gray-900">Add Package</h1>
+                <h1 className="text-lg font-medium text-gray-900">Add Package</h1>
             </header>
 
             <div className="flex-1 overflow-y-auto ios-scroll px-2 pt-2 pb-24">
                 <form id="add-package-form" onSubmit={handleSubmit} className="space-y-4">
                     <div className="bg-white p-3 space-y-4 rounded-xl shadow-sm border border-gray-100">
                         <div>
-                            <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 tracking-wider">Date</label>
+                            <label className="block text-xs font-medium text-gray-400 uppercase mb-1.5 tracking-wider">Date</label>
                             <input
                                 required
                                 type="date"
@@ -63,7 +63,7 @@ export default function AddPackage({ params }: { params: Promise<{ id: string }>
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 tracking-wider">Package Name</label>
+                            <label className="block text-xs font-medium text-gray-400 uppercase mb-1.5 tracking-wider">Package Name</label>
                             <input
                                 required
                                 autoFocus
@@ -83,7 +83,7 @@ export default function AddPackage({ params }: { params: Promise<{ id: string }>
                         form="add-package-form"
                         disabled={loading}
                         type="submit"
-                        className="w-full py-3.5 bg-ecs-blue text-white font-bold rounded-xl shadow-lg active:scale-[98%] transition-transform disabled:opacity-70"
+                        className="w-full py-3.5 bg-ecs-blue text-white font-medium rounded-xl shadow-lg active:scale-[98%] transition-transform disabled:opacity-70"
                     >
                         {loading ? 'Saving...' : 'Save Package'}
                     </button>
