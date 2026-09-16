@@ -11,26 +11,36 @@ interface StatCardProps {
     showCurrency?: boolean
     onClick?: () => void
     isActive?: boolean
+    accentColor?: string  // e.g. 'blue', 'red', 'green', 'orange'
 }
 
-export function StatCard({ label, value, icon: Icon, className = '', valueColor = 'text-gray-900', showCurrency = true, onClick, isActive }: StatCardProps) {
-    const labelColor = isActive ? 'text-amber-800' : 'text-gray-500'
-    const displayValueColor = isActive ? 'text-amber-900' : valueColor
-    const iconColor = isActive ? 'text-amber-600' : 'text-gray-400'
-    const containerClasses = isActive
-        ? 'bg-amber-50 border-amber-200 shadow-md ring-1 ring-amber-100'
-        : 'bg-white border-gray-100 shadow-sm'
+export function StatCard({ label, value, icon: Icon, className = '', valueColor = 'text-gray-900', showCurrency = true, onClick, isActive, accentColor }: StatCardProps) {
+    // Soft, light pastel tints for active state
+    const tintMap: Record<string, { bg: string, ring: string, text: string }> = {
+        blue: { bg: 'rgba(0, 122, 255, 0.08)', ring: '0 0 0 1.5px rgba(0, 122, 255, 0.35)', text: 'text-ios-blue' },
+        red: { bg: 'rgba(224, 83, 83, 0.08)', ring: '0 0 0 1.5px rgba(224, 83, 83, 0.35)', text: 'text-ios-red' },
+        green: { bg: 'rgba(48, 164, 108, 0.08)', ring: '0 0 0 1.5px rgba(48, 164, 108, 0.35)', text: 'text-ios-green' },
+        orange: { bg: 'rgba(245, 158, 11, 0.08)', ring: '0 0 0 1.5px rgba(245, 158, 11, 0.35)', text: 'text-ios-orange' },
+    }
+
+    const activeConf = accentColor && tintMap[accentColor] ? tintMap[accentColor] : tintMap.blue
 
     return (
         <div
             onClick={onClick}
-            className={`${containerClasses} rounded-xl p-3 border transition-all flex flex-col items-start ${className} ${onClick ? 'cursor-pointer active:scale-[98%]' : ''}`}
+            className={`relative overflow-hidden rounded-2xl p-4 transition-all flex flex-col items-start ${className} ${onClick ? 'ios-press cursor-pointer' : ''}`}
+            style={{
+                backgroundColor: isActive ? activeConf.bg : '#FFFFFF',
+                boxShadow: isActive
+                    ? `${activeConf.ring}, 0 2px 8px rgba(0,0,0,0.04)`
+                    : '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
+            }}
         >
-            <span className={`${labelColor} text-[10px] font-medium uppercase tracking-wider mb-1`}>{label}</span>
-            <div className={`text-lg font-medium ${displayValueColor}`}>
-                {typeof value === 'number' && showCurrency ? `₹${value.toLocaleString('en-IN')}` : value}
+            <span className="text-[13px] font-medium text-ios-gray mb-1">{label}</span>
+            <div className={`text-[22px] font-semibold tracking-tight tabular-nums ${isActive ? activeConf.text : valueColor}`}>
+                {typeof value === 'number' && showCurrency ? (value < 0 ? `- ₹${Math.abs(value).toLocaleString('en-IN')}` : `₹${value.toLocaleString('en-IN')}`) : value}
             </div>
-            {Icon && <Icon className={`w-4 h-4 ${iconColor} mt-2`} />}
+            {Icon && <Icon className="w-4 h-4 text-ios-gray mt-2" />}
         </div>
     )
 }

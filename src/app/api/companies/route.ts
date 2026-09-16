@@ -17,6 +17,7 @@ export async function GET(request: Request) {
                 c.updatedAt,
                 c.createdAt,
                 c.hasUpdates,
+                c.isOnHold,
                 (SELECT COUNT(*) FROM Package p WHERE p.companyId = c.id) as packageCount,
                 (
                     SELECT COALESCE(SUM(ch.amount), 0)
@@ -60,7 +61,8 @@ export async function GET(request: Request) {
             amountDue: Number(c.totalCharges) - Number(c.totalPayments),
             lastActivity: Number(c.lastActivityTimestamp),
             packageCount: Number(c.packageCount),
-            hasUpdates: Boolean(c.hasUpdates)
+            hasUpdates: Boolean(c.hasUpdates),
+            isOnHold: Boolean(c.isOnHold)
         }))
         return NextResponse.json(result)
     } catch (error: any) {
@@ -71,13 +73,17 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
     try {
         const body = await request.json()
-        const { name, type, address, ledgerLink, director, contact, email } = body
+        const { name, diaryNumber, type, address, ledgerLink, director, contact, email } = body
         if (!name || !type) {
             return NextResponse.json({ error: 'Name and Type are required' }, { status: 400 })
         }
+        const finalName = diaryNumber?.trim()
+            ? (name.startsWith(`${diaryNumber.trim()}.`) || name.startsWith(`${diaryNumber.trim()} `) ? name : `${diaryNumber.trim()}.  ${name.trim()}`)
+            : name
+
         const company = await prisma.company.create({
             data: {
-                name,
+                name: finalName,
                 type: type as CompanyType,
                 address,
                 ledgerLink,

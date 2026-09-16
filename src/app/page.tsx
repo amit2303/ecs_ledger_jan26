@@ -2,13 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { StatCard } from '@/components/StatCard'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, PauseCircle, PlayCircle, MoreVertical, Download, ChevronRight, Search, X } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useLongPress } from '@/hooks/useLongPress'
 import { ActionSheet } from '@/components/ActionSheet'
 import { exportToExcel } from '@/utils/exportToExcel'
-import { MoreVertical, Download } from 'lucide-react'
 
 interface DashboardStats {
   totalClients: number
@@ -21,6 +20,7 @@ interface DashboardStats {
 interface CompanySummary {
   id: number
   name: string
+  diaryNumber?: string
   type: 'CLIENT' | 'VENDOR'
   amountDue: number
   address?: string
@@ -29,13 +29,14 @@ interface CompanySummary {
   email?: string
   packageCount?: number
   hasUpdates?: boolean
+  isOnHold?: boolean
 }
 
 export default function Home() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [companies, setCompanies] = useState<CompanySummary[]>([])
   const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState<'ALL' | 'CLIENT' | 'VENDOR'>('ALL')
+  const [filter, setFilter] = useState<'CLIENT' | 'VENDOR'>('CLIENT')
   const router = useRouter()
 
   // Action Sheet State
@@ -76,7 +77,16 @@ export default function Home() {
 
   const handleEditClick = () => {
     if (!selectedCompany) return
-    setEditForm(selectedCompany)
+    const rawName = (selectedCompany.name || '').trim()
+    const match = rawName.match(/^(\d+(?:\.\d+)?)\.?\s*(.*)$/)
+    const sNo = match ? match[1] : ''
+    const displayName = match && match[2] ? match[2].trim() : rawName
+
+    setEditForm({
+      ...selectedCompany,
+      diaryNumber: sNo,
+      name: displayName
+    })
     setIsEditModalOpen(true)
   }
 
@@ -112,10 +122,20 @@ export default function Home() {
     if (!selectedCompany) return
     setSaving(true)
     try {
+      const companyName = (editForm.name || '').trim()
+      const finalName = editForm.diaryNumber?.trim()
+        ? `${editForm.diaryNumber.trim()}.  ${companyName}`
+        : companyName
+
       const res = await fetch(`/api/companies/${selectedCompany.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editForm)
+        body: JSON.stringify({
+          name: finalName,
+          address: editForm.address,
+          contact: editForm.contact,
+          email: editForm.email
+        })
       })
       if (!res.ok) throw new Error('Failed to update')
 
@@ -132,7 +152,6 @@ export default function Home() {
     const dataToExport = companies.map(c => ({
       'Type': c.type,
       'Name': c.name,
-      'Ledger Link': c.ledgerLink || '-',
       'Phone': c.contact || '-',
       'Email': c.email || '-',
       'Address': c.address || '-',
@@ -142,96 +161,143 @@ export default function Home() {
     setShowDashboardActions(false)
   }
 
-  const handleResetUpdates = async () => {
+
+  const handleToggleHold = async () => {
     if (!selectedCompany) return
 
     try {
-      const res = await fetch(`/api/companies/${selectedCompany.id}/reset-updates`, { method: 'POST' })
+      const res = await fetch(`/api/companies/${selectedCompany.id}/toggle-hold`, { method: 'POST' })
       if (res.ok) {
         fetchCompanies()
+        fetch('/api/stats').then(res => res.json()).then(setStats)
         setIsSheetOpen(false)
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Failed to toggle hold status')
       }
     } catch (err) {
-      console.error('Failed to reset updates', err)
+      console.error('Failed to toggle hold status', err)
+      alert('Failed to toggle hold status')
     }
   }
 
   const filteredCompanies = companies.filter(c => {
-    if (filter === 'ALL') return true
+    // When searching, search across all companies (clients and vendors)
+    if (search.trim()) return true
+    // Otherwise show only the active tab (Clients by default, or Vendors when clicked)
     return c.type === filter
   })
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 relative overflow-hidden" suppressHydrationWarning>
-      {/* Fixed Stats Grid */}
-      <div className="shrink-0 bg-gray-50 z-10 p-4 pb-0">
-        <div className="grid grid-cols-2 gap-3">
-          <StatCard label="Total Client Due" value={stats?.totalClientDue ?? '-'} valueColor="text-green-600" />
-          <StatCard label="Total Vendor Due" value={stats?.totalVendorDue ?? '-'} valueColor="text-ecs-red" />
+    <div className="flex flex-col h-full relative overflow-hidden" style={{ backgroundColor: '#F2F2F7' }} suppressHydrationWarning>
+      {/* Stats & Controls — Fixed top */}
+      <div className="shrink-0 z-10 px-4 pt-3 pb-0">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 gap-2.5">
           <StatCard
-            label="Total Clients"
+            label="Total Client Due"
+            value={stats?.totalClientDue ?? '-'}
+            valueColor="text-ios-green"
+            accentColor="green"
+          />
+          <StatCard
+            label="Total Vendor Due"
+            value={stats?.totalVendorDue ?? '-'}
+            valueColor="text-ios-red"
+            accentColor="red"
+          />
+          <StatCard
+            label="Clients"
             value={stats?.totalClients ?? '-'}
             showCurrency={false}
-            onClick={() => setFilter(filter === 'CLIENT' ? 'ALL' : 'CLIENT')}
+            onClick={() => setFilter('CLIENT')}
             isActive={filter === 'CLIENT'}
+            accentColor="blue"
           />
           <StatCard
-            label="Total Vendors"
+            label="Vendors"
             value={stats?.totalVendors ?? '-'}
             showCurrency={false}
-            onClick={() => setFilter(filter === 'VENDOR' ? 'ALL' : 'VENDOR')}
+            onClick={() => setFilter('VENDOR')}
             isActive={filter === 'VENDOR'}
+            accentColor="orange"
           />
         </div>
 
-        {/* Search Bar (Fixed) */}
-        <div className="relative mt-4 flex gap-3 h-11">
-          <input
-            type="text"
-            placeholder="Search client or vendor"
-            className="h-full w-full pl-4 pr-4 bg-white border border-gray-200 rounded-xl text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-ecs-blue placeholder:text-gray-400"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+        {/* Search Bar & Actions — Premium Apple Card Style */}
+        <div className="relative mt-3 flex items-center gap-2.5 h-[44px]">
+          <div
+            className="flex-1 h-full relative rounded-2xl bg-white flex items-center px-3.5 transition-all focus-within:ring-2 focus-within:ring-ios-blue/30"
+            style={{
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)',
+            }}
+          >
+            <Search className="w-[18px] h-[18px] text-gray-400 shrink-0 mr-2.5" />
+            <input
+              type="text"
+              placeholder="Search companies..."
+              className="h-full w-full text-[15px] text-gray-900 placeholder-gray-400 bg-transparent outline-none"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch('')}
+                className="p-1 text-gray-400 hover:text-gray-600 active:opacity-60 transition-opacity shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
           <button
             onClick={() => setShowDashboardActions(true)}
-            className="h-full aspect-square bg-white border border-gray-200 rounded-xl text-gray-500 hover:text-gray-900 active:bg-gray-50 shadow-sm flex items-center justify-center"
+            className="h-[44px] w-[44px] rounded-2xl bg-white flex items-center justify-center text-gray-600 ios-press shrink-0 transition-transform"
+            style={{
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)',
+            }}
+            title="More Options"
           >
-            <MoreVertical className="w-5 h-5" />
+            <MoreVertical className="w-5 h-5 text-gray-600" />
           </button>
         </div>
+
       </div>
 
-      {/* Fixed Content Container (List Only) */}
-      <div className="flex-1 flex flex-col min-h-0">
-        <div className="shrink-0 px-5 py-3 border-b border-gray-200/50 bg-gray-50/80 backdrop-blur-sm flex justify-between items-center text-[10px] font-medium text-gray-400 uppercase tracking-widest z-10">
-          <span>Company</span>
-          <span>Due</span>
+      {/* Company List */}
+      <div className="flex-1 flex flex-col min-h-0 mt-3">
+        {/* List Header */}
+        <div className="flex justify-between items-center px-8 pb-2 text-[12px] font-semibold text-ios-gray uppercase tracking-wider select-none">
+          <span>COMPANY</span>
+          <span className="pr-6">DUE</span>
         </div>
-        <ul className="flex-1 overflow-y-auto ios-scroll px-2 pt-2 pb-24">
-          {filteredCompanies.map((company, index) => (
-            <CompanyItem
-              key={company.id}
-              company={company}
-              index={index}
-              onLongPress={() => handleLongPress(company)}
-            />
-          ))}
-          {filteredCompanies.length === 0 && (
-            <li className="p-8 text-center text-gray-400 text-sm">No companies found.</li>
+
+        <div className="flex-1 overflow-y-auto ios-scroll px-4 pb-24">
+          {filteredCompanies.length > 0 ? (
+            <div className="flex flex-col gap-2">
+              {filteredCompanies.map((company) => (
+                <CompanyItem
+                  key={company.id}
+                  company={company}
+                  onLongPress={() => handleLongPress(company)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="ios-card p-8 text-center text-ios-gray text-[15px] rounded-2xl">No companies found.</div>
           )}
-        </ul>
+        </div>
       </div>
 
       {/* FAB */}
-      {/* FAB Wrapper to constrain width on desktop */}
       <div className="fixed bottom-0 left-0 w-full flex justify-center pointer-events-none z-20">
         <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl relative h-0">
           <Link
             href="/add-company"
-            className="absolute bottom-6 right-6 w-14 h-14 bg-ecs-blue text-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform pointer-events-auto"
+            className="absolute bottom-6 right-5 w-14 h-14 bg-ios-blue text-white rounded-full flex items-center justify-center ios-press pointer-events-auto"
+            style={{ boxShadow: '0 4px 14px rgba(0,122,255,0.4)' }}
           >
-            <Plus className="w-6 h-6" />
+            <Plus className="w-7 h-7" strokeWidth={2.5} />
           </Link>
         </div>
       </div>
@@ -242,11 +308,15 @@ export default function Home() {
         onClose={() => setIsSheetOpen(false)}
         title={selectedCompany?.name}
         actions={[
-          ...(selectedCompany?.hasUpdates ? [{
-            label: 'Updated in Diary',
-            icon: <div className="w-5 h-5 rounded-full border-2 border-gray-400 flex items-center justify-center"><div className="w-2 h-2 rounded-full bg-gray-400" /></div>,
-            onClick: handleResetUpdates
-          }] : []),
+          {
+            label: selectedCompany?.isOnHold ? 'Unhold Company' : 'Hold Company',
+            icon: selectedCompany?.isOnHold ? (
+              <PlayCircle className="w-5 h-5 text-ios-green" />
+            ) : (
+              <PauseCircle className="w-5 h-5 text-ios-orange" />
+            ),
+            onClick: handleToggleHold
+          },
           {
             label: 'Edit Company',
             icon: <Pencil className="w-5 h-5" />,
@@ -255,7 +325,7 @@ export default function Home() {
           {
             label: 'Delete Company',
             icon: <Trash2 className="w-5 h-5" />,
-            variant: 'danger',
+            variant: 'danger' as const,
             onClick: handleDeleteClick
           }
         ]}
@@ -275,55 +345,66 @@ export default function Home() {
         ]}
       />
 
-      {/* Edit Modal (Simple inline implementation) */}
+      {/* Edit Modal — iOS Form Sheet style */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white w-full max-w-sm rounded-2xl shadow-xl overflow-hidden animate-in zoom-in-95">
-            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <h3 className="font-medium text-gray-900">Edit Company</h3>
-              <button onClick={() => setIsEditModalOpen(false)} className="text-gray-400 hover:text-gray-600">×</button>
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 ios-fade-in">
+          <div
+            className="bg-white w-full max-w-md rounded-t-2xl overflow-hidden ios-slide-up"
+            style={{ maxHeight: '90vh' }}
+          >
+            {/* Handle */}
+            <div className="ios-handle" />
+
+            <div className="px-4 pt-2 pb-3 flex justify-between items-center">
+              <button onClick={() => setIsEditModalOpen(false)} className="text-ios-blue text-[17px]">Cancel</button>
+              <h3 className="font-semibold text-[17px] text-gray-900">Edit Company</h3>
+              <button
+                onClick={handleUpdateCompany}
+                disabled={saving}
+                className="text-ios-blue text-[17px] font-semibold disabled:opacity-40"
+              >
+                {saving ? 'Saving' : 'Save'}
+              </button>
             </div>
-            <form onSubmit={handleUpdateCompany} className="p-4 space-y-3">
+
+            <form onSubmit={handleUpdateCompany} className="px-4 pb-8 space-y-3">
+              <div className="grid grid-cols-3 gap-2.5">
+                <div className="col-span-1">
+                  <input
+                    className="ios-input"
+                    placeholder="Diary No"
+                    value={editForm.diaryNumber || ''}
+                    onChange={e => setEditForm({ ...editForm, diaryNumber: e.target.value })}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <input
+                    className="ios-input"
+                    placeholder="Company Name"
+                    value={editForm.name}
+                    onChange={e => setEditForm({ ...editForm, name: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
               <input
-                className="w-full p-2 border rounded-lg text-sm"
-                placeholder="Company Name"
-                value={editForm.name}
-                onChange={e => setEditForm({ ...editForm, name: e.target.value })}
-                required
-              />
-              <input
-                className="w-full p-2 border rounded-lg text-sm"
+                className="ios-input"
                 placeholder="Address"
                 value={editForm.address || ''}
                 onChange={e => setEditForm({ ...editForm, address: e.target.value })}
               />
-              <div className="grid grid-cols-2 gap-3">
-                <input
-                  className="w-full p-2 border rounded-lg text-sm"
-                  placeholder="Ledger Link (URL)"
-                  value={editForm.ledgerLink || ''}
-                  onChange={e => setEditForm({ ...editForm, ledgerLink: e.target.value })}
-                />
-                <input
-                  className="w-full p-2 border rounded-lg text-sm"
-                  placeholder="Contact"
-                  value={editForm.contact || ''}
-                  onChange={e => setEditForm({ ...editForm, contact: e.target.value })}
-                />
-              </div>
               <input
-                className="w-full p-2 border rounded-lg text-sm"
+                className="ios-input"
+                placeholder="Contact"
+                value={editForm.contact || ''}
+                onChange={e => setEditForm({ ...editForm, contact: e.target.value })}
+              />
+              <input
+                className="ios-input"
                 placeholder="Email"
                 value={editForm.email || ''}
                 onChange={e => setEditForm({ ...editForm, email: e.target.value })}
               />
-              <button
-                type="submit"
-                disabled={saving}
-                className="w-full py-3 bg-ecs-blue text-white font-medium rounded-xl mt-2 active:scale-95 transition-transform"
-              >
-                {saving ? 'Saving...' : 'Save Changes'}
-              </button>
             </form>
           </div>
         </div>
@@ -332,45 +413,64 @@ export default function Home() {
   )
 }
 
-// Extracted for clean hook usage
-function CompanyItem({ company, index, onLongPress }: { company: CompanySummary, index: number, onLongPress: () => void }) {
+// Company card item — rounded card with color-coded left accent stripe
+function CompanyItem({ company, onLongPress }: { company: CompanySummary, onLongPress: () => void }) {
   const bind = useLongPress(() => {
     onLongPress()
   })
 
+  const isClient = company.type === 'CLIENT'
+  const rawName = (company.name || '').trim()
+  const match = rawName.match(/^(\d+(?:\.\d+)?)\.?\s*(.*)$/)
+  const sNo = match ? match[1] : null
+  const displayName = match && match[2] ? match[2].trim() : rawName
+
   return (
-    <li className="mb-2 last:mb-20">
-      <Link
-        href={`/companies/${company.id}`}
-        {...bind}
-        className="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm border border-gray-100 active:scale-[98%] transition-all cursor-pointer select-none"
-      >
-        <div className="flex items-center gap-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-medium text-gray-900 leading-tight">{company.name}</h3>
-              {company.hasUpdates && (
-                <div className="w-2 h-2 rounded-full bg-red-500 shrink-0 shadow-sm" />
+    <Link
+      href={`/companies/${company.id}`}
+      {...bind}
+      className={`relative overflow-hidden rounded-2xl ios-press select-none block ${company.isOnHold ? 'opacity-55' : ''}`}
+      style={{
+        backgroundColor: '#FFFFFF',
+        boxShadow: isClient
+          ? '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)'
+          : '0 1px 3px rgba(0,0,0,0.04), 0 0 0 1px rgba(224, 83, 83, 0.22)',
+      }}
+    >
+      <div className="flex items-center justify-between px-4 py-3.5">
+        <div className="flex-1 min-w-0 pr-3">
+          {/* Top line: 1 BOOSTER */}
+          <div className="flex items-center min-w-0">
+            <h3 className="text-[16px] font-semibold text-gray-900 leading-snug truncate">
+              {sNo && (
+                <span className="font-bold tabular-nums mr-1.5">{sNo}</span>
               )}
-            </div>
-            <div className="flex items-center gap-2 mt-1">
-              <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-medium uppercase tracking-wider ${company.type === 'CLIENT' ? 'bg-blue-50 text-ecs-blue' : 'bg-red-50 text-ecs-red'}`}>
-                {company.type}
+              {displayName}
+            </h3>
+            {company.isOnHold && (
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md text-ios-orange flex items-center gap-1 shrink-0 ml-2" style={{ backgroundColor: 'rgba(245,158,11,0.08)' }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-ios-orange" />
+                On Hold
               </span>
-              {company.packageCount !== undefined && (
-                <span className="text-[10px] text-gray-400 font-medium">
-                  {company.packageCount} {company.packageCount === 1 ? 'Package' : 'Packages'}
-                </span>
-              )}
-            </div>
+            )}
           </div>
+
+          {/* Packages count below company name */}
+          {company.packageCount !== undefined && (
+            <p className="text-[13px] text-ios-gray mt-1">
+              {company.packageCount} {company.packageCount === 1 ? 'Package' : 'Packages'}
+            </p>
+          )}
         </div>
-        <div className="flex items-center gap-2">
-          <span className={`text-lg font-medium ${company.amountDue > 0 ? 'text-ecs-red' : 'text-green-600'}`}>
-            ₹{(company.amountDue || 0).toLocaleString('en-IN')}
+
+        {/* Right: Due Amount + Chevron */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          <span className={`text-[17px] font-semibold tabular-nums ${company.isOnHold ? 'text-ios-gray line-through' : (company.amountDue || 0) > 0 ? 'text-ios-red' : (company.amountDue || 0) < 0 ? 'text-ios-green' : 'text-ios-blue'}`}>
+            {(company.amountDue || 0) < 0 ? `- ₹${Math.abs(company.amountDue || 0).toLocaleString('en-IN')}` : `₹${(company.amountDue || 0).toLocaleString('en-IN')}`}
           </span>
+          <ChevronRight className="w-5 h-5 text-ios-gray3" />
         </div>
-      </Link>
-    </li>
+      </div>
+    </Link>
   )
 }

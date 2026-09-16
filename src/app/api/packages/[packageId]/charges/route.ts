@@ -60,7 +60,7 @@ export async function GET(request: Request, props: { params: Promise<{ packageId
 
         const charges = await prisma.charge.findMany({
             where: { packageId },
-            orderBy: { date: 'desc' }
+            orderBy: [{ date: 'asc' }, { id: 'asc' }]
         })
 
         return NextResponse.json(charges)

@@ -6,34 +6,23 @@ import { HeaderActions } from '@/components/HeaderActions'
 export function GlobalHeader() {
     const pathname = usePathname()
 
-    // Hide header on company detail pages /companies/[id]
-    // We check if the path starts with /companies/ and has an ID (not just /companies)
-    // Actually, better regex or logic:
-    // If it matches /companies/[digits] exactly or with sub-routes that are NOT 'new' (though 'new' might want a header? No, 'new' is usually a modal or page. Let's assume detail page hides it.)
-    // The user requirement said: "global header... hidden on the Company Detail page".
-    // Company detail page is `/companies/[id]`.
-
-    // Let's hide it for any route under /companies/ except maybe the main one if it existed, but companies list is on home /.
-    // So if pathname starts with /companies/, hide it.
-    // Wait, what about /companies/new? If that's a page, does it need a Global Header? 
-    // The previous analysis suggests /companies/[id]/page.tsx is the detail page.
-    // Let's just hide it for any path starting with /companies/ for now to be safe and "immersive".
-
+    // Hide header on company detail pages and login
     if (pathname?.startsWith('/companies/') || pathname === '/login') {
         return null
     }
 
     return (
-        <header className="px-5 py-3 bg-white border-b border-gray-100 shrink-0 flex items-center gap-3 z-30">
-            <div className="w-14 h-14 relative">
-                <img src="/logo.jpg" alt="ECS Logo" className="w-full h-full object-contain" />
+        <header className="ios-navbar shrink-0 z-30">
+            <div className="px-4 pt-3 pb-2 flex items-center gap-3">
+                <div className="w-11 h-11 rounded-xl overflow-hidden shadow-sm flex-shrink-0">
+                    <img src="/logo.jpg" alt="ECS Logo" className="w-full h-full object-contain" />
+                </div>
+                <div className="flex-1 min-w-0">
+                    <h1 className="text-[17px] font-semibold text-gray-900 leading-tight tracking-tight">ECS Ledger</h1>
+                    <p className="text-[13px] text-ios-gray mt-0.5">Financial Dashboard</p>
+                </div>
+                <HeaderActions />
             </div>
-            <div>
-                <h1 className="text-sm font-medium text-ecs-blue leading-none whitespace-nowrap">Expert Consultancy Services</h1>
-                <p className="text-[10px] text-gray-500 mt-1">Financial Dashboard</p>
-            </div>
-            <div className="flex-1"></div>
-            <HeaderActions />
         </header>
     )
 }

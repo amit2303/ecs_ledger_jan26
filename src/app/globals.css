@@ -1,32 +1,260 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
 
+  /* Brand Colors */
   --color-ecs-blue: #162E5C;
   --color-ecs-red: #E63946;
   --color-ecs-gold: #D97706;
-  /* Darker gold for better contrast on white, original: #EAb308 */
+
+  /* iOS System Colors — Premium, Refined Shades */
+  --color-ios-blue: #007AFF;
+  --color-ios-red: #E05353;
+  --color-ios-green: #30A46C;
+  --color-ios-orange: #F59E0B;
+  --color-ios-gray: #8E8E93;
+  --color-ios-gray2: #AEAEB2;
+  --color-ios-gray3: #C7C7CC;
+  --color-ios-gray4: #D1D1D6;
+  --color-ios-gray5: #E5E5EA;
+  --color-ios-gray6: #F2F2F7;
+  --color-ios-separator: rgba(60, 60, 67, 0.12);
+  --color-ios-card: #FFFFFF;
 }
 
-/* Custom Utilities for iPhone feel */
+/* ========================================
+   iOS Momentum Scrolling
+   ======================================== */
 .ios-scroll {
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  /* Firefox */
+  overscroll-behavior-y: auto;
 }
 
 .ios-scroll::-webkit-scrollbar {
   display: none;
-  /* Chrome/Safari */
 }
 
+/* ========================================
+   Base Styles
+   ======================================== */
 html,
 body {
   height: 100%;
   width: 100%;
   overflow: hidden;
   overscroll-behavior: none;
-  background-color: #f2f2f7;
+  background-color: var(--color-ios-gray6);
   color: #000;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "kern" 1;
+}
+
+/* ========================================
+   iOS Animations
+   ======================================== */
+@keyframes ios-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes ios-slide-down {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes ios-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ios-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.ios-slide-up {
+  animation: ios-slide-up 0.35s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+.ios-fade-in {
+  animation: ios-fade-in 0.25s ease-out forwards;
+}
+
+.ios-scale-in {
+  animation: ios-scale-in 0.25s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+/* iOS spring-like transition */
+.ios-spring {
+  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* ========================================
+   iOS Segmented Control
+   ======================================== */
+.ios-segmented {
+  display: flex;
+  background: var(--color-ios-gray5);
+  border-radius: 9px;
+  padding: 2px;
+  position: relative;
+}
+
+.ios-segmented-btn {
+  flex: 1;
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  border-radius: 7px;
+  color: #000;
+  background: transparent;
+  transition: all 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+  cursor: pointer;
+  border: none;
+  outline: none;
+  position: relative;
+  z-index: 1;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ios-segmented-btn.active {
+  background: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08),
+              0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.ios-segmented-btn:not(.active) {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+/* ========================================
+   iOS Grouped Inset List
+   ======================================== */
+.ios-grouped-list {
+  background: #FFFFFF;
+  border-radius: 16px;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ios-grouped-list > li {
+  border-bottom: 0.5px solid var(--color-ios-separator);
+}
+
+.ios-grouped-list > li:last-child {
+  border-bottom: none;
+}
+
+/* ========================================
+   iOS Section Label
+   ======================================== */
+.ios-section-label {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--color-ios-gray);
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  padding: 0 20px 8px;
+}
+
+/* ========================================
+   iOS Card (Widget-like)
+   ======================================== */
+.ios-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06),
+              0 0 0 0.5px rgba(0, 0, 0, 0.04);
+}
+
+/* ========================================
+   iOS Touch Feedback
+   ======================================== */
+.ios-press {
+  transition: transform 0.15s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ios-press:active {
+  transform: scale(0.97);
+  opacity: 0.85;
+}
+
+/* ========================================
+   iOS Navigation Bar
+   ======================================== */
+.ios-navbar {
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  background: rgba(249, 249, 249, 0.94);
+  border-bottom: 0.5px solid var(--color-ios-separator);
+}
+
+/* ========================================
+   iOS Input Field
+   ======================================== */
+.ios-input {
+  width: 100%;
+  padding: 11px 16px;
+  background: var(--color-ios-gray6);
+  border: none;
+  border-radius: 12px;
+  font-size: 17px;
+  color: #000;
+  outline: none;
+  transition: box-shadow 0.2s ease;
+  -webkit-appearance: none;
+}
+
+.ios-input:focus {
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
+}
+
+.ios-input::placeholder {
+  color: var(--color-ios-gray3);
+}
+
+/* ========================================
+   Safe Area
+   ======================================== */
+.safe-area-bottom {
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+/* ========================================
+   iOS Action Sheet Handle
+   ======================================== */
+.ios-handle {
+  width: 36px;
+  height: 5px;
+  border-radius: 2.5px;
+  background: rgba(0, 0, 0, 0.15);
+  margin: 8px auto 4px;
 }

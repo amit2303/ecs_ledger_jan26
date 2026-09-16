@@ -14,20 +14,20 @@ export function HeaderActions() {
     }
 
     return (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
             <Link
                 href="/change-password"
-                className="p-2 text-gray-400 hover:text-gray-600 rounded-full transition-colors"
+                className="p-2 text-ios-blue rounded-full transition-colors active:bg-ios-gray5"
                 title="Change Password"
             >
-                <Key className="w-5 h-5 rotate-90" />
+                <Key className="w-[22px] h-[22px] rotate-90" />
             </Link>
             <button
                 onClick={handleLogout}
-                className="p-2 text-red-400 hover:text-red-500 rounded-full transition-colors"
+                className="p-2 text-ios-red rounded-full transition-colors active:bg-ios-gray5"
                 title="Sign Out"
             >
-                <LogOut className="w-5 h-5" />
+                <LogOut className="w-[22px] h-[22px]" />
             </button>
         </div>
     )

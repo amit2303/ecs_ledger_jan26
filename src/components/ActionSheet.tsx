@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useEffect } from 'react'
-import { X } from 'lucide-react'
 
 interface Action {
     label: string
@@ -35,53 +34,56 @@ export function ActionSheet({ isOpen, onClose, title, actions }: ActionSheetProp
         <div className="fixed inset-0 z-50">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+                className="absolute inset-0 bg-black/40 ios-fade-in"
                 onClick={onClose}
             />
 
-            {/* Sheet */}
-            <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-xl transform transition-transform animate-in slide-in-from-bottom duration-300">
-                <div className="flex flex-col max-h-[80vh]">
-                    {/* Header */}
-                    <div className="flex items-center justify-between p-4 border-b border-gray-100">
-                        <span className="font-medium text-gray-900 text-sm md:text-base">{title || 'Options'}</span>
-                        <button
-                            onClick={onClose}
-                            className="p-1 text-gray-400 hover:text-gray-600 rounded-full"
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
-                    </div>
+            {/* Sheet Container — pinned to bottom with safe area */}
+            <div className="absolute bottom-0 left-0 right-0 px-2 ios-slide-up safe-area-bottom" style={{ paddingBottom: 'max(10px, env(safe-area-inset-bottom))' }}>
+                {/* Grouped Actions Card */}
+                <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.92)', backdropFilter: 'saturate(180%) blur(40px)', WebkitBackdropFilter: 'saturate(180%) blur(40px)' }}>
+                    {/* Title */}
+                    {title && (
+                        <div className="px-4 pt-4 pb-2 text-center">
+                            <p className="text-[13px] font-semibold text-gray-500 truncate">{title}</p>
+                        </div>
+                    )}
 
-                    {/* Actions */}
-                    <div className="p-2 space-y-1 overflow-y-auto">
+                    {/* Action Buttons */}
+                    <div>
                         {actions.map((action, index) => (
-                            <button
-                                key={index}
-                                onClick={() => {
-                                    action.onClick()
-                                    onClose()
-                                }}
-                                className={`w-full flex items-center gap-3 px-4 py-4 rounded-xl text-left font-medium transition-colors ${action.variant === 'danger'
-                                    ? 'text-red-500 bg-red-50 hover:bg-red-100'
-                                    : 'text-gray-700 hover:bg-gray-100'
+                            <React.Fragment key={index}>
+                                {(index > 0 || title) && (
+                                    <div className="mx-0" style={{ height: '0.5px', backgroundColor: 'rgba(60,60,67,0.15)' }} />
+                                )}
+                                <button
+                                    onClick={() => {
+                                        action.onClick()
+                                        onClose()
+                                    }}
+                                    className={`w-full flex items-center justify-center gap-2.5 px-4 py-[18px] text-center font-normal transition-colors active:bg-black/5 ${
+                                        action.variant === 'danger'
+                                            ? 'text-ios-red'
+                                            : 'text-ios-blue'
                                     }`}
-                            >
-                                {action.icon && <span className="opacity-70">{action.icon}</span>}
-                                {action.label}
-                            </button>
+                                    style={{ fontSize: '20px' }}
+                                >
+                                    {action.icon && <span className="opacity-80 flex items-center">{action.icon}</span>}
+                                    {action.label}
+                                </button>
+                            </React.Fragment>
                         ))}
                     </div>
-
-                    <div className="p-4 pt-2">
-                        <button
-                            onClick={onClose}
-                            className="w-full py-3 bg-gray-100 text-gray-600 font-medium rounded-xl active:scale-95 transition-transform"
-                        >
-                            Cancel
-                        </button>
-                    </div>
                 </div>
+
+                {/* Cancel Button — Detached */}
+                <button
+                    onClick={onClose}
+                    className="w-full mt-2 py-[18px] rounded-2xl text-center font-semibold text-ios-blue active:bg-white/70 transition-colors"
+                    style={{ fontSize: '20px', backgroundColor: 'rgba(255,255,255,0.92)', backdropFilter: 'saturate(180%) blur(40px)', WebkitBackdropFilter: 'saturate(180%) blur(40px)' }}
+                >
+                    Cancel
+                </button>
             </div>
         </div>
     )

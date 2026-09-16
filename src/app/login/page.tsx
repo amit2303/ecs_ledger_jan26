@@ -38,55 +38,65 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-            <div className="bg-white w-full max-w-sm rounded-2xl shadow-xl overflow-hidden p-8 space-y-6">
+        <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: '#F2F2F7' }}>
+            <div className="w-full max-w-sm space-y-8">
+                {/* Logo & Title */}
                 <div className="text-center">
-                    <img src="/logo.jpg" alt="ECS" className="w-32 h-32 mx-auto mb-4 object-contain" />
-                    <h1 className="text-2xl font-bold text-gray-900">Expert Consultancy Services</h1>
-                    <p className="text-sm text-gray-500 mt-1">Financial Dashboard</p>
+                    <div className="w-24 h-24 mx-auto mb-5 rounded-[22px] overflow-hidden" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
+                        <img src="/logo.jpg" alt="ECS" className="w-full h-full object-contain" />
+                    </div>
+                    <h1 className="text-[28px] font-bold text-gray-900 tracking-tight">ECS Ledger</h1>
+                    <p className="text-[15px] text-ios-gray mt-1">Financial Dashboard</p>
                 </div>
 
+                {/* Form */}
                 <form onSubmit={handleLogin} className="space-y-4">
                     {error && (
-                        <div className="bg-red-50 text-red-600 text-xs p-3 rounded-lg text-center">
+                        <div className="ios-card p-3 text-center text-[15px] text-ios-red font-medium" style={{ backgroundColor: 'rgba(255,59,48,0.08)' }}>
                             {error}
                         </div>
                     )}
-                    <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Username</label>
-                        <input
-                            type="text"
-                            value={username}
-                            onChange={e => setUsername(e.target.value)}
-                            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-ecs-blue transition-all"
-                            placeholder="Enter username"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Password</label>
-                        <div className="relative">
+
+                    <div className="ios-card overflow-hidden">
+                        <div className="px-4 py-3" style={{ borderBottom: '0.5px solid rgba(60,60,67,0.12)' }}>
+                            <label className="text-[13px] text-ios-gray block mb-1">Username</label>
                             <input
-                                type={showPassword ? 'text' : 'password'}
-                                value={password}
-                                onChange={e => setPassword(e.target.value)}
-                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-ecs-blue transition-all pr-10"
-                                placeholder="••••••••"
+                                type="text"
+                                value={username}
+                                onChange={e => setUsername(e.target.value)}
+                                className="w-full text-[17px] text-gray-900 bg-transparent outline-none placeholder:text-ios-gray3"
+                                placeholder="Enter username"
                                 required
+                                autoComplete="username"
                             />
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
-                            >
-                                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                            </button>
+                        </div>
+                        <div className="px-4 py-3">
+                            <label className="text-[13px] text-ios-gray block mb-1">Password</label>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    value={password}
+                                    onChange={e => setPassword(e.target.value)}
+                                    className="flex-1 text-[17px] text-gray-900 bg-transparent outline-none placeholder:text-ios-gray3"
+                                    placeholder="••••••••"
+                                    required
+                                    autoComplete="current-password"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="text-ios-gray active:opacity-60 p-1"
+                                >
+                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
+                            </div>
                         </div>
                     </div>
+
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full py-3 bg-ecs-blue text-white font-bold rounded-xl shadow-lg active:scale-95 transition-transform disabled:opacity-50"
+                        className="w-full py-[14px] bg-ios-blue text-white text-[17px] font-semibold rounded-2xl ios-press disabled:opacity-50"
                     >
                         {loading ? 'Signing in...' : 'Sign In'}
                     </button>

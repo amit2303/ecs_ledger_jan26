@@ -26,6 +26,7 @@ interface PackageDetail {
     date: string
     payments: Transaction[]
     charges: Transaction[]
+    monthlyCharges?: any[]
     documents?: { id: number; url: string; name: string; type: string }[]
 }
 
@@ -64,10 +65,36 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
 
     // Document State
     const fileInputRef = useRef<HTMLInputElement>(null)
+    const chargeAmountRef = useRef<HTMLInputElement>(null)
+    const paymentAmountRef = useRef<HTMLInputElement>(null)
     const [documents, setDocuments] = useState<any[]>([])
     const [selectedDoc, setSelectedDoc] = useState<any>(null)
     const [showDocActions, setShowDocActions] = useState(false)
     const [previewDoc, setPreviewDoc] = useState<{ url: string, name: string } | null>(null)
+
+    // Monthly Charge State
+    const [showAddMonthlyCharge, setShowAddMonthlyCharge] = useState(false)
+    const [monthlyChargeForm, setMonthlyChargeForm] = useState({ description: '', amount: '' })
+    const [savingMonthlyCharge, setSavingMonthlyCharge] = useState(false)
+    const monthlyChargeAmountRef = useRef<HTMLInputElement>(null)
+
+    useEffect(() => {
+        if (showAddMonthlyCharge) {
+            setTimeout(() => monthlyChargeAmountRef.current?.focus(), 50)
+        }
+    }, [showAddMonthlyCharge])
+
+    useEffect(() => {
+        if (showAddCharge) {
+            setTimeout(() => chargeAmountRef.current?.focus(), 50)
+        }
+    }, [showAddCharge])
+
+    useEffect(() => {
+        if (showAddPayment) {
+            setTimeout(() => paymentAmountRef.current?.focus(), 50)
+        }
+    }, [showAddPayment])
 
     useEffect(() => {
         fetchData()
@@ -86,12 +113,17 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
             const foundPkg = companyData.packages.find((p: any) => p.id === Number(packageId))
             if (!foundPkg) throw new Error('Package not found')
 
-            // Sort Charges: Oldest first (Newest at bottom)
+            // Sort Charges: Oldest at the top, newest at the bottom
             if (foundPkg.charges) {
-                foundPkg.charges.sort((a: any, b: any) => a.id - b.id)
+                foundPkg.charges.sort((a: any, b: any) => {
+                    const dateA = new Date(a.date).getTime()
+                    const dateB = new Date(b.date).getTime()
+                    if (dateA !== dateB) return dateA - dateB
+                    return a.id - b.id
+                })
             }
 
-            // Sort Payments: Oldest date first (Newest at bottom)
+            // Sort Payments: Oldest at the top, newest at the bottom
             if (foundPkg.payments) {
                 foundPkg.payments.sort((a: any, b: any) => {
                     const dateA = new Date(a.date).getTime()
@@ -179,7 +211,7 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
     }
 
     const handleDeleteCharge = async (chargeId: number) => {
-        if (!confirm('Currently, deleting a charge is permanent. Continue?')) return // Simplified confirmation
+        if (!confirm('Currently, deleting a charge is permanent. Continue?')) return
         try {
             const res = await fetch(`/api/charges/${chargeId}`, { method: 'DELETE' })
             if (!res.ok) throw new Error('Failed to delete charge')
@@ -220,16 +252,37 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
         setShowAddPayment(true)
     }
 
-    // Payment Handlers (Reuse similar logic if possible but for simplicity duplicating basic delete)
-    // Note: Edit Payment is missing form UI in original, so I will add a DELETE button only for now unless requested.
-    // Plan said: "Add Edit and Delete buttons for each payment".
-    // I will add Delete for sure. For Edit, I'll need a form. Currently there is no "New Payment" form on this page, it's a link to `/payment/new`.
-    // So for editing payment, it's tricky. I'll just add Delete for now, and Edit button that alerts "Not implemented" or redirects if I had a route.
-    // Actually, I can implement inline delete easily.
+    const handleSaveMonthlyCharge = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!monthlyChargeForm.description || !monthlyChargeForm.amount) return
+        setSavingMonthlyCharge(true)
+        try {
+            const res = await fetch(`/api/packages/${packageId}/monthly-charges`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(monthlyChargeForm)
+            })
+            if (!res.ok) throw new Error('Failed to create monthly charge')
+            setMonthlyChargeForm({ description: '', amount: '' })
+            setShowAddMonthlyCharge(false)
+            await fetchData()
+        } catch (err: any) {
+            alert(err.message || 'Error saving monthly charge')
+        } finally {
+            setSavingMonthlyCharge(false)
+        }
+    }
 
-    // Correction: There is a link to `/companies/${id}/packages/${pkg.id}/payment/new`.
-    // So I should probably modify the Payment implementation to be inline or simply add Delete.
-    // Given the task size, I'll prioritize Delete. I'll add a Delete button.
+    const handleDeleteMonthlyCharge = async (mcId: number, desc: string) => {
+        if (!confirm(`Delete recurring monthly charge "${desc}"? (Existing generated charges will remain)`)) return
+        try {
+            const res = await fetch(`/api/monthly-charges/${mcId}`, { method: 'DELETE' })
+            if (!res.ok) throw new Error('Failed to delete monthly charge')
+            await fetchData()
+        } catch (err: any) {
+            alert(err.message || 'Error deleting monthly charge')
+        }
+    }
 
     const handleDeletePayment = async (payId: number) => {
         if (!confirm('Delete this payment?')) return
@@ -349,20 +402,7 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
     const handleDeleteDocument = async (docId: number) => {
         if (!confirm('Delete this file?')) return
         try {
-            // Note: We need a DELETE API for document. 
-            // The previous code used /api/documents/[docId]. Assuming that still exists/works.
-            // I removed company documents route but NOT /api/documents/[id] if it existed.
-            // Wait, I should check if /api/documents/[id] exists. 
-            // If not, I should create it or handle it.
-            // Assuming it exists as general document deletion.
             const res = await fetch(`/api/documents/${docId}`, { method: 'DELETE' })
-            // If that route doesn't exist, this will fail.
-            // I'll assume it exists or I'll implement it.
-            // Actually, step 54 showed NO /api/documents/[id], only /api/documents without ID?
-            // Step 53 showed {"name":"documents","isDir":true,"numChildren":1} inside /api/companies/[id].
-            // But what about global /api/documents?
-            // Step 53 showed {"name":"documents","isDir":true,"numChildren":1} in /api root!
-            // So /api/documents/[id] probably exists.
             if (!res.ok) throw new Error('Delete failed')
             await fetchDocuments()
         } catch (err) {
@@ -376,15 +416,13 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
         setShowDocActions(true)
     }
 
-    if (loading) return <div className="flex h-screen items-center justify-center text-gray-400">Loading...</div>
-    if (error) return <div className="flex h-screen items-center justify-center text-red-500">{error}</div>
-    if (!pkg) return <div className="flex h-screen items-center justify-center text-gray-400">Package not found</div>
+    if (loading) return <div className="flex h-screen items-center justify-center text-ios-gray text-[17px]">Loading...</div>
+    if (error) return <div className="flex h-screen items-center justify-center text-ios-red text-[15px]">{error}</div>
+    if (!pkg) return <div className="flex h-screen items-center justify-center text-ios-gray text-[17px]">Package not found</div>
 
     const pkgTotalAmount = pkg.charges?.reduce((sum, c) => sum + Number(c.amount), 0) || 0
     const pkgTotalPaid = pkg.payments?.reduce((sum, p) => sum + Number(p.amount), 0) || 0
     const pkgBalance = pkgTotalAmount - pkgTotalPaid
-
-    // ... existing helpers ...
 
     const handleChargeLongPress = (charge: Transaction) => {
         if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(50)
@@ -399,19 +437,21 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
     }
 
     return (
-        <div className="absolute inset-0 flex flex-col w-full h-full bg-gray-50 overflow-hidden">
-            <header className="bg-white border-b border-gray-200 shrink-0 z-10">
-                <div className="flex items-center gap-2 p-2">
-                    <Link href={`/companies/${id}`} className="p-2 text-gray-500 hover:text-gray-900">
-                        <ChevronLeft className="w-6 h-6" />
+        <div className="absolute inset-0 flex flex-col w-full h-full overflow-hidden" style={{ backgroundColor: '#F2F2F7' }}>
+            <header className="shrink-0 z-10" style={{ backgroundColor: '#F2F2F7' }}>
+                {/* Nav Row */}
+                <div className="flex items-center gap-1 px-1 py-2">
+                    <Link href={`/companies/${id}`} className="shrink-0 text-ios-blue active:opacity-60 transition-opacity flex items-center gap-0.5 pl-1 pr-2">
+                        <ChevronLeft className="w-[22px] h-[22px]" />
+                        <span className="text-[17px]">Back</span>
                     </Link>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 text-center">
                         {isEditingPkg ? (
                             <div className="flex flex-col gap-1 w-full">
                                 <input
                                     value={pkgEditForm.description}
                                     onChange={e => setPkgEditForm({ ...pkgEditForm, description: e.target.value })}
-                                    className="w-full text-lg font-medium text-ecs-blue border-b border-ecs-blue outline-none bg-transparent"
+                                    className="w-full text-[17px] font-semibold text-center text-gray-900 bg-transparent border-b-2 border-ios-blue outline-none"
                                     autoFocus
                                     placeholder="Description"
                                 />
@@ -419,187 +459,268 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                                     type="date"
                                     value={pkgEditForm.date}
                                     onChange={e => setPkgEditForm({ ...pkgEditForm, date: e.target.value })}
-                                    className="w-full text-xs text-gray-500 border-b border-gray-200 outline-none bg-transparent py-1"
+                                    className="w-full text-[13px] text-center text-ios-gray bg-transparent border-b border-ios-gray4 outline-none py-1"
                                 />
                             </div>
                         ) : (
                             <>
-                                <h1 className="text-lg font-medium text-ecs-blue leading-tight truncate">{pkg.description}</h1>
-                                <p className="text-xs text-gray-400 mt-0.5">{pkg.date ? new Date(pkg.date).toLocaleDateString() : 'No Date'}</p>
+                                <h1 className="text-[17px] font-semibold text-gray-900 leading-tight truncate">{pkg.description}</h1>
+                                <p className="text-[13px] text-ios-gray mt-0.5">{pkg.date ? new Date(pkg.date).toLocaleDateString() : 'No Date'}</p>
                             </>
                         )}
                     </div>
 
                     {/* Package Actions */}
-                    <div className="flex items-center gap-1 pr-2">
+                    <div className="shrink-0 pr-2">
                         {isEditingPkg ? (
-                            <>
-                                <button onClick={() => setIsEditingPkg(false)} className="p-2 text-gray-400"><X className="w-4 h-4" /></button>
-                                <button onClick={handleUpdatePackage} className="p-2 text-ecs-blue"><Save className="w-4 h-4" /></button>
-                            </>
+                            <div className="flex items-center gap-2">
+                                <button onClick={() => setIsEditingPkg(false)} className="text-ios-blue text-[17px]">Cancel</button>
+                                <button onClick={handleUpdatePackage} className="text-ios-blue text-[17px] font-semibold">Save</button>
+                            </div>
                         ) : (
-                            <button onClick={() => setShowPkgActions(true)} className="p-2 text-gray-400 hover:text-ecs-blue">
-                                <MoreVertical className="w-5 h-5" />
+                            <button onClick={() => setShowPkgActions(true)} className="p-1 text-ios-blue active:opacity-60 transition-opacity">
+                                <MoreVertical className="w-[22px] h-[22px]" />
                             </button>
                         )}
                     </div>
                 </div>
 
                 {/* Stats Row */}
-                <div className="px-5 pb-4 pt-3 text-sm border-t border-gray-50 mt-1">
-                    <div className="mb-2">
-                        <div className="flex flex-col">
-                            <p className="text-gray-400 text-[10px] uppercase font-medium tracking-wider mb-0.5">Total Charges</p>
-                            <p className="font-medium text-gray-900 text-xl">₹{pkgTotalAmount.toLocaleString('en-IN')}</p>
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-x-8">
-                        <div>
-                            <p className="text-gray-400 text-[10px] uppercase font-medium tracking-wider mb-0.5">Net Due</p>
-                            <span className={`text-lg font-medium ${pkgBalance > 0 ? 'text-ecs-red' : 'text-green-600'}`}>
-                                ₹{pkgBalance.toLocaleString('en-IN')}
+                <div className="px-4 pb-3">
+                    <div className="ios-card p-3.5">
+                        {/* Top: TOTAL PACKAGE */}
+                        <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-gray-100">
+                            <span className="text-[12px] font-semibold text-ios-gray uppercase tracking-wider">TOTAL PACKAGE</span>
+                            <span className="text-[17px] font-semibold text-gray-900 tabular-nums">
+                                ₹{pkgTotalAmount.toLocaleString('en-IN')}
                             </span>
                         </div>
-                        <div>
-                            <p className="text-gray-400 text-[10px] uppercase font-medium tracking-wider mb-0.5">Total Paid</p>
-                            <p className="font-medium text-green-600 text-lg">₹{pkgTotalPaid.toLocaleString('en-IN')}</p>
+
+                        {/* Bottom: NET DUE (left) & TOTAL PAID (right) */}
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <span className="text-[12px] font-semibold text-ios-gray uppercase tracking-wider block mb-0.5">NET DUE</span>
+                                <span className={`text-[19px] font-bold tabular-nums ${pkgBalance > 0 ? 'text-ios-red' : pkgBalance < 0 ? 'text-ios-green' : 'text-ios-blue'}`}>
+                                    {pkgBalance < 0 ? `- ₹${Math.abs(pkgBalance).toLocaleString('en-IN')}` : `₹${pkgBalance.toLocaleString('en-IN')}`}
+                                </span>
+                            </div>
+                            <div className="text-right">
+                                <span className="text-[12px] font-semibold text-ios-gray uppercase tracking-wider block mb-0.5">TOTAL PAID</span>
+                                <span className="text-[19px] font-bold text-ios-green tabular-nums">
+                                    ₹{pkgTotalPaid.toLocaleString('en-IN')}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Tabs */}
-                <div className="flex border-t border-gray-50 bg-white">
-                    <button
-                        onClick={() => setActiveTab('AMOUNT')}
-                        className={`flex-1 py-2.5 text-sm font-medium text-center transition-colors ${activeTab === 'AMOUNT' ? 'text-ecs-blue border-b-2 border-ecs-blue bg-blue-50/30' : 'text-gray-500 hover:text-gray-700'}`}
-                    >
-                        Charges
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('PAYMENTS')}
-                        className={`flex-1 py-2.5 text-sm font-medium text-center transition-colors ${activeTab === 'PAYMENTS' ? 'text-ecs-blue border-b-2 border-ecs-blue bg-blue-50/30' : 'text-gray-500 hover:text-gray-700'}`}
-                    >
-                        Payments
-                    </button>
+                {/* iOS Segmented Control — Tabs */}
+                <div className="px-4 pb-3">
+                    <div className="ios-segmented">
+                        <button
+                            onClick={() => setActiveTab('AMOUNT')}
+                            className={`ios-segmented-btn ${activeTab === 'AMOUNT' ? 'active' : ''}`}
+                        >
+                            Charges
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('PAYMENTS')}
+                            className={`ios-segmented-btn ${activeTab === 'PAYMENTS' ? 'active' : ''}`}
+                        >
+                            Payments
+                        </button>
+                    </div>
                 </div>
             </header>
 
-            {/* Fixed Content Container */}
+            {/* Content */}
             <div className="flex-1 flex flex-col min-h-0">
-                <div className="shrink-0 px-5 py-3 border-b border-gray-200/50 bg-gray-50/80 backdrop-blur-sm flex justify-between items-center text-[10px] font-medium text-gray-400 uppercase tracking-widest z-10">
-                    <span>Description</span>
-                    <span>Amount</span>
-                </div>
-
-                <div className="flex-1 overflow-y-auto ios-scroll px-2 pt-2 pb-24">
+                <div className="flex-1 overflow-y-auto ios-scroll px-4 pt-3 pb-24">
                     {activeTab === 'AMOUNT' ? (
                         <div className="space-y-4">
-                            <div className="space-y-3">
-                                {/* Add/Edit Charge Form */}
-                                {showAddCharge ? (
-                                    <div className="px-4 pt-4">
-                                        <form onSubmit={handleSaveCharge} className="bg-white rounded-xl shadow-md border border-blue-100 p-3 space-y-3 animate-in fade-in zoom-in-95 duration-200">
-                                            <h3 className="text-sm font-medium text-gray-700 mb-2">{editingChargeId ? 'Edit Charge' : 'New Charge'}</h3>
-                                            <div className="space-y-3">
-                                                <div>
-                                                    <input
-                                                        type="date"
-                                                        required
-                                                        className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-base bg-gray-50 focus:bg-white focus:ring-2 focus:ring-ecs-blue outline-none transition-all"
-                                                        value={chargeForm.date}
-                                                        onChange={e => setChargeForm({ ...chargeForm, date: e.target.value })}
-                                                    />
+                            {/* Monthly Charges Section */}
+                            <div className="space-y-2">
+                                {!showAddMonthlyCharge && (
+                                    <div className="flex justify-end px-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowAddMonthlyCharge(true)}
+                                            className="text-[13px] font-semibold text-ios-blue flex items-center gap-1 active:opacity-60"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                            Add Monthly Charges
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Add Monthly Charge Form */}
+                                {showAddMonthlyCharge && (
+                                    <form onSubmit={handleSaveMonthlyCharge} className="ios-card p-4 space-y-3 ios-scale-in">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="text-[15px] font-semibold text-gray-900">New Monthly Charge</h3>
+                                            <span className="text-[11px] text-ios-gray font-medium">Repeats 1st of every month</span>
+                                        </div>
+                                        <input
+                                            ref={monthlyChargeAmountRef}
+                                            autoFocus
+                                            type="number"
+                                            min="0"
+                                            placeholder="Amount (e.g. 5000)"
+                                            className="ios-input"
+                                            value={monthlyChargeForm.amount}
+                                            onChange={e => setMonthlyChargeForm({ ...monthlyChargeForm, amount: e.target.value })}
+                                            required
+                                        />
+                                        <input
+                                            type="text"
+                                            placeholder="Description (e.g. BIS management)"
+                                            className="ios-input"
+                                            value={monthlyChargeForm.description}
+                                            onChange={e => setMonthlyChargeForm({ ...monthlyChargeForm, description: e.target.value })}
+                                            required
+                                        />
+                                        <div className="flex gap-2.5 pt-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setShowAddMonthlyCharge(false)
+                                                    setMonthlyChargeForm({ description: '', amount: '' })
+                                                }}
+                                                className="flex-1 py-3 text-[15px] font-medium text-ios-blue rounded-xl active:opacity-60 transition-opacity"
+                                                style={{ backgroundColor: 'rgba(0,122,255,0.08)' }}
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                disabled={savingMonthlyCharge}
+                                                className="flex-1 py-3 text-[15px] font-semibold text-white bg-ios-blue rounded-xl ios-press disabled:opacity-50"
+                                            >
+                                                {savingMonthlyCharge ? 'Saving...' : 'Add Monthly Charge'}
+                                            </button>
+                                        </div>
+                                    </form>
+                                )}
+
+                                {/* Monthly Charges List */}
+                                {(pkg.monthlyCharges || []).length > 0 ? (
+                                    <div className="flex flex-col gap-2">
+                                        {(pkg.monthlyCharges || []).map((mc: any) => (
+                                            <div
+                                                key={mc.id}
+                                                className="ios-card px-4 py-3 flex items-center justify-between"
+                                            >
+                                                <div className="flex-1 min-w-0 pr-3">
+                                                    <h4 className="text-[15px] font-semibold text-gray-900 truncate">{mc.description}</h4>
+                                                    <p className="text-[12px] text-ios-gray mt-0.5">Repeats on 1st of every month</p>
                                                 </div>
-                                                <div>
-                                                    <input
-                                                        type="number"
-                                                        min="0"
-                                                        placeholder="Amount"
-                                                        className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-base bg-gray-50 focus:bg-white focus:ring-2 focus:ring-ecs-blue outline-none transition-all"
-                                                        value={chargeForm.amount}
-                                                        onChange={e => {
-                                                            const val = e.target.value
-                                                            if (Number(val) < 0) return
-                                                            setChargeForm({ ...chargeForm, amount: val })
-                                                        }}
-                                                        required
-                                                    />
+                                                <div className="flex items-center gap-3 shrink-0">
+                                                    <span className="text-[16px] font-semibold text-gray-900 tabular-nums">
+                                                        ₹{Number(mc.amount).toLocaleString('en-IN')}<span className="text-[11px] text-ios-gray font-normal">/mo</span>
+                                                    </span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleDeleteMonthlyCharge(mc.id, mc.description)}
+                                                        className="p-1.5 text-ios-gray hover:text-ios-red active:opacity-60 transition-colors"
+                                                        title="Delete Monthly Charge"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
                                                 </div>
                                             </div>
-                                            <div>
-                                                <input
-                                                    autoFocus
-                                                    type="text"
-                                                    placeholder="Description (optional)"
-                                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-base bg-gray-50 focus:bg-white focus:ring-2 focus:ring-ecs-blue outline-none transition-all"
-                                                    value={chargeForm.description}
-                                                    onChange={e => setChargeForm({ ...chargeForm, description: e.target.value })}
-                                                />
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <input
-                                                    type="checkbox"
-                                                    id="isDiscount"
-                                                    className="w-4 h-4 text-ecs-blue rounded focus:ring-ecs-blue"
-                                                    checked={isDiscount}
-                                                    onChange={e => setIsDiscount(e.target.checked)}
-                                                />
-                                                <label htmlFor="isDiscount" className="text-sm font-medium text-gray-700">Apply as Discount</label>
-                                            </div>
-                                            <div className="flex gap-2 pt-2">
-                                                <button
-                                                    type="button"
-                                                    onClick={resetChargeForm}
-                                                    className="flex-1 py-2 text-sm font-medium text-gray-500 bg-gray-100 rounded-lg active:bg-gray-200"
-                                                >
-                                                    Cancel
-                                                </button>
-                                                <button
-                                                    type="submit"
-                                                    disabled={savingCharge}
-                                                    className="flex-1 py-2 text-sm font-medium text-white bg-ecs-blue rounded-lg shadow active:scale-95 transition-all disabled:opacity-70 flex items-center justify-center gap-2"
-                                                >
-                                                    {savingCharge ? 'Saving...' : <><Save className="w-4 h-4" /> Save</>}
-                                                </button>
-                                            </div>
-                                        </form>
+                                        ))}
                                     </div>
                                 ) : null}
-
-                                {/* Charges List */}
-                                {(pkg.charges || []).length === 0 ? (
-                                    <div className="bg-white rounded-xl border border-dashed border-gray-200 p-8 text-center text-gray-400 text-sm italic">No charges added yet.</div>
-                                ) : (
-                                    <ul className="flex flex-col gap-2">
-                                        {(pkg.charges || []).map((charge) => (
-                                            <ChargeItem
-                                                key={charge.id}
-                                                charge={charge}
-                                                onLongPress={() => handleChargeLongPress(charge)}
-                                            />
-                                        ))}
-                                    </ul>
-                                )}
                             </div>
 
-                            {/* Documents Section */}
-                            <div className="space-y-3 p-4 border-t border-gray-100">
-                                <h3 className="text-gray-400 text-[10px] uppercase font-medium tracking-wider">Documents</h3>
 
-                                <input
-                                    type="file"
-                                    multiple
-                                    ref={fileInputRef}
-                                    className="hidden"
-                                    onChange={handleFileUpload}
-                                />
+                            {/* Add/Edit Charge Form */}
+                            {showAddCharge && (
+                                <form onSubmit={handleSaveCharge} className="ios-card p-4 space-y-3 ios-scale-in">
+                                    <h3 className="text-[15px] font-semibold text-gray-900">{editingChargeId ? 'Edit Charge' : 'New Charge'}</h3>
+                                    <input
+                                        type="date"
+                                        required
+                                        className="ios-input"
+                                        value={chargeForm.date}
+                                        onChange={e => setChargeForm({ ...chargeForm, date: e.target.value })}
+                                    />
+                                    <input
+                                        ref={chargeAmountRef}
+                                        autoFocus
+                                        type="number"
+                                        min="0"
+                                        placeholder="Amount"
+                                        className="ios-input"
+                                        value={chargeForm.amount}
+                                        onChange={e => {
+                                            const val = e.target.value
+                                            if (Number(val) < 0) return
+                                            setChargeForm({ ...chargeForm, amount: val })
+                                        }}
+                                        required
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Description (optional)"
+                                        className="ios-input"
+                                        value={chargeForm.description}
+                                        onChange={e => setChargeForm({ ...chargeForm, description: e.target.value })}
+                                    />
+                                    <label className="flex items-center gap-2.5 py-1">
+                                        <input
+                                            type="checkbox"
+                                            className="w-[22px] h-[22px] rounded accent-ios-blue"
+                                            checked={isDiscount}
+                                            onChange={e => setIsDiscount(e.target.checked)}
+                                        />
+                                        <span className="text-[15px] text-gray-900">Apply as Discount</span>
+                                    </label>
+                                    <div className="flex gap-2.5 pt-1">
+                                        <button
+                                            type="button"
+                                            onClick={resetChargeForm}
+                                            className="flex-1 py-3 text-[15px] font-medium text-ios-blue rounded-xl active:opacity-60 transition-opacity"
+                                            style={{ backgroundColor: 'rgba(0,122,255,0.08)' }}
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={savingCharge}
+                                            className="flex-1 py-3 text-[15px] font-semibold text-white bg-ios-blue rounded-xl ios-press disabled:opacity-50"
+                                        >
+                                            {savingCharge ? 'Saving...' : 'Save'}
+                                        </button>
+                                    </div>
+                                </form>
+                            )}
+
+                            {/* Charges List */}
+                            {(pkg.charges || []).length === 0 ? (
+                                <div className="ios-card p-8 text-center text-ios-gray text-[15px] rounded-2xl">No charges added yet.</div>
+                            ) : (
+                                <div className="flex flex-col gap-2">
+                                    {(pkg.charges || []).map((charge) => (
+                                        <ChargeItem
+                                            key={charge.id}
+                                            charge={charge}
+                                            onLongPress={() => handleChargeLongPress(charge)}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Documents Section */}
+                            <div className="space-y-2 pt-2">
+                                <p className="ios-section-label px-0">Documents</p>
 
                                 {documents.length === 0 ? (
-                                    <div className="text-center p-6 text-gray-400 text-sm bg-white rounded-xl border border-dashed border-gray-200 flex flex-col items-center justify-center gap-2">
-                                        <p>No documents attached.</p>
+                                    <div className="ios-card p-6 text-center text-ios-gray text-[15px]">
+                                        No documents attached.
                                     </div>
                                 ) : (
-                                    <div className="space-y-2">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                                         {documents.map((doc: any) => (
                                             <DocumentItem
                                                 key={doc.id}
@@ -621,93 +742,83 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            <div className="space-y-3">
-                                {/* Add Payment Form */}
-                                {showAddPayment ? (
-                                    <div className="px-4 pt-4">
-                                        <form onSubmit={handleSavePayment} className="bg-white rounded-xl shadow-md border border-blue-100 p-3 space-y-3 animate-in fade-in zoom-in-95 duration-200">
-                                            <h3 className="text-sm font-medium text-gray-700 mb-2">{editingPaymentId ? 'Edit Payment' : 'New Payment'}</h3>
-                                            <div className="space-y-3">
-                                                <div>
-                                                    <input
-                                                        type="date"
-                                                        required
-                                                        className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-base bg-gray-50 focus:bg-white focus:ring-2 focus:ring-ecs-blue outline-none transition-all"
-                                                        value={paymentForm.date}
-                                                        onChange={e => setPaymentForm({ ...paymentForm, date: e.target.value })}
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <input
-                                                        type="number"
-                                                        min="0"
-                                                        placeholder="Amount"
-                                                        className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-base bg-gray-50 focus:bg-white focus:ring-2 focus:ring-ecs-blue outline-none transition-all"
-                                                        value={paymentForm.amount}
-                                                        onChange={e => {
-                                                            const val = e.target.value
-                                                            if (Number(val) < 0) return
-                                                            setPaymentForm({ ...paymentForm, amount: val })
-                                                        }}
-                                                        required
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <input
-                                                    autoFocus
-                                                    type="text"
-                                                    placeholder="Description (optional)"
-                                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-base bg-gray-50 focus:bg-white focus:ring-2 focus:ring-ecs-blue outline-none transition-all"
-                                                    value={paymentForm.description}
-                                                    onChange={e => setPaymentForm({ ...paymentForm, description: e.target.value })}
-                                                />
-                                            </div>
-                                            <div className="flex gap-2 pt-2">
-                                                <button
-                                                    type="button"
-                                                    onClick={resetPaymentForm}
-                                                    className="flex-1 py-2 text-sm font-medium text-gray-500 bg-gray-100 rounded-lg active:bg-gray-200"
-                                                >
-                                                    Cancel
-                                                </button>
-                                                <button
-                                                    type="submit"
-                                                    disabled={savingPayment}
-                                                    className="flex-1 py-2 text-sm font-medium text-white bg-ecs-blue rounded-lg shadow active:scale-95 transition-all disabled:opacity-70 flex items-center justify-center gap-2"
-                                                >
-                                                    {savingPayment ? 'Saving...' : <><Save className="w-4 h-4" /> Save</>}
-                                                </button>
-                                            </div>
-                                        </form>
+                            {/* Add Payment Form */}
+                            {showAddPayment && (
+                                <form onSubmit={handleSavePayment} className="ios-card p-4 space-y-3 ios-scale-in">
+                                    <h3 className="text-[15px] font-semibold text-gray-900">{editingPaymentId ? 'Edit Payment' : 'New Payment'}</h3>
+                                    <input
+                                        type="date"
+                                        required
+                                        className="ios-input"
+                                        value={paymentForm.date}
+                                        onChange={e => setPaymentForm({ ...paymentForm, date: e.target.value })}
+                                    />
+                                    <input
+                                        ref={paymentAmountRef}
+                                        autoFocus
+                                        type="number"
+                                        min="0"
+                                        placeholder="Amount"
+                                        className="ios-input"
+                                        value={paymentForm.amount}
+                                        onChange={e => {
+                                            const val = e.target.value
+                                            if (Number(val) < 0) return
+                                            setPaymentForm({ ...paymentForm, amount: val })
+                                        }}
+                                        required
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Description (optional)"
+                                        className="ios-input"
+                                        value={paymentForm.description}
+                                        onChange={e => setPaymentForm({ ...paymentForm, description: e.target.value })}
+                                    />
+                                    <div className="flex gap-2.5 pt-1">
+                                        <button
+                                            type="button"
+                                            onClick={resetPaymentForm}
+                                            className="flex-1 py-3 text-[15px] font-medium text-ios-blue rounded-xl active:opacity-60 transition-opacity"
+                                            style={{ backgroundColor: 'rgba(0,122,255,0.08)' }}
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={savingPayment}
+                                            className="flex-1 py-3 text-[15px] font-semibold text-white bg-ios-blue rounded-xl ios-press disabled:opacity-50"
+                                        >
+                                            {savingPayment ? 'Saving...' : 'Save'}
+                                        </button>
                                     </div>
-                                ) : null}
+                                </form>
+                            )}
 
-                                {/* Payments List */}
-                                {(pkg.payments || []).length === 0 ? (
-                                    <div className="bg-white rounded-xl border border-dashed border-gray-200 p-8 text-center text-gray-400 text-sm italic">No payments added yet.</div>
-                                ) : (
-                                    <ul className="flex flex-col gap-2">
-                                        {(pkg.payments || []).map((payment: any) => (
-                                            <PaymentItem
-                                                key={payment.id}
-                                                payment={payment}
-                                                onLongPress={() => handlePaymentLongPress(payment)}
-                                            />
-                                        ))}
-                                    </ul>
-                                )}
-                            </div>
+                            {/* Payments List */}
+                            {(pkg.payments || []).length === 0 ? (
+                                <div className="ios-card p-8 text-center text-ios-gray text-[15px] rounded-2xl">No payments added yet.</div>
+                            ) : (
+                                <div className="flex flex-col gap-2">
+                                    {(pkg.payments || []).map((payment: any) => (
+                                        <PaymentItem
+                                            key={payment.id}
+                                            payment={payment}
+                                            onLongPress={() => handlePaymentLongPress(payment)}
+                                        />
+                                    ))}
+                                </div>
+                            )}
 
                             {/* Documents Section */}
-                            <div className="space-y-3 p-4 border-t border-gray-100">
-                                <h3 className="text-gray-400 text-[10px] uppercase font-medium tracking-wider">Documents</h3>
+                            <div className="space-y-2 pt-2">
+                                <p className="ios-section-label px-0">Documents</p>
                                 {documents.length === 0 ? (
-                                    <div className="text-center p-6 text-gray-400 text-sm bg-white rounded-xl border border-dashed border-gray-200 flex flex-col items-center justify-center gap-2">
-                                        <p>No documents attached.</p>
+                                    <div className="ios-card p-6 text-center text-ios-gray text-[15px]">
+                                        No documents attached.
                                     </div>
                                 ) : (
-                                    <div className="space-y-2">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                                         {documents.map((doc: any) => (
                                             <DocumentItem
                                                 key={doc.id}
@@ -771,12 +882,22 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                 ]}
             />
 
+            {/* Hidden File Input (Always mounted across all tabs) */}
+            <input
+                type="file"
+                multiple
+                ref={fileInputRef}
+                className="hidden"
+                onChange={handleFileUpload}
+            />
+
             {/* Floating Action Buttons */}
             <div className="fixed bottom-0 left-0 w-full flex justify-center pointer-events-none z-20">
                 <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl relative h-0">
                     <button
                         onClick={() => fileInputRef.current?.click()}
-                        className="absolute bottom-6 left-6 w-14 h-14 bg-white text-ecs-blue border border-gray-200 rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform pointer-events-auto"
+                        className="absolute bottom-6 left-5 w-14 h-14 bg-white text-ios-blue rounded-full flex items-center justify-center ios-press pointer-events-auto"
+                        style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.12)' }}
                     >
                         <Upload className="w-6 h-6" />
                     </button>
@@ -796,9 +917,10 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                                 }
                             }
                         }}
-                        className="absolute bottom-6 right-6 w-14 h-14 bg-ecs-blue text-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform pointer-events-auto"
+                        className="absolute bottom-6 right-5 w-14 h-14 bg-ios-blue text-white rounded-full flex items-center justify-center ios-press pointer-events-auto"
+                        style={{ boxShadow: '0 4px 14px rgba(0,122,255,0.4)' }}
                     >
-                        {(activeTab === 'AMOUNT' && showAddCharge) || (activeTab === 'PAYMENTS' && showAddPayment) ? <X className="w-6 h-6" /> : <Plus className="w-6 h-6" />}
+                        {(activeTab === 'AMOUNT' && showAddCharge) || (activeTab === 'PAYMENTS' && showAddPayment) ? <X className="w-7 h-7" strokeWidth={2.5} /> : <Plus className="w-7 h-7" strokeWidth={2.5} />}
                     </button>
                 </div>
             </div>
@@ -884,27 +1006,29 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
 
 function ChargeItem({ charge, onLongPress }: { charge: Transaction, onLongPress: () => void }) {
     const bind = useLongPress(onLongPress, undefined, { delay: 500 })
+    const isDiscount = Number(charge.amount) < 0
 
     return (
-        <li
+        <div
             {...bind}
-            className="p-3 bg-white rounded-xl shadow-sm border border-gray-100 flex justify-between items-center group relative active:scale-[98%] transition-all select-none cursor-pointer"
+            className="relative overflow-hidden rounded-2xl ios-press select-none cursor-pointer"
+            style={{
+                backgroundColor: '#FFFFFF',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
+            }}
         >
-            <div className="flex-1 min-w-0 pr-4">
-                <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-gray-900 leading-tight">{charge.description}</p>
-                    {charge.hasUpdates && (
-                        <div className="w-2 h-2 rounded-full bg-red-500 shrink-0 shadow-sm" />
-                    )}
+            <div className="px-4 py-3 flex justify-between items-center">
+                <div className="flex-1 min-w-0 pr-3">
+                    <div className="flex items-center gap-2">
+                        <p className="text-[16px] font-semibold text-gray-900 leading-snug truncate">{charge.description}</p>
+                    </div>
+                    <p className="text-[13px] text-ios-gray mt-0.5">{new Date(charge.date).toLocaleDateString()}</p>
                 </div>
-                <p className="text-[10px] font-medium text-gray-400 mt-1 uppercase tracking-wider">{new Date(charge.date).toLocaleDateString()}</p>
-            </div>
-            <div className="flex items-center gap-3 shrink-0">
-                <span className={`text-lg font-medium ${Number(charge.amount) < 0 ? 'text-red-600' : 'text-ecs-blue'}`}>
-                    {Number(charge.amount) < 0 ? '-' : ''}₹{Math.abs(Number(charge.amount)).toLocaleString('en-IN')}
+                <span className={`text-[18px] font-semibold tabular-nums shrink-0 ${isDiscount ? 'text-ios-red' : 'text-gray-900'}`}>
+                    {isDiscount ? '-' : ''}₹{Math.abs(Number(charge.amount)).toLocaleString('en-IN')}
                 </span>
             </div>
-        </li>
+        </div>
     )
 }
 
@@ -912,23 +1036,24 @@ function PaymentItem({ payment, onLongPress }: { payment: Transaction, onLongPre
     const bind = useLongPress(onLongPress, undefined, { delay: 500 })
 
     return (
-        <li
+        <div
             {...bind}
-            className="p-3 bg-white rounded-xl shadow-sm border border-gray-100 flex justify-between items-center group active:scale-[98%] transition-all select-none cursor-pointer"
+            className="relative overflow-hidden rounded-2xl ios-press select-none cursor-pointer"
+            style={{
+                backgroundColor: '#FFFFFF',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
+            }}
         >
-            <div className="flex-1 min-w-0 pr-4">
-                <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-gray-900 leading-tight">{payment.description}</p>
-                    {payment.hasUpdates && (
-                        <div className="w-2 h-2 rounded-full bg-red-500 shrink-0 shadow-sm" />
-                    )}
+            <div className="px-4 py-3 flex justify-between items-center">
+                <div className="flex-1 min-w-0 pr-3">
+                    <div className="flex items-center gap-2">
+                        <p className="text-[16px] font-semibold text-gray-900 leading-snug truncate">{payment.description}</p>
+                    </div>
+                    <p className="text-[13px] text-ios-gray mt-0.5">{new Date(payment.date).toLocaleDateString()}</p>
                 </div>
-                <p className="text-[10px] font-medium text-gray-400 mt-1 uppercase tracking-wider">{new Date(payment.date).toLocaleDateString()}</p>
+                <span className="text-[18px] font-semibold text-ios-green tabular-nums shrink-0">+ ₹{Number(payment.amount).toLocaleString('en-IN')}</span>
             </div>
-            <div className="flex items-center gap-3 shrink-0">
-                <span className="text-lg font-medium text-green-600">+ ₹{Number(payment.amount).toLocaleString('en-IN')}</span>
-            </div>
-        </li>
+        </div>
     )
 }
 
@@ -937,35 +1062,58 @@ function DocumentItem({ doc, onLongPress, onDelete, onPreview }: { doc: any, onL
         onPreview(doc)
     })
 
+    const isImage = doc.type?.startsWith('image/') || /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(doc.url || '')
+    const uploadDate = doc.createdAt
+        ? new Date(doc.createdAt).toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        })
+        : ''
+
     return (
         <div
             {...bind}
-            className="flex items-center p-3 bg-white rounded-xl border border-gray-100 shadow-sm active:bg-gray-50 transition-colors cursor-pointer select-none touch-pan-y"
+            className="group relative aspect-square rounded-2xl overflow-hidden ios-card cursor-pointer select-none ios-press"
         >
-            <div className="relative w-10 h-10 shrink-0 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-100">
-                {doc.type.includes('image') ? (
-                    <ImageIcon className="w-5 h-5 text-ecs-blue" />
-                ) : (
-                    <FileText className="w-5 h-5 text-gray-400" />
-                )}
-            </div>
+            {isImage ? (
+                <img
+                    src={doc.url}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                />
+            ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center" style={{ backgroundColor: '#F2F2F7' }}>
+                    <FileText className="w-8 h-8 text-ios-gray mb-1" />
+                    <span className="text-[11px] font-semibold text-ios-gray uppercase">
+                        {doc.type?.split('/')[1] || 'PDF'}
+                    </span>
+                </div>
+            )}
 
-            <div className="flex-1 min-w-0 px-3">
-                <p className="text-sm font-medium text-gray-900 truncate">{doc.name}</p>
-                <p className="text-[10px] text-gray-400 mt-0.5 uppercase tracking-wide">{doc.type.split('/')[1] || 'FILE'}</p>
-            </div>
+            {/* Date Tag Overlay (Upload date only - no file name) */}
+            {uploadDate && (
+                <div className="absolute bottom-0 inset-x-0 px-2 py-1.5 pt-5 pointer-events-none flex items-center justify-center" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)' }}>
+                    <span className="text-[11px] font-medium text-white/95 tracking-wide">
+                        {uploadDate}
+                    </span>
+                </div>
+            )}
 
+            {/* Delete button (top-right corner) */}
             <button
                 onClick={(e) => {
                     e.preventDefault()
                     e.stopPropagation()
                     onDelete()
                 }}
-                className="p-2 text-gray-400 hover:text-red-500 active:bg-red-50 rounded-full transition-colors"
+                className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full flex items-center justify-center transition-colors z-10"
+                style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}
+                title="Delete document"
             >
-                <Trash2 className="w-4 h-4" />
+                <X className="w-3.5 h-3.5 text-white" />
             </button>
         </div>
     )
 }
-

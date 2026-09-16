@@ -41,34 +41,42 @@ export default function AddPackage({ params }: { params: Promise<{ id: string }>
     }
 
     return (
-        <div className="flex flex-col h-full bg-gray-50">
-            <header className="px-5 py-3 bg-gray-50/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10 flex items-center gap-3 shrink-0">
-                <Link href={`/companies/${id}`} className="p-1 -ml-1 text-gray-400 hover:text-gray-600">
-                    <ChevronLeft className="w-6 h-6" />
-                </Link>
-                <h1 className="text-lg font-medium text-gray-900">Add Package</h1>
+        <div className="flex flex-col h-full" style={{ backgroundColor: '#F2F2F7' }}>
+            {/* iOS Nav Bar */}
+            <header className="ios-navbar shrink-0 z-10">
+                <div className="flex items-center gap-1 px-1 py-2">
+                    <Link href={`/companies/${id}`} className="shrink-0 text-ios-blue active:opacity-60 transition-opacity flex items-center gap-0.5 pl-1 pr-2">
+                        <ChevronLeft className="w-[22px] h-[22px]" />
+                        <span className="text-[17px]">Back</span>
+                    </Link>
+                    <div className="flex-1 text-center">
+                        <h1 className="text-[17px] font-semibold text-gray-900">New Package</h1>
+                    </div>
+                    <div className="w-16" />
+                </div>
             </header>
 
-            <div className="flex-1 overflow-y-auto ios-scroll px-2 pt-2 pb-24">
-                <form id="add-package-form" onSubmit={handleSubmit} className="space-y-4">
-                    <div className="bg-white p-3 space-y-4 rounded-xl shadow-sm border border-gray-100">
-                        <div>
-                            <label className="block text-xs font-medium text-gray-400 uppercase mb-1.5 tracking-wider">Date</label>
+            <div className="flex-1 overflow-y-auto ios-scroll px-4 pt-4 pb-28">
+                <form id="add-package-form" onSubmit={handleSubmit}>
+                    <div className="ios-card overflow-hidden">
+                        <div className="px-4 py-3" style={{ borderBottom: '0.5px solid rgba(60,60,67,0.12)' }}>
+                            <label className="text-[13px] text-ios-gray block mb-1">Date</label>
                             <input
                                 required
                                 type="date"
-                                className="w-full px-3 py-2.5 border border-gray-100 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-ecs-blue outline-none transition-all font-medium text-gray-900"
+                                className="w-full text-[17px] text-gray-900 bg-transparent outline-none"
                                 value={formData.date}
                                 onChange={e => setFormData({ ...formData, date: e.target.value })}
                             />
                         </div>
-                        <div>
-                            <label className="block text-xs font-medium text-gray-400 uppercase mb-1.5 tracking-wider">Package Name</label>
+                        <div className="px-4 py-3">
+                            <label className="text-[13px] text-ios-gray block mb-1">Package Name</label>
                             <input
                                 required
                                 autoFocus
                                 type="text"
-                                className="w-full px-3 py-2.5 border border-gray-100 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-ecs-blue outline-none transition-all font-medium text-gray-900"
+                                className="w-full text-[17px] text-gray-900 bg-transparent outline-none placeholder:text-ios-gray3"
+                                placeholder="Enter package name"
                                 value={formData.description}
                                 onChange={e => setFormData({ ...formData, description: e.target.value })}
                             />
@@ -77,13 +85,14 @@ export default function AddPackage({ params }: { params: Promise<{ id: string }>
                 </form>
             </div>
 
+            {/* Bottom Button */}
             <div className="fixed bottom-0 left-0 w-full flex justify-center pointer-events-none z-20">
-                <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl bg-white border-t border-gray-100 p-4 pointer-events-auto">
+                <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl p-4 pointer-events-auto safe-area-bottom" style={{ backgroundColor: 'rgba(242,242,247,0.9)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderTop: '0.5px solid rgba(60,60,67,0.12)' }}>
                     <button
                         form="add-package-form"
                         disabled={loading}
                         type="submit"
-                        className="w-full py-3.5 bg-ecs-blue text-white font-medium rounded-xl shadow-lg active:scale-[98%] transition-transform disabled:opacity-70"
+                        className="w-full py-[14px] bg-ios-blue text-white text-[17px] font-semibold rounded-2xl ios-press disabled:opacity-50"
                     >
                         {loading ? 'Saving...' : 'Save Package'}
                     </button>

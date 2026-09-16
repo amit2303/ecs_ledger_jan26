@@ -12,28 +12,28 @@ export async function GET() {
             vendorCharges,
             vendorPayments
         ] = await Promise.all([
-            // Counts
-            prisma.company.count({ where: { type: 'CLIENT' } }),
-            prisma.company.count({ where: { type: 'VENDOR' } }),
+            // Counts (excluding on-hold companies)
+            prisma.company.count({ where: { type: 'CLIENT', isOnHold: false } }),
+            prisma.company.count({ where: { type: 'VENDOR', isOnHold: false } }),
 
-            // Client Totals
+            // Client Totals (excluding on-hold clients)
             prisma.charge.aggregate({
                 _sum: { amount: true },
-                where: { package: { company: { type: 'CLIENT' } } }
+                where: { package: { company: { type: 'CLIENT', isOnHold: false } } }
             }),
             prisma.payment.aggregate({
                 _sum: { amount: true },
-                where: { package: { company: { type: 'CLIENT' } } }
+                where: { package: { company: { type: 'CLIENT', isOnHold: false } } }
             }),
 
-            // Vendor Totals
+            // Vendor Totals (excluding on-hold vendors)
             prisma.charge.aggregate({
                 _sum: { amount: true },
-                where: { package: { company: { type: 'VENDOR' } } }
+                where: { package: { company: { type: 'VENDOR', isOnHold: false } } }
             }),
             prisma.payment.aggregate({
                 _sum: { amount: true },
-                where: { package: { company: { type: 'VENDOR' } } }
+                where: { package: { company: { type: 'VENDOR', isOnHold: false } } }
             })
         ])
 

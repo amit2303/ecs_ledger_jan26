@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+import { processDueMonthlyCharges } from '@/lib/monthlyCharges'
+
 export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
     try {
         const params = await props.params
         const id = parseInt(params.id)
         if (isNaN(id)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 })
+
+        // Auto-evaluate any pending monthly charges for this company's packages
+        await processDueMonthlyCharges()
 
         const company = await prisma.company.findUnique({
             where: { id },
@@ -13,8 +18,9 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
                 packages: {
                     orderBy: { date: 'desc' },
                     include: {
-                        payments: { orderBy: { date: 'desc' } },
-                        charges: { orderBy: { date: 'desc' } }
+                        payments: { orderBy: [{ date: 'asc' }, { id: 'asc' }] },
+                        charges: { orderBy: [{ date: 'asc' }, { id: 'asc' }] },
+                        monthlyCharges: { orderBy: { createdAt: 'asc' } }
                     }
                 },
             },
@@ -56,13 +62,21 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
         if (isNaN(id)) return NextResponse.json({ error: 'Invalid ID' }, { status: 400 })
 
         const body = await request.json()
-        const { name, address, ledgerLink, director, contact, email } = body
+        const { name, address, ledgerLink, director, contact, email, isOnHold } = body
 
         if (!name) return NextResponse.json({ error: 'Name is required' }, { status: 400 })
 
         const updatedCompany = await prisma.company.update({
             where: { id },
-            data: { name, address, ledgerLink, director, contact, email }
+            data: {
+                name,
+                address,
+                ledgerLink,
+                director,
+                contact,
+                email,
+                ...(typeof isOnHold === 'boolean' ? { isOnHold } : {})
+            }
         })
 
         return NextResponse.json(updatedCompany)

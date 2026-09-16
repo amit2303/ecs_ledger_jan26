@@ -10,8 +10,8 @@ export async function GET(request: Request, props: { params: Promise<{ packageId
         const pkg = await prisma.package.findUnique({
             where: { id: packageId },
             include: {
-                charges: { orderBy: { date: 'desc' } },
-                payments: { orderBy: { date: 'desc' } }
+                charges: { orderBy: [{ date: 'asc' }, { id: 'asc' }] },
+                payments: { orderBy: [{ date: 'asc' }, { id: 'asc' }] }
             }
         })
 

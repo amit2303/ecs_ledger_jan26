@@ -25,6 +25,7 @@ model Company {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   hasUpdates Boolean @default(false)
+  isOnHold   Boolean @default(false)
   
   packages  Package[]
   documents Document[]
@@ -50,27 +51,45 @@ model User {
 }
 
 model Package {
-  id          Int      @id @default(autoincrement())
-  companyId   Int
-  company     Company  @relation(fields: [companyId], references: [id])
-  date        DateTime
-  description String
-  charges     Charge[]
-  payments    Payment[]
-  documents   Document[]
-  createdAt   DateTime @default(now())
-  hasUpdates  Boolean  @default(false)
+  id             Int             @id @default(autoincrement())
+  companyId      Int
+  company        Company         @relation(fields: [companyId], references: [id])
+  date           DateTime
+  description    String
+  charges        Charge[]
+  payments       Payment[]
+  documents      Document[]
+  monthlyCharges MonthlyCharge[]
+  createdAt      DateTime        @default(now())
+  hasUpdates     Boolean         @default(false)
 }
 
 model Charge {
-  id          Int      @id @default(autoincrement())
-  packageId   Int
-  package     Package  @relation(fields: [packageId], references: [id])
-  description String
-  amount      Decimal
-  date        DateTime @default(now())
-  createdAt   DateTime @default(now())
-  hasUpdates  Boolean  @default(false)
+  id              Int            @id @default(autoincrement())
+  packageId       Int
+  package         Package        @relation(fields: [packageId], references: [id])
+  description     String
+  amount          Decimal
+  date            DateTime       @default(now())
+  createdAt       DateTime       @default(now())
+  hasUpdates      Boolean        @default(false)
+  monthlyChargeId Int?
+  monthlyCharge   MonthlyCharge? @relation(fields: [monthlyChargeId], references: [id], onDelete: SetNull)
+}
+
+model MonthlyCharge {
+  id                 Int       @id @default(autoincrement())
+  packageId          Int
+  package            Package   @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  description        String
+  amount             Decimal
+  startDate          DateTime  @default(now())
+  dayOfMonth         Int       @default(1)
+  isActive           Boolean   @default(true)
+  lastGeneratedMonth String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  charges            Charge[]
 }
 
 model Payment {
