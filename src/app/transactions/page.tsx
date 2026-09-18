@@ -4,6 +4,8 @@ import { useEffect, useState, useRef } from 'react'
 import { ChevronLeft, Send, CheckCheck, AlertCircle, Building2, Package as PackageIcon, X, Plus, Minus } from 'lucide-react'
 import Link from 'next/link'
 
+import { useRouter } from 'next/navigation'
+
 interface ChatMessage {
     id: number
     rawText: string
@@ -31,6 +33,7 @@ interface PackageItem {
 }
 
 export default function TransactionsPage() {
+    const router = useRouter()
     const [messages, setMessages] = useState<ChatMessage[]>([])
     const [companies, setCompanies] = useState<CompanyItem[]>([])
     const [companyPackages, setCompanyPackages] = useState<PackageItem[]>([])
@@ -40,6 +43,21 @@ export default function TransactionsPage() {
     const [selectedCompany, setSelectedCompany] = useState<CompanyItem | null>(null)
     const [selectedPackage, setSelectedPackage] = useState<PackageItem | null>(null)
     const [warningMsg, setWarningMsg] = useState<string | null>(null)
+
+    const handleMessageClick = (msg: ChatMessage) => {
+        if (!msg.companyId) return
+        if (msg.packageId) {
+            if (msg.paymentId) {
+                router.push(`/companies/${msg.companyId}/packages/${msg.packageId}?highlightPayment=${msg.paymentId}#payment-${msg.paymentId}`)
+            } else if (msg.chargeId) {
+                router.push(`/companies/${msg.companyId}/packages/${msg.packageId}?highlightCharge=${msg.chargeId}#charge-${msg.chargeId}`)
+            } else {
+                router.push(`/companies/${msg.companyId}/packages/${msg.packageId}`)
+            }
+        } else {
+            router.push(`/companies/${msg.companyId}`)
+        }
+    }
     
     const [sending, setSending] = useState(false)
     const [loading, setLoading] = useState(true)
@@ -410,7 +428,11 @@ export default function TransactionsPage() {
 
                             return (
                                 <div key={msg.id} className="flex justify-end">
-                                    <div className="rounded-[16px] rounded-tr-[2px] px-3 py-2 max-w-[85%] shadow-[0_1px_1px_rgba(0,0,0,0.08)] bg-[#DCF8C6] text-[#111111] relative">
+                                    <div 
+                                        onClick={() => handleMessageClick(msg)}
+                                        className="rounded-[16px] rounded-tr-[2px] px-3 py-2 max-w-[85%] shadow-[0_1px_1px_rgba(0,0,0,0.08)] bg-[#DCF8C6] text-[#111111] relative cursor-pointer active:scale-95 transition-all hover:shadow-md group"
+                                        title="Tap to view transaction package"
+                                    >
                                         <p className="text-[15px] font-sans leading-snug break-words whitespace-pre-wrap">
                                             {msg.rawText}
                                             <span className="inline-flex items-center gap-1 text-[11px] text-[#667781] ml-3 float-right mt-1 font-sans">

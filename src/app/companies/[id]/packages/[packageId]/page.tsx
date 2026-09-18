@@ -3,7 +3,7 @@
 import { useEffect, useState, use, useRef } from 'react'
 import { ChevronLeft, Plus, X, Save, Pencil, Trash2, MoreVertical, Download, Upload, FileText, Image as ImageIcon } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useLongPress } from '@/hooks/useLongPress'
 import { exportStatementToExcel } from '@/utils/exportToExcel'
 import { ActionSheet } from '@/components/ActionSheet'
@@ -33,10 +33,15 @@ interface PackageDetail {
 export default function PackagePage({ params }: { params: Promise<{ id: string, packageId: string }> }) {
     const { id, packageId } = use(params)
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const highlightPaymentId = searchParams.get('highlightPayment')
+    const highlightChargeId = searchParams.get('highlightCharge')
+    
     const [pkg, setPkg] = useState<PackageDetail | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [activeTab, setActiveTab] = useState<'AMOUNT' | 'PAYMENTS'>('AMOUNT')
+    const [highlightedItem, setHighlightedItem] = useState<{ type: 'payment' | 'charge', id: number } | null>(null)
 
     // Package Edit State
     const [isEditingPkg, setIsEditingPkg] = useState(false)
@@ -110,6 +115,44 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
     useEffect(() => {
         if (pkg?.id) fetchDocuments()
     }, [pkg?.id])
+
+    useEffect(() => {
+        if (!pkg) return
+
+        if (highlightPaymentId) {
+            const pid = Number(highlightPaymentId)
+            setActiveTab('PAYMENTS')
+            setHighlightedItem({ type: 'payment', id: pid })
+
+            setTimeout(() => {
+                const el = document.getElementById(`payment-${pid}`)
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                }
+            }, 150)
+
+            const timer = setTimeout(() => {
+                setHighlightedItem(null)
+            }, 1500)
+            return () => clearTimeout(timer)
+        } else if (highlightChargeId) {
+            const cid = Number(highlightChargeId)
+            setActiveTab('AMOUNT')
+            setHighlightedItem({ type: 'charge', id: cid })
+
+            setTimeout(() => {
+                const el = document.getElementById(`charge-${cid}`)
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                }
+            }, 150)
+
+            const timer = setTimeout(() => {
+                setHighlightedItem(null)
+            }, 1500)
+            return () => clearTimeout(timer)
+        }
+    }, [highlightPaymentId, highlightChargeId, pkg])
 
     const fetchData = async () => {
         try {
@@ -760,6 +803,7 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                                         <ChargeItem
                                             key={charge.id}
                                             charge={charge}
+                                            isHighlighted={highlightedItem?.type === 'charge' && highlightedItem?.id === charge.id}
                                             onLongPress={() => handleChargeLongPress(charge)}
                                         />
                                     ))}
@@ -859,6 +903,7 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                                         <PaymentItem
                                             key={payment.id}
                                             payment={payment}
+                                            isHighlighted={highlightedItem?.type === 'payment' && highlightedItem?.id === payment.id}
                                             onLongPress={() => handlePaymentLongPress(payment)}
                                         />
                                     ))}
@@ -1096,17 +1141,21 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
     )
 }
 
-function ChargeItem({ charge, onLongPress }: { charge: Transaction, onLongPress: () => void }) {
+function ChargeItem({ charge, isHighlighted, onLongPress }: { charge: Transaction, isHighlighted?: boolean, onLongPress: () => void }) {
     const bind = useLongPress(onLongPress, undefined, { delay: 500 })
     const isDiscount = Number(charge.amount) < 0
 
     return (
         <div
+            id={`charge-${charge.id}`}
             {...bind}
-            className="relative overflow-hidden rounded-2xl ios-press select-none cursor-pointer"
+            className={`relative overflow-hidden rounded-2xl ios-press select-none cursor-pointer transition-all duration-500 ${
+                isHighlighted 
+                    ? 'bg-amber-100 ring-2 ring-amber-500 scale-[1.02] shadow-lg' 
+                    : 'bg-white'
+            }`}
             style={{
-                backgroundColor: '#FFFFFF',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
+                boxShadow: isHighlighted ? '0 4px 14px rgba(245,158,11,0.35)' : '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
             }}
         >
             <div className="px-4 py-3 flex justify-between items-center">
@@ -1124,16 +1173,20 @@ function ChargeItem({ charge, onLongPress }: { charge: Transaction, onLongPress:
     )
 }
 
-function PaymentItem({ payment, onLongPress }: { payment: Transaction, onLongPress: () => void }) {
+function PaymentItem({ payment, isHighlighted, onLongPress }: { payment: Transaction, isHighlighted?: boolean, onLongPress: () => void }) {
     const bind = useLongPress(onLongPress, undefined, { delay: 500 })
 
     return (
         <div
+            id={`payment-${payment.id}`}
             {...bind}
-            className="relative overflow-hidden rounded-2xl ios-press select-none cursor-pointer"
+            className={`relative overflow-hidden rounded-2xl ios-press select-none cursor-pointer transition-all duration-500 ${
+                isHighlighted 
+                    ? 'bg-emerald-100 ring-2 ring-emerald-500 scale-[1.02] shadow-lg' 
+                    : 'bg-white'
+            }`}
             style={{
-                backgroundColor: '#FFFFFF',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
+                boxShadow: isHighlighted ? '0 4px 14px rgba(16,185,129,0.35)' : '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
             }}
         >
             <div className="px-4 py-3 flex justify-between items-center">
