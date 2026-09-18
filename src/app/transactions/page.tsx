@@ -278,26 +278,19 @@ export default function TransactionsPage() {
                 <div className="flex items-center gap-2 min-w-0">
                     <Link href="/" className="flex items-center text-[#007AFF] font-medium text-[15px] -ml-1 active:opacity-60 transition-opacity">
                         <ChevronLeft className="w-6 h-6 stroke-[2.5]" />
-                        <span className="bg-[#E5E5EA] text-[#007AFF] text-[12px] font-bold px-1.5 py-0.5 rounded-full -ml-1">325</span>
                     </Link>
                     
                     {/* Group Icon & Details */}
                     <div className="flex items-center gap-2.5 min-w-0 ml-1">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-200 to-amber-300 flex items-center justify-center shrink-0 border border-orange-300/40 text-amber-800 font-bold text-[14px]">
-                            👥
-                        </div>
+                        <img 
+                            src="/logo.jpg" 
+                            alt="Logo" 
+                            className="w-9 h-9 rounded-full object-cover shrink-0 border border-gray-200"
+                        />
                         <div className="flex flex-col min-w-0">
-                            <h1 className="text-[15px] font-bold text-gray-900 truncate leading-tight">EXPERT HISAB KITAB</h1>
-                            <p className="text-[11px] text-gray-500 truncate leading-tight">Pankaj, Papa, Sumit, You</p>
+                            <h1 className="text-[16px] font-bold text-gray-900 truncate leading-tight">EXPERT HISAB KITAB</h1>
                         </div>
                     </div>
-                </div>
-
-                {/* Right Camera / Video Call Pill */}
-                <div className="flex items-center gap-2 shrink-0">
-                    <button className="w-8 h-8 rounded-full bg-[#E5E5EA]/70 flex items-center justify-center text-gray-700 active:bg-gray-300 transition-colors">
-                        <Video className="w-4 h-4 text-gray-700" />
-                    </button>
                 </div>
             </header>
 
