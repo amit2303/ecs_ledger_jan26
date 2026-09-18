@@ -226,12 +226,12 @@ export default function TransactionsPage() {
         inputRef.current?.focus()
     }
 
-    // Strict 5-Step Validation Rule:
+    // Validation Rules:
     // 1. Must start with + or -
     // 2. Must contain valid positive amount
     // 3. Must select a company
     // 4. Must select a package (if company has packages)
-    // 5. Must enter a description
+    // 5. Description is OPTIONAL!
     const validateTransactionInput = (): string | null => {
         const raw = input.trim()
         if (!raw) return 'Message MUST start with + or - symbol'
@@ -240,25 +240,21 @@ export default function TransactionsPage() {
             return 'Invalid Format! Message MUST start with + (Payment) or - (Charge)'
         }
         
-        const { amount, description } = getParsedInput()
+        const { amount } = getParsedInput()
 
         if (!amount || amount <= 0) {
-            return 'Step 2 Missing: Please enter amount after + or -'
+            return 'Please enter amount after + or -'
         }
 
         if (!selectedCompany) {
-            return 'Step 3 Missing: Please select a company'
+            return 'Please select a company'
         }
 
         if (companyPackages.length > 0 && !selectedPackage) {
-            return 'Step 4 Missing: Please select a package'
+            return 'Please select a package'
         }
 
-        if (!description || description.trim().length === 0) {
-            return 'Step 5 Missing: Please add a description'
-        }
-
-        return null // All 5 steps passed!
+        return null // Valid! (Description is optional)
     }
 
     const isFormValid = !validateTransactionInput()
