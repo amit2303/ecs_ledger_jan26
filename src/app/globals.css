@@ -258,3 +258,32 @@ body {
   background: rgba(0, 0, 0, 0.15);
   margin: 8px auto 4px;
 }
+
+/* ========================================
+   Chat Bubbles (iMessage Style)
+   ======================================== */
+.chat-bubble-user {
+  background: #007AFF;
+  color: white;
+  padding: 10px 14px;
+  border-radius: 18px 18px 4px 18px;
+  word-break: break-word;
+}
+
+.chat-bubble-system {
+  background: #FFFFFF;
+  padding: 10px 14px;
+  border-radius: 18px 18px 18px 4px;
+  word-break: break-word;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06),
+              0 0 0 0.5px rgba(0, 0, 0, 0.04);
+}
+
+.chat-bubble-success {
+  border-left: 3px solid var(--color-ios-green);
+}
+
+.chat-bubble-error {
+  border-left: 3px solid var(--color-ios-red);
+  background: #FFF5F5;
+}

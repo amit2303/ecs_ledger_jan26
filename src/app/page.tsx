@@ -51,7 +51,16 @@ export default function Home() {
 
   // Fetch logic ...
   const fetchCompanies = () => {
-    fetch(`/api/companies?search=${search}`).then(res => res.json()).then(setCompanies)
+    fetch(`/api/companies?search=${search}`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setCompanies(data)
+        } else {
+          setCompanies([])
+        }
+      })
+      .catch(() => setCompanies([]))
   }
 
   useEffect(() => {
@@ -181,7 +190,7 @@ export default function Home() {
     }
   }
 
-  const filteredCompanies = companies.filter(c => {
+  const filteredCompanies = (Array.isArray(companies) ? companies : []).filter(c => {
     // When searching, search across all companies (clients and vendors)
     if (search.trim()) return true
     // Otherwise show only the active tab (Clients by default, or Vendors when clicked)
@@ -282,20 +291,39 @@ export default function Home() {
                   onLongPress={() => handleLongPress(company)}
                 />
               ))}
+
+              {/* Add Company at bottom of list */}
+              <Link
+                href="/add-company"
+                className="mt-2 flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl bg-white border border-dashed border-gray-300 text-ios-blue font-medium text-[15px] hover:bg-blue-50/50 active:scale-[0.99] transition-all shadow-sm"
+              >
+                <Plus className="w-5 h-5" strokeWidth={2.5} />
+                <span>Add New {filter === 'CLIENT' ? 'Client' : 'Vendor'}</span>
+              </Link>
             </div>
           ) : (
-            <div className="ios-card p-8 text-center text-ios-gray text-[15px] rounded-2xl">No companies found.</div>
+            <div className="flex flex-col gap-3">
+              <div className="ios-card p-8 text-center text-ios-gray text-[15px] rounded-2xl">No companies found.</div>
+              <Link
+                href="/add-company"
+                className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl bg-white border border-dashed border-gray-300 text-ios-blue font-medium text-[15px] hover:bg-blue-50/50 active:scale-[0.99] transition-all shadow-sm"
+              >
+                <Plus className="w-5 h-5" strokeWidth={2.5} />
+                <span>Add New {filter === 'CLIENT' ? 'Client' : 'Vendor'}</span>
+              </Link>
+            </div>
           )}
         </div>
       </div>
 
-      {/* FAB */}
+      {/* FAB - Quick Ledger */}
       <div className="fixed bottom-0 left-0 w-full flex justify-center pointer-events-none z-20">
         <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl relative h-0">
           <Link
-            href="/add-company"
+            href="/transactions"
             className="absolute bottom-6 right-5 w-14 h-14 bg-ios-blue text-white rounded-full flex items-center justify-center ios-press pointer-events-auto"
             style={{ boxShadow: '0 4px 14px rgba(0,122,255,0.4)' }}
+            aria-label="Quick Ledger"
           >
             <Plus className="w-7 h-7" strokeWidth={2.5} />
           </Link>

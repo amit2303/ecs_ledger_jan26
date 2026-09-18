@@ -63,6 +63,13 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
     const [paymentForm, setPaymentForm] = useState({ description: '', paymentMode: 'CASH', amount: '', date: new Date().toISOString().split('T')[0] })
     const [savingPayment, setSavingPayment] = useState(false)
 
+    // Reassign (Move to Package) State
+    const [siblingPackages, setSiblingPackages] = useState<{ id: number; description: string }[]>([])
+    const [showMovePaymentPicker, setShowMovePaymentPicker] = useState(false)
+    const [showMoveChargePicker, setShowMoveChargePicker] = useState(false)
+    const [movingItemId, setMovingItemId] = useState<number | null>(null)
+    const [movingType, setMovingType] = useState<'PAYMENT' | 'CHARGE'>('PAYMENT')
+
     // Document State
     const fileInputRef = useRef<HTMLInputElement>(null)
     const chargeAmountRef = useRef<HTMLInputElement>(null)
@@ -138,6 +145,12 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                 description: foundPkg.description,
                 date: foundPkg.date ? new Date(foundPkg.date).toISOString().split('T')[0] : ''
             })
+
+            // Fetch sibling packages for reassignment
+            const otherPkgs = companyData.packages
+                .filter((p: any) => p.id !== Number(packageId))
+                .map((p: any) => ({ id: p.id, description: p.description || `Package #${p.id}` }))
+            setSiblingPackages(otherPkgs)
         } catch (err: any) {
             console.error(err)
             setError(err.message)
@@ -331,6 +344,48 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
             alert('Failed to save payment')
         } finally {
             setSavingPayment(false)
+        }
+    }
+
+    const handleMovePayment = (paymentId: number) => {
+        setMovingItemId(paymentId)
+        setMovingType('PAYMENT')
+        setShowMovePaymentPicker(true)
+        setIsPaymentSheetOpen(false)
+    }
+
+    const handleMoveCharge = (chargeId: number) => {
+        setMovingItemId(chargeId)
+        setMovingType('CHARGE')
+        setShowMoveChargePicker(true)
+        setIsChargeSheetOpen(false)
+    }
+
+    const handleReassignToPackage = async (targetPackageId: number) => {
+        if (!movingItemId) return
+        try {
+            const endpoint = movingType === 'PAYMENT'
+                ? `/api/payments/${movingItemId}/reassign`
+                : `/api/charges/${movingItemId}/reassign`
+
+            const res = await fetch(endpoint, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ packageId: targetPackageId })
+            })
+
+            if (!res.ok) {
+                const data = await res.json()
+                throw new Error(data.error || 'Failed to move')
+            }
+
+            await fetchData()
+        } catch (err: any) {
+            alert(err.message || 'Failed to move item')
+        } finally {
+            setShowMovePaymentPicker(false)
+            setShowMoveChargePicker(false)
+            setMovingItemId(null)
         }
     }
 
@@ -936,10 +991,15 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                         icon: <Pencil className="w-5 h-5" />,
                         onClick: () => selectedCharge && handleEditChargeClick(selectedCharge)
                     },
+                    ...(siblingPackages.length > 0 ? [{
+                        label: 'Move to Package',
+                        icon: <ChevronLeft className="w-5 h-5 rotate-180" />,
+                        onClick: () => selectedCharge && handleMoveCharge(selectedCharge.id)
+                    }] : []),
                     {
                         label: 'Delete Charge',
                         icon: <Trash2 className="w-5 h-5" />,
-                        variant: 'danger',
+                        variant: 'danger' as const,
                         onClick: () => selectedCharge && handleDeleteCharge(selectedCharge.id)
                     }
                 ]}
@@ -956,14 +1016,46 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                         icon: <Pencil className="w-5 h-5" />,
                         onClick: () => selectedPayment && handleEditPaymentClick(selectedPayment)
                     },
+                    ...(siblingPackages.length > 0 ? [{
+                        label: 'Move to Package',
+                        icon: <ChevronLeft className="w-5 h-5 rotate-180" />,
+                        onClick: () => selectedPayment && handleMovePayment(selectedPayment.id)
+                    }] : []),
                     {
                         label: 'Delete Payment',
                         icon: <Trash2 className="w-5 h-5" />,
-                        variant: 'danger',
+                        variant: 'danger' as const,
                         onClick: () => selectedPayment && handleDeletePayment(selectedPayment.id)
                     }
                 ]}
             />
+
+            {/* Move Payment to Package Picker */}
+            {showMovePaymentPicker && (
+                <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 ios-fade-in">
+                    <div className="bg-white w-full max-w-md rounded-t-2xl overflow-hidden ios-slide-up" style={{ maxHeight: '70vh' }}>
+                        <div className="ios-handle" />
+                        <div className="px-4 pt-2 pb-3 flex justify-between items-center">
+                            <button onClick={() => setShowMovePaymentPicker(false)} className="text-ios-blue text-[17px]">Cancel</button>
+                            <h3 className="font-semibold text-[17px] text-gray-900">Move to Package</h3>
+                            <div className="w-14" />
+                        </div>
+                        <div className="overflow-y-auto ios-scroll px-4 pb-8" style={{ maxHeight: '50vh' }}>
+                            <div className="flex flex-col gap-2">
+                                {siblingPackages.map(sp => (
+                                    <button
+                                        key={sp.id}
+                                        onClick={() => handleReassignToPackage(sp.id)}
+                                        className="w-full text-left px-4 py-3.5 bg-gray-50 hover:bg-blue-50 rounded-xl text-[15px] font-medium text-gray-900 active:scale-[0.99] transition-all border border-gray-100"
+                                    >
+                                        {sp.description}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <ActionSheet
                 isOpen={showDocActions}

@@ -102,3 +102,19 @@ model Payment {
   createdAt   DateTime @default(now())
   hasUpdates  Boolean  @default(false)
 }
+
+model TransactionMessage {
+  id          Int      @id @default(autoincrement())
+  rawText     String
+  type        String   // PAYMENT | CHARGE
+  amount      Float
+  companyName String   // Matched company name
+  companyId   Int?
+  packageId   Int?
+  description String?
+  status      String   @default("SUCCESS") // SUCCESS | FAILED | AMBIGUOUS
+  errorMsg    String?  @db.Text
+  paymentId   Int?
+  chargeId    Int?
+  createdAt   DateTime @default(now())
+}
