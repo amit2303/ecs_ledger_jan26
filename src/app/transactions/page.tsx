@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { ChevronLeft, Send, CheckCheck, AlertCircle, Building2, Package as PackageIcon, X } from 'lucide-react'
+import { ChevronLeft, Send, CheckCheck, AlertCircle, Building2, Package as PackageIcon, X, Plus, Video } from 'lucide-react'
 import Link from 'next/link'
 
 interface ChatMessage {
@@ -35,7 +35,7 @@ export default function TransactionsPage() {
     const [companies, setCompanies] = useState<CompanyItem[]>([])
     const [companyPackages, setCompanyPackages] = useState<PackageItem[]>([])
     
-    // Controlled Form State
+    // Form & Input State
     const [input, setInput] = useState('')
     const [selectedCompany, setSelectedCompany] = useState<CompanyItem | null>(null)
     const [selectedPackage, setSelectedPackage] = useState<PackageItem | null>(null)
@@ -135,13 +135,22 @@ export default function TransactionsPage() {
 
     const companySuggestions = getCompanySuggestions()
 
+    const handleSelectSign = (typeSign: '+' | '-') => {
+        if (!input.startsWith('+') && !input.startsWith('-')) {
+            setInput(`${typeSign} ${input}`)
+        } else {
+            setInput(`${typeSign}${input.substring(1)}`)
+        }
+        setWarningMsg(null)
+        inputRef.current?.focus()
+    }
+
     const handleSelectCompany = (comp: CompanyItem) => {
         const cleanName = comp.name.replace(/^\d+\.?\s*/, '').trim()
         const currentSign = sign || '+'
         const currentAmount = amount ? amount.toString() : ''
         
-        // Update input text format: "+ 3000 BOOSTER "
-        setInput(`${currentSign} ${currentAmount} ${cleanName} `.trimStart())
+        setInput(`${currentSign}${currentAmount} ${cleanName} `.trimStart())
         setSelectedCompany(comp)
         setSelectedPackage(null)
         setWarningMsg(null)
@@ -150,55 +159,41 @@ export default function TransactionsPage() {
 
     const handleSelectPackage = (pkg: PackageItem) => {
         setSelectedPackage(pkg)
+        const currentInput = input.trim()
+        if (!currentInput.includes('@')) {
+            setInput(`${currentInput} @ ${pkg.description} `)
+        }
         setWarningMsg(null)
         inputRef.current?.focus()
     }
 
-    const clearSelectedPackage = () => {
-        setSelectedPackage(null)
-    }
-
-    // Strict Validation before sending
-    const validateBeforeSend = (): string | null => {
+    // Strict Validation Rule: No random text allowed!
+    const validateTransactionInput = (): string | null => {
         const raw = input.trim()
         if (!raw) return 'Please type a transaction message starting with + or -'
         
         if (raw[0] !== '+' && raw[0] !== '-') {
-            return 'Message must start with + (Payment) or - (Charge)'
+            return 'Invalid Format! Message must start with + (Payment) or - (Charge)'
         }
         
         if (!amount || amount <= 0) {
-            return 'Please enter a valid numeric amount'
+            return 'Invalid Amount! Please enter a valid number after + or -'
         }
 
-        if (!selectedCompany) {
-            return 'Please select a Company from the suggestions'
+        const { rest } = getParsedInput()
+        if (!rest) {
+            return 'Missing Company! Please select or type a company name'
         }
 
-        if (!selectedPackage) {
-            return 'Please select a Package above the chat field'
-        }
-
-        // Description validation: extract text after company name
-        const cleanCompName = selectedCompany.name.replace(/^\d+\.?\s*/, '').trim().toLowerCase()
-        const inputLower = raw.toLowerCase()
-        const compIdx = inputLower.indexOf(cleanCompName)
-        let desc = ''
-        if (compIdx !== -1) {
-            desc = raw.substring(compIdx + cleanCompName.length).trim()
-        }
-
-        if (!desc) {
-            return 'Please add a description for this transaction'
-        }
-
-        return null // All valid!
+        return null // Valid!
     }
+
+    const isFormValid = !validateTransactionInput()
 
     const handleSend = async () => {
         setWarningMsg(null)
         
-        const error = validateBeforeSend()
+        const error = validateTransactionInput()
         if (error) {
             setWarningMsg(error)
             return
@@ -235,7 +230,7 @@ export default function TransactionsPage() {
             scrollToBottom()
         } catch (err) {
             console.error('Send error:', err)
-            setWarningMsg('Failed to send transaction. Please check connection.')
+            setWarningMsg('Failed to record entry. Please try again.')
         } finally {
             setSending(false)
             inputRef.current?.focus()
@@ -249,21 +244,12 @@ export default function TransactionsPage() {
         }
     }
 
-    const formatAmount = (num: number) => {
-        return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR',
-            maximumFractionDigits: 0,
-        }).format(num)
-    }
-
     const formatTime = (dateStr: string) => {
         const d = new Date(dateStr)
-        const time = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
-        return time
+        return d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true })
     }
 
-    // Group messages by date for date separators
+    // Group messages by date for iOS WhatsApp date separators
     const getDateLabel = (dateStr: string) => {
         const d = new Date(dateStr)
         const now = new Date()
@@ -271,7 +257,7 @@ export default function TransactionsPage() {
         const yesterday = new Date(now)
         yesterday.setDate(yesterday.getDate() - 1)
         if (d.toDateString() === yesterday.toDateString()) return 'Yesterday'
-        return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+        return d.toLocaleDateString('en-IN', { weekday: 'long' })
     }
 
     const messagesWithDates: (ChatMessage | { _dateSeparator: string })[] = []
@@ -286,49 +272,69 @@ export default function TransactionsPage() {
     }
 
     return (
-        <div className="flex flex-col h-full relative" style={{ backgroundColor: '#E8E4DF' }}>
-            {/* Header */}
-            <header className="shrink-0 z-10 px-4 py-3 flex items-center gap-3 bg-white/80 backdrop-blur-xl border-b border-gray-200/60">
-                <Link href="/" className="p-1 -ml-1 text-ios-blue active:opacity-60 transition-opacity">
-                    <ChevronLeft className="w-6 h-6" />
-                </Link>
-                <div className="flex-1 min-w-0">
-                    <h1 className="text-[17px] font-semibold text-gray-900 truncate">Quick Ledger</h1>
-                    <p className="text-[12px] text-ios-gray leading-tight">Type transactions to record them instantly</p>
+        <div className="flex flex-col h-full relative font-sans overflow-hidden select-none" style={{ backgroundColor: '#EFEAE2' }}>
+            {/* iOS WhatsApp Header */}
+            <header className="shrink-0 z-20 px-3 py-2 flex items-center justify-between bg-[#F6F6F6]/90 backdrop-blur-md border-b border-gray-300/70 shadow-sm">
+                <div className="flex items-center gap-2 min-w-0">
+                    <Link href="/" className="flex items-center text-[#007AFF] font-medium text-[15px] -ml-1 active:opacity-60 transition-opacity">
+                        <ChevronLeft className="w-6 h-6 stroke-[2.5]" />
+                        <span className="bg-[#E5E5EA] text-[#007AFF] text-[12px] font-bold px-1.5 py-0.5 rounded-full -ml-1">325</span>
+                    </Link>
+                    
+                    {/* Group Icon & Details */}
+                    <div className="flex items-center gap-2.5 min-w-0 ml-1">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-200 to-amber-300 flex items-center justify-center shrink-0 border border-orange-300/40 text-amber-800 font-bold text-[14px]">
+                            👥
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                            <h1 className="text-[15px] font-bold text-gray-900 truncate leading-tight">EXPERT HISAB KITAB</h1>
+                            <p className="text-[11px] text-gray-500 truncate leading-tight">Pankaj, Papa, Sumit, You</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right Camera / Video Call Pill */}
+                <div className="flex items-center gap-2 shrink-0">
+                    <button className="w-8 h-8 rounded-full bg-[#E5E5EA]/70 flex items-center justify-center text-gray-700 active:bg-gray-300 transition-colors">
+                        <Video className="w-4 h-4 text-gray-700" />
+                    </button>
                 </div>
             </header>
 
-            {/* Chat Body */}
-            <div className="flex-1 overflow-y-auto ios-scroll px-4 py-4">
+            {/* Chat Body (WhatsApp Doodle Background) */}
+            <div 
+                className="flex-1 overflow-y-auto ios-scroll px-3 py-3"
+                style={{
+                    backgroundImage: `radial-gradient(#C3BCB2 0.75px, transparent 0.75px)`,
+                    backgroundSize: '16px 16px',
+                    backgroundColor: '#EFEAE2'
+                }}
+            >
                 {loading ? (
                     <div className="flex items-center justify-center h-full">
-                        <div className="text-ios-gray text-[15px]">Loading messages...</div>
+                        <div className="text-gray-500 text-[14px] bg-white/70 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm">Loading chat...</div>
                     </div>
                 ) : messages.length === 0 ? (
                     <div className="flex items-center justify-center h-full">
-                        <div className="text-center px-8 max-w-[320px]">
-                            <div className="w-16 h-16 rounded-full bg-ios-blue/10 flex items-center justify-center mx-auto mb-4">
-                                <Send className="w-7 h-7 text-ios-blue" />
-                            </div>
-                            <h3 className="text-[17px] font-semibold text-gray-900 mb-2">Quick Ledger</h3>
-                            <p className="text-[14px] text-ios-gray leading-relaxed mb-4">
-                                Enter <span className="text-ios-green font-bold">+</span> for Payment or <span className="text-ios-red font-bold">-</span> for Charge, select Company & Package, then type description.
+                        <div className="text-center px-6 max-w-[300px] bg-white/80 backdrop-blur-md rounded-2xl p-4 shadow-sm border border-gray-200/50">
+                            <p className="text-[14px] text-gray-700 font-semibold mb-2">WhatsApp Quick Ledger</p>
+                            <p className="text-[13px] text-gray-500 leading-relaxed mb-3">
+                                Record transactions strictly starting with <strong className="text-emerald-600">+</strong> or <strong className="text-rose-600">-</strong>.
                             </p>
-                            <div className="bg-white rounded-xl p-3 text-left shadow-sm border border-gray-100">
-                                <p className="text-[12px] text-ios-gray font-medium mb-1.5">Example:</p>
-                                <p className="text-[13px] font-mono text-ios-green font-semibold">+ 3000 BOOSTER</p>
-                                <p className="text-[12px] text-purple-700 mt-1">📦 Package: BIS Inclusion</p>
-                                <p className="text-[12px] text-gray-600 mt-1">📝 Description: sample payment</p>
+                            <div className="bg-gray-100 rounded-lg p-2.5 text-left text-[12px] font-mono text-gray-800 space-y-1">
+                                <p className="text-emerald-700 font-bold">+500 harishankar @ amit</p>
+                                <p className="text-emerald-700 font-bold">+11000 Anjali kitchenware</p>
+                                <p className="text-rose-700 font-bold">-126 coffee @ amit</p>
                             </div>
                         </div>
                     </div>
                 ) : (
-                    <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-2.5">
                         {messagesWithDates.map((item, idx) => {
                             if ('_dateSeparator' in item) {
                                 return (
-                                    <div key={`date-${idx}`} className="flex justify-center my-2">
-                                        <span className="px-3 py-1 rounded-full bg-black/5 text-[12px] font-medium text-gray-500 select-none">
+                                    <div key={`date-${idx}`} className="flex justify-center my-1.5">
+                                        <span className="px-3 py-1 rounded-full bg-white/90 backdrop-blur-md text-[11px] font-semibold text-gray-600 shadow-sm border border-gray-200/40 select-none">
                                             {item._dateSeparator}
                                         </span>
                                     </div>
@@ -337,22 +343,18 @@ export default function TransactionsPage() {
 
                             const msg = item as ChatMessage
                             const isSuccess = msg.status === 'SUCCESS'
-                            const isPayment = msg.type === 'PAYMENT'
 
                             return (
                                 <div key={msg.id} className="flex justify-end">
-                                    <div
-                                        className="rounded-[18px] rounded-tr-[4px] px-3.5 py-2.5 max-w-[85%] shadow-sm text-white relative leading-normal"
-                                        style={{ backgroundColor: isPayment ? '#005C4B' : '#8C1D1D' }}
-                                    >
-                                        <p className="text-[15px] font-sans break-words whitespace-pre-wrap">
+                                    <div className="rounded-[16px] rounded-tr-[2px] px-3 py-2 max-w-[85%] shadow-[0_1px_1px_rgba(0,0,0,0.08)] bg-[#DCF8C6] text-[#111111] relative">
+                                        <p className="text-[15px] font-sans leading-snug break-words whitespace-pre-wrap">
                                             {msg.rawText}
-                                            <span className="inline-flex items-center gap-1 text-[11px] text-white/70 ml-3 float-right mt-1">
+                                            <span className="inline-flex items-center gap-1 text-[11px] text-[#667781] ml-3 float-right mt-1 font-sans">
                                                 {formatTime(msg.createdAt)}
                                                 {isSuccess ? (
                                                     <CheckCheck className="w-4 h-4 text-[#34B7F1] stroke-[2.5]" />
                                                 ) : (
-                                                    <span className="text-red-300">Failed</span>
+                                                    <span className="text-red-500 font-bold">!</span>
                                                 )}
                                             </span>
                                         </p>
@@ -367,46 +369,47 @@ export default function TransactionsPage() {
 
             {/* Warning Alert Banner */}
             {warningMsg && (
-                <div className="bg-amber-500/95 backdrop-blur-md px-4 py-2 text-white text-[13px] font-medium flex items-center justify-between shadow-md border-t border-amber-400">
+                <div className="bg-amber-500 text-white px-4 py-2 text-[13px] font-medium flex items-center justify-between shadow-md z-30">
                     <div className="flex items-center gap-2">
                         <AlertCircle className="w-4 h-4 shrink-0" />
                         <span>{warningMsg}</span>
                     </div>
-                    <button onClick={() => setWarningMsg(null)} className="p-0.5 hover:bg-amber-600/50 rounded">
+                    <button onClick={() => setWarningMsg(null)} className="p-0.5 hover:bg-amber-600 rounded">
                         <X className="w-4 h-4" />
                     </button>
                 </div>
             )}
 
-            {/* Selected Package Badge above Chat input */}
-            {selectedPackage && (
-                <div className="bg-purple-100/90 backdrop-blur-md px-4 py-2 border-t border-purple-200 flex items-center justify-between shadow-sm">
-                    <div className="flex items-center gap-2">
-                        <PackageIcon className="w-4 h-4 text-purple-700" />
-                        <span className="text-[13px] font-medium text-purple-900">
-                            Target Package: <strong className="font-semibold">{selectedPackage.description}</strong>
-                        </span>
-                    </div>
+            {/* Quick Helper Toolbar for Type Selection (+ Payment / - Charge) */}
+            {(!input.startsWith('+') && !input.startsWith('-')) && (
+                <div className="bg-[#F6F6F6]/95 backdrop-blur-md px-3 py-2 border-t border-gray-300/60 shadow-md flex gap-2 items-center z-20">
+                    <span className="text-[12px] font-semibold text-gray-500 shrink-0">Start with:</span>
                     <button
-                        onClick={clearSelectedPackage}
-                        className="text-[12px] font-medium text-purple-700 hover:text-purple-900 underline flex items-center gap-1"
+                        onClick={() => handleSelectSign('+')}
+                        className="px-3 py-1 rounded-full bg-emerald-600 text-white text-[13px] font-bold shadow-sm active:scale-95 transition-all flex items-center gap-1"
                     >
-                        Change
+                        + Payment
+                    </button>
+                    <button
+                        onClick={() => handleSelectSign('-')}
+                        className="px-3 py-1 rounded-full bg-rose-600 text-white text-[13px] font-bold shadow-sm active:scale-95 transition-all flex items-center gap-1"
+                    >
+                        - Charge
                     </button>
                 </div>
             )}
 
             {/* Live Company Suggestions Bar */}
             {companySuggestions.length > 0 && !selectedCompany && (
-                <div className="bg-white/95 backdrop-blur-md px-3 py-2 border-t border-gray-200/60 shadow-lg flex gap-2 overflow-x-auto ios-scroll">
-                    <span className="text-[12px] font-medium text-ios-gray flex items-center gap-1 shrink-0 self-center">
-                        <Building2 className="w-3.5 h-3.5" /> Select Company:
+                <div className="bg-white/95 backdrop-blur-md px-3 py-2 border-t border-gray-200/60 shadow-lg flex gap-2 overflow-x-auto ios-scroll z-20">
+                    <span className="text-[12px] font-medium text-gray-500 flex items-center gap-1 shrink-0 self-center">
+                        <Building2 className="w-3.5 h-3.5" /> Company:
                     </span>
                     {companySuggestions.map(comp => (
                         <button
                             key={comp.id}
                             onClick={() => handleSelectCompany(comp)}
-                            className="px-3 py-1 rounded-full bg-ios-blue/10 hover:bg-ios-blue/20 text-ios-blue text-[13px] font-medium shrink-0 active:scale-95 transition-all flex items-center gap-1 border border-ios-blue/20"
+                            className="px-3 py-1 rounded-full bg-blue-50 hover:bg-blue-100 text-[#007AFF] text-[13px] font-semibold shrink-0 active:scale-95 transition-all flex items-center gap-1 border border-blue-200"
                         >
                             {comp.name.replace(/^\d+\.?\s*/, '')}
                         </button>
@@ -414,17 +417,17 @@ export default function TransactionsPage() {
                 </div>
             )}
 
-            {/* Live Package Suggestions Bar (Shown immediately after company selected) */}
-            {selectedCompany && !selectedPackage && companyPackages.length > 0 && (
-                <div className="bg-purple-50/95 backdrop-blur-md px-3 py-2 border-t border-purple-200 shadow-lg flex gap-2 overflow-x-auto ios-scroll">
-                    <span className="text-[12px] font-medium text-purple-800 flex items-center gap-1 shrink-0 self-center">
-                        <PackageIcon className="w-3.5 h-3.5 text-purple-600" /> Select Package:
+            {/* Live Package Suggestions Bar */}
+            {selectedCompany && companyPackages.length > 0 && (
+                <div className="bg-purple-50/95 backdrop-blur-md px-3 py-2 border-t border-purple-200 shadow-lg flex gap-2 overflow-x-auto ios-scroll z-20">
+                    <span className="text-[12px] font-semibold text-purple-800 flex items-center gap-1 shrink-0 self-center">
+                        <PackageIcon className="w-3.5 h-3.5 text-purple-600" /> Package:
                     </span>
                     {companyPackages.map(pkg => (
                         <button
                             key={pkg.id}
                             onClick={() => handleSelectPackage(pkg)}
-                            className="px-3 py-1 rounded-full bg-purple-600 text-white text-[13px] font-medium shrink-0 active:scale-95 transition-all flex items-center gap-1 shadow-sm hover:bg-purple-700"
+                            className="px-3 py-1 rounded-full bg-purple-600 text-white text-[13px] font-semibold shrink-0 active:scale-95 transition-all flex items-center gap-1 shadow-sm hover:bg-purple-700"
                         >
                             {pkg.description}
                         </button>
@@ -432,35 +435,49 @@ export default function TransactionsPage() {
                 </div>
             )}
 
-            {/* Input Bar */}
-            <div className="shrink-0 bg-white/80 backdrop-blur-xl border-t border-gray-200/60 safe-area-bottom">
-                <div className="px-3 py-2 flex items-end gap-2">
-                    <div className="flex-1 min-w-0">
-                        <input
-                            ref={inputRef}
-                            type="text"
-                            value={input}
-                            onChange={(e) => {
-                                setInput(e.target.value)
-                                setWarningMsg(null)
-                            }}
-                            onKeyDown={handleKeyDown}
-                            placeholder="+ 3000 BOOSTER sample payment"
-                            className="w-full px-4 py-2.5 bg-gray-100 rounded-full text-[15px] text-gray-900 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-ios-blue/30 transition-all font-mono"
-                            disabled={sending}
-                            autoComplete="off"
-                            autoCapitalize="characters"
-                        />
-                    </div>
-                    <button
-                        type="button"
-                        onClick={handleSend}
+            {/* iOS WhatsApp Bottom Bar */}
+            <div className="shrink-0 bg-[#F6F6F6] border-t border-gray-300/80 px-2.5 py-2 flex items-center gap-2 safe-area-bottom z-20">
+                {/* Left Plus icon */}
+                <button 
+                    onClick={() => handleSelectSign('+')}
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-[#007AFF] active:bg-gray-200 transition-colors shrink-0"
+                >
+                    <Plus className="w-6 h-6 stroke-[2.2]" />
+                </button>
+
+                {/* Rounded Input Field */}
+                <div className="flex-1 min-w-0 bg-white rounded-full border border-gray-300 px-3.5 py-1.5 flex items-center gap-2 shadow-inner">
+                    <input
+                        ref={inputRef}
+                        type="text"
+                        value={input}
+                        onChange={(e) => {
+                            setInput(e.target.value)
+                            setWarningMsg(null)
+                        }}
+                        onKeyDown={handleKeyDown}
+                        placeholder="+500 harishankar @ amit"
+                        className="w-full text-[15px] text-gray-900 placeholder:text-gray-400 outline-none font-mono bg-transparent"
                         disabled={sending}
-                        className="w-9 h-9 rounded-full bg-ios-blue flex items-center justify-center shrink-0 active:scale-95 transition-all shadow-sm"
-                    >
-                        <Send className="w-4 h-4 text-white" style={{ transform: 'rotate(-45deg)' }} />
-                    </button>
+                        autoComplete="off"
+                        autoCapitalize="none"
+                    />
+                    <span className="text-gray-400 font-bold text-[14px] shrink-0 select-none">₹</span>
                 </div>
+
+                {/* WhatsApp Green Round Send Button */}
+                <button
+                    type="button"
+                    onClick={handleSend}
+                    disabled={sending || !isFormValid}
+                    className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                        isFormValid 
+                            ? 'bg-[#00A884] text-white shadow-md active:scale-95' 
+                            : 'bg-gray-300 text-gray-500 opacity-60 cursor-not-allowed'
+                    }`}
+                >
+                    <Send className="w-4 h-4" style={{ transform: 'rotate(-45deg)', marginLeft: '2px' }} />
+                </button>
             </div>
         </div>
     )
