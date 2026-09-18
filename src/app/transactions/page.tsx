@@ -160,9 +160,7 @@ export default function TransactionsPage() {
     const handleSelectPackage = (pkg: PackageItem) => {
         setSelectedPackage(pkg)
         const currentInput = input.trim()
-        if (!currentInput.includes('@')) {
-            setInput(`${currentInput} @ ${pkg.description} `)
-        }
+        setInput(`${currentInput} ${pkg.description} `)
         setWarningMsg(null)
         inputRef.current?.focus()
     }
@@ -314,9 +312,9 @@ export default function TransactionsPage() {
                                 Record transactions strictly starting with <strong className="text-emerald-600">+</strong> or <strong className="text-rose-600">-</strong>.
                             </p>
                             <div className="bg-gray-100 rounded-lg p-2.5 text-left text-[12px] font-mono text-gray-800 space-y-1">
-                                <p className="text-emerald-700 font-bold">+500 harishankar @ amit</p>
+                                <p className="text-emerald-700 font-bold">+15000 BOOSTER BIS Inclusion fee</p>
                                 <p className="text-emerald-700 font-bold">+11000 Anjali kitchenware</p>
-                                <p className="text-rose-700 font-bold">-126 coffee @ amit</p>
+                                <p className="text-rose-700 font-bold">-126 coffee</p>
                             </div>
                         </div>
                     </div>
@@ -361,7 +359,7 @@ export default function TransactionsPage() {
 
             {/* Warning Alert Banner */}
             {warningMsg && (
-                <div className="bg-amber-500 text-white px-4 py-2 text-[13px] font-medium flex items-center justify-between shadow-md z-30">
+                <div className="bg-amber-500 text-white px-4 py-2 text-[13px] font-medium flex items-center justify-between shadow-md z-30 transition-all duration-200">
                     <div className="flex items-center gap-2">
                         <AlertCircle className="w-4 h-4 shrink-0" />
                         <span>{warningMsg}</span>
@@ -372,28 +370,9 @@ export default function TransactionsPage() {
                 </div>
             )}
 
-            {/* Quick Helper Toolbar for Type Selection (+ Payment / - Charge) */}
-            {(!input.startsWith('+') && !input.startsWith('-')) && (
-                <div className="bg-[#F6F6F6]/95 backdrop-blur-md px-3 py-2 border-t border-gray-300/60 shadow-md flex gap-2 items-center z-20">
-                    <span className="text-[12px] font-semibold text-gray-500 shrink-0">Start with:</span>
-                    <button
-                        onClick={() => handleSelectSign('+')}
-                        className="px-3 py-1 rounded-full bg-emerald-600 text-white text-[13px] font-bold shadow-sm active:scale-95 transition-all flex items-center gap-1"
-                    >
-                        + Payment
-                    </button>
-                    <button
-                        onClick={() => handleSelectSign('-')}
-                        className="px-3 py-1 rounded-full bg-rose-600 text-white text-[13px] font-bold shadow-sm active:scale-95 transition-all flex items-center gap-1"
-                    >
-                        - Charge
-                    </button>
-                </div>
-            )}
-
-            {/* Live Company Suggestions Bar */}
+            {/* Live Company Suggestions Bar (Flawless transition) */}
             {companySuggestions.length > 0 && !selectedCompany && (
-                <div className="bg-white/95 backdrop-blur-md px-3 py-2 border-t border-gray-200/60 shadow-lg flex gap-2 overflow-x-auto ios-scroll z-20">
+                <div className="bg-white/95 backdrop-blur-md px-3 py-2 border-t border-gray-200/60 shadow-lg flex gap-2 overflow-x-auto ios-scroll z-20 transition-all duration-300 ease-out">
                     <span className="text-[12px] font-medium text-gray-500 flex items-center gap-1 shrink-0 self-center">
                         <Building2 className="w-3.5 h-3.5" /> Company:
                     </span>
@@ -401,7 +380,7 @@ export default function TransactionsPage() {
                         <button
                             key={comp.id}
                             onClick={() => handleSelectCompany(comp)}
-                            className="px-3 py-1 rounded-full bg-blue-50 hover:bg-blue-100 text-[#007AFF] text-[13px] font-semibold shrink-0 active:scale-95 transition-all flex items-center gap-1 border border-blue-200"
+                            className="px-3 py-1 rounded-full bg-blue-50 hover:bg-blue-100 text-[#007AFF] text-[13px] font-semibold shrink-0 active:scale-95 transition-all flex items-center gap-1 border border-blue-200 shadow-xs"
                         >
                             {comp.name.replace(/^\d+\.?\s*/, '')}
                         </button>
@@ -409,9 +388,9 @@ export default function TransactionsPage() {
                 </div>
             )}
 
-            {/* Live Package Suggestions Bar */}
+            {/* Live Package Suggestions Bar (Flawless transition) */}
             {selectedCompany && companyPackages.length > 0 && (
-                <div className="bg-purple-50/95 backdrop-blur-md px-3 py-2 border-t border-purple-200 shadow-lg flex gap-2 overflow-x-auto ios-scroll z-20">
+                <div className="bg-purple-50/95 backdrop-blur-md px-3 py-2 border-t border-purple-200 shadow-lg flex gap-2 overflow-x-auto ios-scroll z-20 transition-all duration-300 ease-out">
                     <span className="text-[12px] font-semibold text-purple-800 flex items-center gap-1 shrink-0 self-center">
                         <PackageIcon className="w-3.5 h-3.5 text-purple-600" /> Package:
                     </span>
@@ -433,6 +412,7 @@ export default function TransactionsPage() {
                 <button 
                     onClick={() => handleSelectSign('+')}
                     className="w-8 h-8 rounded-full flex items-center justify-center text-[#007AFF] active:bg-gray-200 transition-colors shrink-0"
+                    title="Add Payment"
                 >
                     <Plus className="w-6 h-6 stroke-[2.2]" />
                 </button>
@@ -448,7 +428,7 @@ export default function TransactionsPage() {
                             setWarningMsg(null)
                         }}
                         onKeyDown={handleKeyDown}
-                        placeholder="+500 harishankar @ amit"
+                        placeholder="+15000 BOOSTER BIS Inclusion fee"
                         className="w-full text-[15px] text-gray-900 placeholder:text-gray-400 outline-none font-mono bg-transparent"
                         disabled={sending}
                         autoComplete="off"
