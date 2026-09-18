@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { ChevronLeft, Send, CheckCheck, AlertCircle, Building2, Package as PackageIcon, X, Plus, Video, Smile } from 'lucide-react'
+import { ChevronLeft, Send, CheckCheck, AlertCircle, Building2, Package as PackageIcon, X, Plus, Minus } from 'lucide-react'
 import Link from 'next/link'
 
 interface ChatMessage {
@@ -135,6 +135,30 @@ export default function TransactionsPage() {
 
     const companySuggestions = getCompanySuggestions()
 
+    // Handle Input Change with strict rules: 
+    // 1. Must start with + or -
+    // 2. Clearing text field wipes all previous selections (Company & Package null and void)
+    const handleInputChange = (val: string) => {
+        // Clearing text field -> reset all selections
+        if (!val.trim()) {
+            setInput('')
+            setSelectedCompany(null)
+            setSelectedPackage(null)
+            setCompanyPackages([])
+            setWarningMsg(null)
+            return
+        }
+
+        // Must start with + or -
+        if (val.length > 0 && val[0] !== '+' && val[0] !== '-') {
+            setWarningMsg('Input MUST start with + (Payment) or - (Charge)')
+            return
+        }
+
+        setInput(val)
+        setWarningMsg(null)
+    }
+
     const handleSelectSign = (typeSign: '+' | '-') => {
         if (!input.startsWith('+') && !input.startsWith('-')) {
             setInput(`${typeSign} ${input}`)
@@ -237,10 +261,17 @@ export default function TransactionsPage() {
         }
     }
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault()
             handleSend()
+            return
+        }
+
+        // Prevent typing any non (+/-) key as first character when input is empty
+        if (!input && e.key.length === 1 && e.key !== '+' && e.key !== '-' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            e.preventDefault()
+            setWarningMsg('Chat message MUST start with + or - symbol')
         }
     }
 
@@ -270,6 +301,11 @@ export default function TransactionsPage() {
         }
         messagesWithDates.push(msg)
     }
+
+    // Display packages: When a package is selected, hide all other package pills!
+    const displayPackages = selectedPackage
+        ? companyPackages.filter(p => p.id === selectedPackage.id)
+        : companyPackages
 
     return (
         <div className="flex flex-col h-full relative font-sans overflow-hidden select-none" style={{ backgroundColor: '#EFEAE2' }}>
@@ -372,6 +408,25 @@ export default function TransactionsPage() {
                 </div>
             )}
 
+            {/* Quick iOS Sign Helper Pills (when input is empty) */}
+            {!input && (
+                <div className="bg-white/80 backdrop-blur-md px-3 py-1.5 border-t border-gray-200/50 flex gap-2 overflow-x-auto z-20 items-center animate-in fade-in duration-200">
+                    <span className="text-[12px] font-medium text-gray-400 shrink-0">Start entry:</span>
+                    <button
+                        onClick={() => handleSelectSign('+')}
+                        className="px-2.5 py-1 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-[12px] font-bold flex items-center gap-1 shrink-0 active:scale-95 transition-transform"
+                    >
+                        <Plus className="w-3.5 h-3.5 stroke-[3]" /> Payment (+)
+                    </button>
+                    <button
+                        onClick={() => handleSelectSign('-')}
+                        className="px-2.5 py-1 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[12px] font-bold flex items-center gap-1 shrink-0 active:scale-95 transition-transform"
+                    >
+                        <Minus className="w-3.5 h-3.5 stroke-[3]" /> Charge (-)
+                    </button>
+                </div>
+            )}
+
             {/* Live Company Suggestions Bar (Flawless transition) */}
             {companySuggestions.length > 0 && !selectedCompany && (
                 <div className="bg-white/95 backdrop-blur-md px-3 py-2 border-t border-gray-200/60 shadow-lg flex gap-2 overflow-x-auto ios-scroll z-20 transition-all duration-300 ease-out">
@@ -390,13 +445,13 @@ export default function TransactionsPage() {
                 </div>
             )}
 
-            {/* Live Package Suggestions Bar (Flawless transition) */}
+            {/* Live Package Suggestions Bar (When selected, ONLY selected package is shown!) */}
             {selectedCompany && companyPackages.length > 0 && (
                 <div className="bg-purple-50/95 backdrop-blur-md px-3 py-2 border-t border-purple-200 shadow-lg flex gap-2 overflow-x-auto ios-scroll z-20 transition-all duration-300 ease-out items-center">
                     <span className="text-[12px] font-semibold text-purple-800 flex items-center gap-1 shrink-0 self-center">
                         <PackageIcon className="w-3.5 h-3.5 text-purple-600" /> Package:
                     </span>
-                    {companyPackages.map(pkg => {
+                    {displayPackages.map(pkg => {
                         const isSelected = selectedPackage?.id === pkg.id
                         return (
                             <button
@@ -410,6 +465,7 @@ export default function TransactionsPage() {
                             >
                                 {isSelected && <span className="text-[14px]">✓</span>}
                                 {pkg.description}
+                                {isSelected && <X className="w-3.5 h-3.5 ml-1 opacity-80 hover:opacity-100" />}
                             </button>
                         )
                     })}
@@ -424,10 +480,7 @@ export default function TransactionsPage() {
                         ref={inputRef}
                         type="text"
                         value={input}
-                        onChange={(e) => {
-                            setInput(e.target.value)
-                            setWarningMsg(null)
-                        }}
+                        onChange={(e) => handleInputChange(e.target.value)}
                         onKeyDown={handleKeyDown}
                         placeholder="+15000 BOOSTER BIS Inclusion fee"
                         className="w-full text-[16px] text-gray-900 placeholder:text-gray-400 outline-none font-sans bg-transparent"
@@ -435,6 +488,15 @@ export default function TransactionsPage() {
                         autoComplete="off"
                         autoCapitalize="none"
                     />
+                    {input && (
+                        <button
+                            type="button"
+                            onClick={() => handleInputChange('')}
+                            className="p-1 text-gray-400 hover:text-gray-600 rounded-full"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    )}
                 </div>
 
                 {/* WhatsApp Green Round Send Button */}
