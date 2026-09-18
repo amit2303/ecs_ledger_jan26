@@ -342,53 +342,20 @@ export default function TransactionsPage() {
                             return (
                                 <div key={msg.id} className="flex justify-end">
                                     <div
-                                        className={`rounded-2xl px-4 py-3 max-w-[85%] shadow-sm transition-all border ${
-                                            isPayment
-                                                ? 'bg-emerald-700 text-white border-emerald-600'
-                                                : 'bg-rose-700 text-white border-rose-600'
-                                        }`}
+                                        className="rounded-[18px] rounded-tr-[4px] px-3.5 py-2.5 max-w-[85%] shadow-sm text-white relative leading-normal"
+                                        style={{ backgroundColor: isPayment ? '#005C4B' : '#8C1D1D' }}
                                     >
-                                        {/* Amount & Type Badge */}
-                                        <div className="flex items-center justify-between gap-3 mb-1">
-                                            <span className="text-[12px] font-bold uppercase tracking-wide opacity-90">
-                                                {isPayment ? '+ PAYMENT' : '- CHARGE'}
-                                            </span>
-                                            <span className="text-[16px] font-bold font-mono">
-                                                {formatAmount(msg.amount)}
-                                            </span>
-                                        </div>
-
-                                        {/* Company & Package details */}
-                                        <div className="flex flex-wrap items-center gap-1.5 my-1.5 text-[13px]">
-                                            <Link
-                                                href={`/companies/${msg.companyId}`}
-                                                className="px-2 py-0.5 rounded-md bg-white/20 hover:bg-white/30 font-semibold truncate transition-all"
-                                            >
-                                                🏢 {msg.companyName.replace(/^\d+\.?\s*/, '')}
-                                            </Link>
-                                            {msg.description && msg.description.startsWith('[') && (
-                                                <span className="px-2 py-0.5 rounded-md bg-purple-900/40 text-purple-100 font-medium">
-                                                    📦 {msg.description.split(']')[0].substring(1)}
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        {/* Description */}
-                                        <p className="text-[14px] text-white/90 leading-snug break-words">
-                                            {msg.description ? msg.description.replace(/^\[.*?\]\s*/, '') : msg.rawText}
-                                        </p>
-
-                                        {/* Timestamp & Double Blue Ticks */}
-                                        <div className="flex items-center justify-end gap-1.5 mt-2 pt-1 border-t border-white/10">
-                                            <span className="text-[11px] text-white/70">
+                                        <p className="text-[15px] font-sans break-words whitespace-pre-wrap">
+                                            {msg.rawText}
+                                            <span className="inline-flex items-center gap-1 text-[11px] text-white/70 ml-3 float-right mt-1">
                                                 {formatTime(msg.createdAt)}
+                                                {isSuccess ? (
+                                                    <CheckCheck className="w-4 h-4 text-[#34B7F1] stroke-[2.5]" />
+                                                ) : (
+                                                    <span className="text-red-300">Failed</span>
+                                                )}
                                             </span>
-                                            {isSuccess ? (
-                                                <CheckCheck className="w-4 h-4 text-sky-300 stroke-[2.5]" />
-                                            ) : (
-                                                <span className="text-[11px] text-red-200">Failed</span>
-                                            )}
-                                        </div>
+                                        </p>
                                     </div>
                                 </div>
                             )
