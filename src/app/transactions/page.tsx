@@ -301,12 +301,11 @@ export default function TransactionsPage() {
                 </div>
             </header>
 
-            {/* Chat Body (WhatsApp Doodle Background) */}
+            {/* Chat Body (WhatsApp Image Background) */}
             <div 
-                className="flex-1 overflow-y-auto ios-scroll px-3 py-3"
+                className="flex-1 overflow-y-auto ios-scroll px-3 py-3 bg-cover bg-center bg-no-repeat"
                 style={{
-                    backgroundImage: `radial-gradient(#C3BCB2 0.75px, transparent 0.75px)`,
-                    backgroundSize: '16px 16px',
+                    backgroundImage: "url('/uploads/WHATSAPP.jpeg')",
                     backgroundColor: '#EFEAE2'
                 }}
             >
