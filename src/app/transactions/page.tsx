@@ -25,9 +25,15 @@ interface CompanyItem {
     name: string
 }
 
+interface PackageItem {
+    id: number
+    description: string
+}
+
 export default function TransactionsPage() {
     const [messages, setMessages] = useState<ChatMessage[]>([])
     const [companies, setCompanies] = useState<CompanyItem[]>([])
+    const [companyPackages, setCompanyPackages] = useState<PackageItem[]>([])
     const [input, setInput] = useState('')
     const [sending, setSending] = useState(false)
     const [loading, setLoading] = useState(true)
@@ -67,10 +73,30 @@ export default function TransactionsPage() {
         }
     }
 
+    const fetchCompanyPackages = async (companyId: number) => {
+        try {
+            const res = await fetch(`/api/companies/${companyId}`)
+            const data = await res.json()
+            if (data && Array.isArray(data.packages)) {
+                setCompanyPackages(data.packages.map((p: any) => ({ id: p.id, description: p.description })))
+            }
+        } catch (err) {
+            console.error('Failed to fetch company packages:', err)
+        }
+    }
+
     useEffect(() => {
         fetchMessages().then(scrollToBottom)
         fetchCompanies()
     }, [])
+
+    useEffect(() => {
+        if (selectedCompanyId) {
+            fetchCompanyPackages(selectedCompanyId)
+        } else {
+            setCompanyPackages([])
+        }
+    }, [selectedCompanyId])
 
     const handleSend = async (overrideCompanyId?: number) => {
         const text = input.trim()
@@ -78,6 +104,7 @@ export default function TransactionsPage() {
 
         setInput('')
         setSelectedCompanyId(null)
+        setCompanyPackages([])
         setSending(true)
 
         try {
@@ -151,7 +178,7 @@ export default function TransactionsPage() {
 
     const suggestions = getSuggestions()
 
-    const pickSuggestion = (comp: CompanyItem) => {
+    const pickCompanySuggestion = (comp: CompanyItem) => {
         const raw = input.trim()
         const match = raw.match(/^([+-]\s*\d+(?:\.\d+)?\s*)/)
         let prefix = ''
@@ -164,6 +191,12 @@ export default function TransactionsPage() {
         const cleanName = comp.name.replace(/^\d+\.?\s*/, '').trim()
         setInput(`${prefix}${cleanName} `)
         setSelectedCompanyId(comp.id)
+        inputRef.current?.focus()
+    }
+
+    const pickPackageSuggestion = (pkg: PackageItem) => {
+        const raw = input.trim()
+        setInput(`${raw} ${pkg.description} `)
         inputRef.current?.focus()
     }
 
@@ -221,10 +254,10 @@ export default function TransactionsPage() {
                             </p>
                             <div className="mt-4 bg-white rounded-xl p-3 text-left shadow-sm border border-gray-100">
                                 <p className="text-[13px] text-ios-gray font-medium mb-2">Format:</p>
-                                <p className="text-[14px] font-mono text-gray-800">+ amount company desc [@ package]</p>
+                                <p className="text-[14px] font-mono text-gray-800">+ amount company package desc</p>
                                 <p className="text-[13px] text-ios-gray mt-2 font-medium">Examples:</p>
-                                <p className="text-[13px] font-mono text-ios-green mt-1">+ 50000 BOOSTER Bis fee</p>
-                                <p className="text-[13px] font-mono text-ios-red mt-1">- 12000 RELIANCE AMC @ Package A</p>
+                                <p className="text-[13px] font-mono text-ios-green mt-1">+ 15000 BOOSTER BIS Inclusion sample payment</p>
+                                <p className="text-[13px] font-mono text-ios-red mt-1">- 12000 RELIANCE AMC</p>
                             </div>
                         </div>
                     </div>
@@ -304,7 +337,7 @@ export default function TransactionsPage() {
             </div>
 
             {/* Live Autocomplete Suggestions Bar */}
-            {suggestions.length > 0 && (
+            {suggestions.length > 0 && !companyPackages.length && (
                 <div className="bg-white/95 backdrop-blur-md px-3 py-2 border-t border-gray-200/60 shadow-lg flex gap-2 overflow-x-auto ios-scroll">
                     <span className="text-[12px] font-medium text-ios-gray flex items-center gap-1 shrink-0 self-center">
                         <Building2 className="w-3.5 h-3.5" /> Select Company:
@@ -312,10 +345,28 @@ export default function TransactionsPage() {
                     {suggestions.map(comp => (
                         <button
                             key={comp.id}
-                            onClick={() => pickSuggestion(comp)}
+                            onClick={() => pickCompanySuggestion(comp)}
                             className="px-3 py-1 rounded-full bg-ios-blue/10 hover:bg-ios-blue/20 text-ios-blue text-[13px] font-medium shrink-0 active:scale-95 transition-all flex items-center gap-1 border border-ios-blue/20"
                         >
                             {comp.name.replace(/^\d+\.?\s*/, '')}
+                        </button>
+                    ))}
+                </div>
+            )}
+
+            {/* Package Suggestions Bar */}
+            {companyPackages.length > 0 && (
+                <div className="bg-white/95 backdrop-blur-md px-3 py-2 border-t border-gray-200/60 shadow-lg flex gap-2 overflow-x-auto ios-scroll">
+                    <span className="text-[12px] font-medium text-ios-gray flex items-center gap-1 shrink-0 self-center">
+                        Select Package:
+                    </span>
+                    {companyPackages.map(pkg => (
+                        <button
+                            key={pkg.id}
+                            onClick={() => pickPackageSuggestion(pkg)}
+                            className="px-3 py-1 rounded-full bg-purple-50 hover:bg-purple-100 text-purple-700 text-[13px] font-medium shrink-0 active:scale-95 transition-all flex items-center gap-1 border border-purple-200"
+                        >
+                            {pkg.description}
                         </button>
                     ))}
                 </div>
@@ -331,7 +382,7 @@ export default function TransactionsPage() {
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={handleKeyDown}
-                            placeholder="+ 50000 BOOSTER Bis fee @ Package"
+                            placeholder="+ 15000 BOOSTER BIS Inclusion sample payment"
                             className="w-full px-4 py-2.5 bg-gray-100 rounded-full text-[15px] text-gray-900 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-ios-blue/30 transition-all font-mono"
                             disabled={sending}
                             autoComplete="off"

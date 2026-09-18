@@ -89,26 +89,28 @@ export async function POST(request: Request) {
         }
 
         // 3. Find target package or "Quick Entry" package for this company
-        let targetPackage: { id: number } | null = null
+        let targetPackage: { id: number; description: string } | null = null
+        let finalDescription = parsed.description
 
-        // Check if explicit package query is provided via @ or body.packageId
+        // Fetch all packages for this company
+        const companyPackages = await prisma.package.findMany({
+            where: { companyId: matchedCompany.id }
+        })
+
+        // Check if explicit package ID was passed in body
         if (body.packageId && typeof body.packageId === 'number') {
-            const pkg = await prisma.package.findFirst({
-                where: { id: body.packageId, companyId: matchedCompany.id }
-            })
+            const pkg = companyPackages.find(p => p.id === body.packageId)
             if (pkg) targetPackage = pkg
         }
 
+        // Check if explicit package query was provided via @ symbol
         if (!targetPackage && parsed.targetPackageQuery) {
             const pkgQuery = parsed.targetPackageQuery.toLowerCase()
-            const companyPackages = await prisma.package.findMany({
-                where: { companyId: matchedCompany.id }
-            })
             const matchedPkg = companyPackages.find(p => p.description.toLowerCase().includes(pkgQuery))
             if (matchedPkg) {
                 targetPackage = matchedPkg
             } else {
-                // Create package with this description if explicit package requested
+                // Create new package with this requested description
                 targetPackage = await prisma.package.create({
                     data: {
                         companyId: matchedCompany.id,
@@ -120,13 +122,33 @@ export async function POST(request: Request) {
             }
         }
 
-        if (!targetPackage) {
-            let quickPackage = await prisma.package.findFirst({
-                where: {
-                    companyId: matchedCompany.id,
-                    description: 'Quick Entry'
+        // Check if any package title matches the beginning of description
+        // (e.g. "+ 15000 BOOSTER BIS Inclusion sample payment" -> matches package "BIS Inclusion")
+        if (!targetPackage && parsed.description && companyPackages.length > 0) {
+            const descLower = parsed.description.toLowerCase().trim()
+            // Sort packages by longest description length first to match most specific package
+            const sortedPackages = [...companyPackages].sort((a, b) => b.description.length - a.description.length)
+            
+            for (const pkg of sortedPackages) {
+                const pkgTitleLower = pkg.description.toLowerCase().trim()
+                if (pkgTitleLower === 'quick entry') continue // skip default holding package in name matching unless exact match
+
+                if (descLower.startsWith(pkgTitleLower)) {
+                    targetPackage = pkg
+                    // Extract remaining text as description
+                    const remainder = parsed.description.substring(pkg.description.length).trim()
+                    finalDescription = remainder || pkg.description
+                    break
+                } else if (descLower.includes(pkgTitleLower)) {
+                    targetPackage = pkg
+                    break
                 }
-            })
+            }
+        }
+
+        // Default to "Quick Entry" package if no specific package was matched
+        if (!targetPackage) {
+            let quickPackage = companyPackages.find(p => p.description === 'Quick Entry')
 
             if (!quickPackage) {
                 quickPackage = await prisma.package.create({
@@ -150,7 +172,7 @@ export async function POST(request: Request) {
                 data: {
                     packageId: targetPackage.id,
                     date: new Date(),
-                    description: parsed.description || parsed.companyQuery,
+                    description: finalDescription || targetPackage.description,
                     amount: parsed.amount,
                     hasUpdates: true
                 }
@@ -161,7 +183,7 @@ export async function POST(request: Request) {
                 data: {
                     packageId: targetPackage.id,
                     date: new Date(),
-                    description: parsed.description || parsed.companyQuery,
+                    description: finalDescription || targetPackage.description,
                     amount: parsed.amount,
                     hasUpdates: true
                 }
@@ -188,7 +210,7 @@ export async function POST(request: Request) {
                 companyName: matchedCompany.name,
                 companyId: matchedCompany.id,
                 packageId: targetPackage.id,
-                description: parsed.description || null,
+                description: `${targetPackage.description !== 'Quick Entry' ? `[${targetPackage.description}] ` : ''}${finalDescription || ''}`.trim() || null,
                 status: 'SUCCESS',
                 paymentId,
                 chargeId
