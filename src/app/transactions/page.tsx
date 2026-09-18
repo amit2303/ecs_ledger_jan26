@@ -158,9 +158,11 @@ export default function TransactionsPage() {
     }
 
     const handleSelectPackage = (pkg: PackageItem) => {
-        setSelectedPackage(pkg)
-        const currentInput = input.trim()
-        setInput(`${currentInput} ${pkg.description} `)
+        if (selectedPackage?.id === pkg.id) {
+            setSelectedPackage(null)
+        } else {
+            setSelectedPackage(pkg)
+        }
         setWarningMsg(null)
         inputRef.current?.focus()
     }
@@ -390,19 +392,27 @@ export default function TransactionsPage() {
 
             {/* Live Package Suggestions Bar (Flawless transition) */}
             {selectedCompany && companyPackages.length > 0 && (
-                <div className="bg-purple-50/95 backdrop-blur-md px-3 py-2 border-t border-purple-200 shadow-lg flex gap-2 overflow-x-auto ios-scroll z-20 transition-all duration-300 ease-out">
+                <div className="bg-purple-50/95 backdrop-blur-md px-3 py-2 border-t border-purple-200 shadow-lg flex gap-2 overflow-x-auto ios-scroll z-20 transition-all duration-300 ease-out items-center">
                     <span className="text-[12px] font-semibold text-purple-800 flex items-center gap-1 shrink-0 self-center">
                         <PackageIcon className="w-3.5 h-3.5 text-purple-600" /> Package:
                     </span>
-                    {companyPackages.map(pkg => (
-                        <button
-                            key={pkg.id}
-                            onClick={() => handleSelectPackage(pkg)}
-                            className="px-3 py-1 rounded-full bg-purple-600 text-white text-[13px] font-semibold shrink-0 active:scale-95 transition-all flex items-center gap-1 shadow-sm hover:bg-purple-700"
-                        >
-                            {pkg.description}
-                        </button>
-                    ))}
+                    {companyPackages.map(pkg => {
+                        const isSelected = selectedPackage?.id === pkg.id
+                        return (
+                            <button
+                                key={pkg.id}
+                                onClick={() => handleSelectPackage(pkg)}
+                                className={`px-3 py-1 rounded-full text-[13px] font-semibold shrink-0 active:scale-95 transition-all flex items-center gap-1.5 shadow-xs ${
+                                    isSelected
+                                        ? 'bg-purple-700 text-white ring-2 ring-purple-400 font-bold'
+                                        : 'bg-white text-purple-900 border border-purple-200 hover:bg-purple-100'
+                                }`}
+                            >
+                                {isSelected && <span className="text-[14px]">✓</span>}
+                                {pkg.description}
+                            </button>
+                        )
+                    })}
                 </div>
             )}
 

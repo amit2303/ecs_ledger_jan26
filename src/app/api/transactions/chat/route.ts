@@ -210,7 +210,7 @@ export async function POST(request: Request) {
                 companyName: matchedCompany.name,
                 companyId: matchedCompany.id,
                 packageId: targetPackage.id,
-                description: `${targetPackage.description !== 'Quick Entry' ? `[${targetPackage.description}] ` : ''}${finalDescription || ''}`.trim() || null,
+                description: finalDescription || null,
                 status: 'SUCCESS',
                 paymentId,
                 chargeId
