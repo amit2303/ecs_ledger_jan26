@@ -104,26 +104,43 @@ export default function TransactionsPage() {
         }
     }, [selectedCompany])
 
-    // Detect Sign & Amount from current input text
+    // Detect Sign, Amount, Company, and Description from current input text
     const getParsedInput = () => {
         const raw = input.trim()
-        if (!raw) return { sign: null, amount: null, rest: '' }
+        if (!raw) return { sign: null, amount: null, companyText: '', description: '' }
 
         const sign = raw[0] === '+' || raw[0] === '-' ? raw[0] : null
         const afterSign = sign ? raw.substring(1).trim() : raw
         const amountMatch = afterSign.match(/^(\d+(?:\.\d+)?)/)
         const amount = amountMatch ? parseFloat(amountMatch[1]) : null
-        const rest = amountMatch ? afterSign.substring(amountMatch[0].length).trim() : afterSign
+        const restAfterAmount = amountMatch ? afterSign.substring(amountMatch[0].length).trim() : afterSign
 
-        return { sign, amount, rest }
+        let companyText = ''
+        let description = restAfterAmount
+
+        if (selectedCompany && restAfterAmount) {
+            const cleanName = selectedCompany.name.replace(/^\d+\.?\s*/, '').trim()
+            if (restAfterAmount.toLowerCase().startsWith(cleanName.toLowerCase())) {
+                companyText = cleanName
+                description = restAfterAmount.substring(cleanName.length).trim()
+            } else if (restAfterAmount.toLowerCase().startsWith(selectedCompany.name.toLowerCase())) {
+                companyText = selectedCompany.name
+                description = restAfterAmount.substring(selectedCompany.name.length).trim()
+            }
+        }
+
+        return { sign, amount, companyText, description }
     }
 
-    const { sign, amount, rest: descriptionText } = getParsedInput()
+    const { sign, amount, companyText, description: descriptionText } = getParsedInput()
 
     // Filter company suggestions as user types
     const getCompanySuggestions = () => {
         if (selectedCompany || !input.trim() || !companies.length) return []
-        const { rest } = getParsedInput()
+        const raw = input.trim()
+        const afterSign = (raw[0] === '+' || raw[0] === '-') ? raw.substring(1).trim() : raw
+        const amountMatch = afterSign.match(/^(\d+(?:\.\d+)?)/)
+        const rest = amountMatch ? afterSign.substring(amountMatch[0].length).trim() : afterSign
         if (!rest) return companies.slice(0, 6)
 
         const queryToken = rest.toLowerCase().trim()
@@ -191,25 +208,39 @@ export default function TransactionsPage() {
         inputRef.current?.focus()
     }
 
-    // Strict Validation Rule: No random text allowed!
+    // Strict 5-Step Validation Rule:
+    // 1. Must start with + or -
+    // 2. Must contain valid positive amount
+    // 3. Must select a company
+    // 4. Must select a package (if company has packages)
+    // 5. Must enter a description
     const validateTransactionInput = (): string | null => {
         const raw = input.trim()
-        if (!raw) return 'Please type a transaction message starting with + or -'
+        if (!raw) return 'Message MUST start with + or - symbol'
         
         if (raw[0] !== '+' && raw[0] !== '-') {
-            return 'Invalid Format! Message must start with + (Payment) or - (Charge)'
+            return 'Invalid Format! Message MUST start with + (Payment) or - (Charge)'
         }
         
+        const { amount, description } = getParsedInput()
+
         if (!amount || amount <= 0) {
-            return 'Invalid Amount! Please enter a valid number after + or -'
+            return 'Step 2 Missing: Please enter amount after + or -'
         }
 
-        const { rest } = getParsedInput()
-        if (!rest) {
-            return 'Missing Company! Please select or type a company name'
+        if (!selectedCompany) {
+            return 'Step 3 Missing: Please select a company'
         }
 
-        return null // Valid!
+        if (companyPackages.length > 0 && !selectedPackage) {
+            return 'Step 4 Missing: Please select a package'
+        }
+
+        if (!description || description.trim().length === 0) {
+            return 'Step 5 Missing: Please add a description'
+        }
+
+        return null // All 5 steps passed!
     }
 
     const isFormValid = !validateTransactionInput()
@@ -264,7 +295,12 @@ export default function TransactionsPage() {
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault()
-            handleSend()
+            if (isFormValid) {
+                handleSend()
+            } else {
+                const err = validateTransactionInput()
+                if (err) setWarningMsg(err)
+            }
             return
         }
 
