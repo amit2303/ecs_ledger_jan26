@@ -408,24 +408,7 @@ export default function TransactionsPage() {
                 </div>
             )}
 
-            {/* Quick iOS Sign Helper Pills (when input is empty) */}
-            {!input && (
-                <div className="bg-white/80 backdrop-blur-md px-3 py-1.5 border-t border-gray-200/50 flex gap-2 overflow-x-auto z-20 items-center animate-in fade-in duration-200">
-                    <span className="text-[12px] font-medium text-gray-400 shrink-0">Start entry:</span>
-                    <button
-                        onClick={() => handleSelectSign('+')}
-                        className="px-2.5 py-1 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-[12px] font-bold flex items-center gap-1 shrink-0 active:scale-95 transition-transform"
-                    >
-                        <Plus className="w-3.5 h-3.5 stroke-[3]" /> Payment (+)
-                    </button>
-                    <button
-                        onClick={() => handleSelectSign('-')}
-                        className="px-2.5 py-1 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[12px] font-bold flex items-center gap-1 shrink-0 active:scale-95 transition-transform"
-                    >
-                        <Minus className="w-3.5 h-3.5 stroke-[3]" /> Charge (-)
-                    </button>
-                </div>
-            )}
+
 
             {/* Live Company Suggestions Bar (Flawless transition) */}
             {companySuggestions.length > 0 && !selectedCompany && (
