@@ -425,10 +425,6 @@ export default function TransactionsPage() {
                         autoComplete="off"
                         autoCapitalize="none"
                     />
-                    {/* Sticker Icon */}
-                    <button type="button" className="text-gray-700 hover:text-gray-900 shrink-0 p-0.5" title="Stickers">
-                        <Smile className="w-5 h-5 text-gray-700" />
-                    </button>
                 </div>
 
                 {/* WhatsApp Green Round Send Button */}
