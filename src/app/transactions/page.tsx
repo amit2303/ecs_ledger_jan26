@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { ChevronLeft, Send, CheckCheck, AlertCircle, Building2, Package as PackageIcon, X, Plus, Video } from 'lucide-react'
+import { ChevronLeft, Send, CheckCheck, AlertCircle, Building2, Package as PackageIcon, X, Plus, Video, Smile } from 'lucide-react'
 import Link from 'next/link'
 
 interface ChatMessage {
@@ -407,18 +407,9 @@ export default function TransactionsPage() {
             )}
 
             {/* iOS WhatsApp Bottom Bar */}
-            <div className="shrink-0 bg-[#F6F6F6] border-t border-gray-300/80 px-2.5 py-2 flex items-center gap-2 safe-area-bottom z-20">
-                {/* Left Plus icon */}
-                <button 
-                    onClick={() => handleSelectSign('+')}
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-[#007AFF] active:bg-gray-200 transition-colors shrink-0"
-                    title="Add Payment"
-                >
-                    <Plus className="w-6 h-6 stroke-[2.2]" />
-                </button>
-
+            <div className="shrink-0 bg-[#EFEAE2] border-t border-gray-300/60 px-3 py-2.5 flex items-center gap-2 safe-area-bottom z-20">
                 {/* Rounded Input Field */}
-                <div className="flex-1 min-w-0 bg-white rounded-full border border-gray-300 px-3.5 py-1.5 flex items-center gap-2 shadow-inner">
+                <div className="flex-1 min-w-0 bg-white rounded-full border border-gray-300 px-4 py-2 flex items-center gap-2 shadow-xs">
                     <input
                         ref={inputRef}
                         type="text"
@@ -429,12 +420,15 @@ export default function TransactionsPage() {
                         }}
                         onKeyDown={handleKeyDown}
                         placeholder="+15000 BOOSTER BIS Inclusion fee"
-                        className="w-full text-[15px] text-gray-900 placeholder:text-gray-400 outline-none font-mono bg-transparent"
+                        className="w-full text-[16px] text-gray-900 placeholder:text-gray-400 outline-none font-sans bg-transparent"
                         disabled={sending}
                         autoComplete="off"
                         autoCapitalize="none"
                     />
-                    <span className="text-gray-400 font-bold text-[14px] shrink-0 select-none">₹</span>
+                    {/* Sticker Icon */}
+                    <button type="button" className="text-gray-700 hover:text-gray-900 shrink-0 p-0.5" title="Stickers">
+                        <Smile className="w-5 h-5 text-gray-700" />
+                    </button>
                 </div>
 
                 {/* WhatsApp Green Round Send Button */}
@@ -442,13 +436,13 @@ export default function TransactionsPage() {
                     type="button"
                     onClick={handleSend}
                     disabled={sending || !isFormValid}
-                    className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                    className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all ${
                         isFormValid 
                             ? 'bg-[#00A884] text-white shadow-md active:scale-95' 
                             : 'bg-gray-300 text-gray-500 opacity-60 cursor-not-allowed'
                     }`}
                 >
-                    <Send className="w-4 h-4" style={{ transform: 'rotate(-45deg)', marginLeft: '2px' }} />
+                    <Send className="w-5 h-5" style={{ transform: 'rotate(-45deg)', marginLeft: '2px' }} />
                 </button>
             </div>
         </div>
