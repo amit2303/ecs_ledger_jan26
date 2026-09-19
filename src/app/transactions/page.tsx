@@ -32,11 +32,11 @@ interface PackageItem {
 }
 
 /**
- * Color Coded Message Text Component
- * + AMOUNT  -> GREEN (#059669)
- * - AMOUNT  -> RED (#DC2626)
- * Company   -> BLUE (#007AFF)
- * Description -> BLACK (#111827)
+ * Color Coded Message Text Component (Native WhatsApp Style - No Heavy Bold)
+ * + AMOUNT    -> Standard Green (#00875A)
+ * - AMOUNT    -> Standard Red (#D9383A)
+ * Company     -> Standard Blue (#007AFF)
+ * Description -> Standard Black (#111827)
  */
 function ColorCodedMessageText({ text, companyName }: { text: string; companyName?: string | null }) {
     const raw = text.trim()
@@ -46,7 +46,7 @@ function ColorCodedMessageText({ text, companyName }: { text: string; companyNam
     const isMinus = raw.startsWith('-')
 
     if (!isPlus && !isMinus) {
-        return <span className="font-semibold text-gray-900">{text.toUpperCase()}</span>
+        return <span className="font-normal text-[#111827] uppercase">{text.toUpperCase()}</span>
     }
 
     const sign = raw[0]
@@ -55,16 +55,16 @@ function ColorCodedMessageText({ text, companyName }: { text: string; companyNam
     // Extract numerical amount
     const amountMatch = afterSign.match(/^(\d+(?:\.\d+)?)/)
     if (!amountMatch) {
-        return <span className="font-semibold text-gray-900">{text.toUpperCase()}</span>
+        return <span className="font-normal text-[#111827] uppercase">{text.toUpperCase()}</span>
     }
 
     const amountStr = amountMatch[1]
     const restAfterAmount = afterSign.substring(amountMatch[0].length)
 
-    // Amount Color Coding: Green for +, Red for -
+    // Standard WhatsApp/iOS colors with normal font weight
     const amountColorClass = isPlus 
-        ? 'font-black text-[#059669]' 
-        : 'font-black text-[#DC2626]'
+        ? 'font-medium text-[#00875A]' 
+        : 'font-medium text-[#D9383A]'
 
     // Isolate Company Name and Description
     let compPart = ''
@@ -85,37 +85,45 @@ function ColorCodedMessageText({ text, companyName }: { text: string; companyNam
     }
 
     if (!compPart && restAfterAmount.trim()) {
-        const leadingWhitespace = restAfterAmount.match(/^\s*/)?.[0] || ''
         const trimmedRest = restAfterAmount.trim()
         const spaceIndex = trimmedRest.indexOf(' ')
         if (spaceIndex !== -1) {
-            compPart = leadingWhitespace + trimmedRest.substring(0, spaceIndex)
+            compPart = trimmedRest.substring(0, spaceIndex)
             descPart = trimmedRest.substring(spaceIndex)
         } else {
-            compPart = leadingWhitespace + trimmedRest
+            compPart = trimmedRest
             descPart = ''
         }
     }
 
+    const cleanComp = compPart.trim()
+    const cleanDesc = descPart.trim()
+
     return (
-        <span className="font-sans text-[16px] leading-relaxed tracking-wide">
-            {/* + AMOUNT or - AMOUNT in GREEN or RED */}
+        <span className="font-sans text-[15px] leading-relaxed tracking-normal font-normal">
+            {/* + AMOUNT or - AMOUNT */}
             <span className={amountColorClass}>
                 {sign}{amountStr}
             </span>
 
-            {/* COMPANY NAME in BLUE */}
-            {compPart && (
-                <span className="font-extrabold text-[#007AFF] uppercase">
-                    {compPart}
-                </span>
+            {/* GUARANTEED SPACE + COMPANY NAME */}
+            {cleanComp && (
+                <>
+                    {' '}
+                    <span className="font-medium text-[#007AFF] uppercase">
+                        {cleanComp}
+                    </span>
+                </>
             )}
 
-            {/* DESCRIPTION in BLACK */}
-            {descPart && (
-                <span className="font-bold text-[#111827] uppercase">
-                    {descPart}
-                </span>
+            {/* GUARANTEED SPACE + DESCRIPTION */}
+            {cleanDesc && (
+                <>
+                    {' '}
+                    <span className="font-normal text-[#111827] uppercase">
+                        {cleanDesc}
+                    </span>
+                </>
             )}
         </span>
     )
@@ -262,7 +270,7 @@ export default function TransactionsPage() {
     // Handle Input Change with strict rules: 
     // 1. Must start with + or -
     // 2. Clearing text field wipes all previous selections (Company & Package null and void)
-    // 3. Auto-convert input to UPPERCASE for seamless experience
+    // 3. Auto-convert input to UPPERCASE
     const handleInputChange = (val: string) => {
         const upperVal = val.toUpperCase()
 
@@ -438,7 +446,7 @@ export default function TransactionsPage() {
     return (
         <div className="flex flex-col h-full relative font-sans overflow-hidden select-none" style={{ backgroundColor: '#EFEAE2' }}>
             {/* iOS WhatsApp Header */}
-            <header className="shrink-0 z-20 px-3 py-2.5 flex items-center justify-between bg-[#F6F6F6]/90 backdrop-blur-md border-b border-gray-300/70 shadow-xs">
+            <header className="shrink-0 z-20 px-3 py-2 flex items-center justify-between bg-[#F6F6F6]/90 backdrop-blur-md border-b border-gray-300/70 shadow-xs">
                 <div className="flex items-center gap-2 min-w-0">
                     <Link href="/" className="flex items-center text-[#007AFF] font-medium text-[15px] -ml-1 active:opacity-60 transition-opacity">
                         <ChevronLeft className="w-6 h-6 stroke-[2.5]" />
@@ -452,7 +460,7 @@ export default function TransactionsPage() {
                             className="w-9 h-9 rounded-full object-cover shrink-0 border border-gray-200"
                         />
                         <div className="flex flex-col min-w-0">
-                            <h1 className="text-[16px] font-bold text-gray-900 truncate leading-tight tracking-wide">EXPERT HISAB KITAB</h1>
+                            <h1 className="text-[16px] font-bold text-gray-900 truncate leading-tight">EXPERT HISAB KITAB</h1>
                         </div>
                     </div>
                 </div>
@@ -460,7 +468,7 @@ export default function TransactionsPage() {
 
             {/* Chat Body (WhatsApp Image Background) */}
             <div 
-                className="flex-1 overflow-y-auto ios-scroll px-4 py-4 bg-cover bg-center bg-no-repeat"
+                className="flex-1 overflow-y-auto ios-scroll px-3.5 py-3.5 bg-cover bg-center bg-no-repeat"
                 style={{
                     backgroundImage: "url('/uploads/WHATSAPP.jpeg')",
                     backgroundColor: '#EFEAE2'
@@ -473,24 +481,24 @@ export default function TransactionsPage() {
                 ) : messages.length === 0 ? (
                     <div className="flex items-center justify-center h-full">
                         <div className="text-center px-6 max-w-[320px] bg-white/85 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-gray-200/60">
-                            <p className="text-[15px] text-gray-800 font-bold mb-2">WhatsApp Quick Ledger</p>
-                            <p className="text-[13px] text-gray-600 leading-relaxed mb-3">
-                                Start entries with <strong className="text-[#059669]">+</strong> or <strong className="text-[#DC2626]">-</strong>.
+                            <p className="text-[15px] text-gray-800 font-medium mb-2">WhatsApp Quick Ledger</p>
+                            <p className="text-[13px] text-gray-600 leading-relaxed mb-3 font-normal">
+                                Start entries with <strong className="text-[#00875A]">+</strong> or <strong className="text-[#D9383A]">-</strong>.
                             </p>
-                            <div className="bg-gray-100/90 rounded-xl p-3 text-left text-[13px] font-semibold space-y-1.5">
-                                <p className="text-[#059669]">+15000 <span className="text-[#007AFF]">BOOSTER</span> <span className="text-gray-900">BIS INCLUSION FEE</span></p>
-                                <p className="text-[#059669]">+11000 <span className="text-[#007AFF]">ANJALI</span> <span className="text-gray-900">KITCHENWARE</span></p>
-                                <p className="text-[#DC2626]">-126 <span className="text-[#007AFF]">COFFEE</span></p>
+                            <div className="bg-gray-100/90 rounded-xl p-3 text-left text-[13px] space-y-1.5 font-normal">
+                                <p className="text-[#00875A]">+15000 <span className="text-[#007AFF]">BOOSTER</span> <span className="text-[#111827]">BIS INCLUSION FEE</span></p>
+                                <p className="text-[#00875A]">+11000 <span className="text-[#007AFF]">ANJALI</span> <span className="text-[#111827]">KITCHENWARE</span></p>
+                                <p className="text-[#D9383A]">-126 <span className="text-[#007AFF]">COFFEE</span></p>
                             </div>
                         </div>
                     </div>
                 ) : (
-                    <div className="flex flex-col gap-3.5">
+                    <div className="flex flex-col gap-3">
                         {messagesWithDates.map((item, idx) => {
                             if ('_dateSeparator' in item) {
                                 return (
-                                    <div key={`date-${idx}`} className="flex justify-center my-2">
-                                        <span className="px-3.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-[11px] font-bold text-gray-600 shadow-xs border border-gray-200/50 uppercase tracking-wider select-none">
+                                    <div key={`date-${idx}`} className="flex justify-center my-1.5">
+                                        <span className="px-3.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-[11px] font-medium text-gray-600 shadow-xs border border-gray-200/50 uppercase tracking-wider select-none">
                                             {item._dateSeparator}
                                         </span>
                                     </div>
@@ -504,13 +512,13 @@ export default function TransactionsPage() {
                                 <div key={msg.id} className="flex justify-end">
                                     <div 
                                         onClick={() => handleMessageClick(msg)}
-                                        className="rounded-[18px] rounded-tr-[3px] px-4 py-3 min-w-[140px] max-w-[88%] shadow-[0_1.5px_2px_rgba(0,0,0,0.08)] bg-[#DCF8C6] text-[#111111] relative cursor-pointer active:scale-98 transition-all hover:shadow-md group border border-[#C6EEAC]/50"
+                                        className="rounded-[18px] rounded-tr-[3px] px-3.5 py-2.5 min-w-[130px] max-w-[88%] shadow-[0_1px_2px_rgba(0,0,0,0.06)] bg-[#DCF8C6] text-[#111111] relative cursor-pointer active:scale-98 transition-all hover:shadow-md group"
                                         title="Tap to view transaction package"
                                     >
-                                        <div className="text-[16px] font-sans leading-relaxed break-words whitespace-pre-wrap">
+                                        <div className="text-[15px] font-sans leading-snug break-words whitespace-pre-wrap font-normal">
                                             <ColorCodedMessageText text={msg.rawText} companyName={msg.companyName} />
                                             
-                                            <span className="inline-flex items-center gap-1 text-[11px] text-[#667781] ml-3 float-right mt-1.5 font-sans font-medium">
+                                            <span className="inline-flex items-center gap-1 text-[11px] text-[#667781] ml-3 float-right mt-1 font-sans font-normal">
                                                 {formatTime(msg.createdAt)}
                                                 {isSuccess ? (
                                                     <CheckCheck className="w-4 h-4 text-[#34B7F1] stroke-[2.5]" />
@@ -530,7 +538,7 @@ export default function TransactionsPage() {
 
             {/* Warning Alert Banner */}
             {warningMsg && (
-                <div className="bg-amber-500 text-white px-4 py-2.5 text-[13px] font-semibold flex items-center justify-between shadow-md z-30 transition-all duration-200">
+                <div className="bg-amber-500 text-white px-4 py-2 text-[13px] font-medium flex items-center justify-between shadow-md z-30 transition-all duration-200">
                     <div className="flex items-center gap-2">
                         <AlertCircle className="w-4 h-4 shrink-0" />
                         <span>{warningMsg}</span>
@@ -544,14 +552,14 @@ export default function TransactionsPage() {
             {/* Live Company Suggestions Bar */}
             {companySuggestions.length > 0 && !selectedCompany && (
                 <div className="bg-white/95 backdrop-blur-md px-3 py-2 border-t border-gray-200/60 shadow-lg flex gap-2 overflow-x-auto ios-scroll z-20 transition-all duration-300 ease-out">
-                    <span className="text-[12px] font-bold text-gray-500 flex items-center gap-1 shrink-0 self-center uppercase tracking-wide">
+                    <span className="text-[12px] font-medium text-gray-500 flex items-center gap-1 shrink-0 self-center uppercase tracking-wide">
                         <Building2 className="w-3.5 h-3.5" /> Company:
                     </span>
                     {companySuggestions.map(comp => (
                         <button
                             key={comp.id}
                             onClick={() => handleSelectCompany(comp)}
-                            className="px-3.5 py-1.5 rounded-full bg-blue-50 hover:bg-blue-100 text-[#007AFF] text-[13px] font-bold shrink-0 active:scale-95 transition-all flex items-center gap-1 border border-blue-200 shadow-xs uppercase"
+                            className="px-3.5 py-1.5 rounded-full bg-blue-50 hover:bg-blue-100 text-[#007AFF] text-[13px] font-medium shrink-0 active:scale-95 transition-all flex items-center gap-1 border border-blue-200 shadow-xs uppercase"
                         >
                             {comp.name.replace(/^\d+\.?\s*/, '')}
                         </button>
@@ -562,14 +570,14 @@ export default function TransactionsPage() {
             {/* Live Package Suggestions Bar (hides when a package is selected) */}
             {selectedCompany && companyPackages.length > 0 && !selectedPackage && (
                 <div className="bg-purple-50/95 backdrop-blur-md px-3 py-2 border-t border-purple-200 shadow-lg flex gap-2 overflow-x-auto ios-scroll z-20 transition-all duration-300 ease-out items-center">
-                    <span className="text-[12px] font-bold text-purple-800 flex items-center gap-1 shrink-0 self-center uppercase tracking-wide">
+                    <span className="text-[12px] font-medium text-purple-800 flex items-center gap-1 shrink-0 self-center uppercase tracking-wide">
                         <PackageIcon className="w-3.5 h-3.5 text-purple-600" /> Select Package:
                     </span>
                     {companyPackages.map(pkg => (
                         <button
                             key={pkg.id}
                             onClick={() => handleSelectPackage(pkg)}
-                            className="px-3.5 py-1.5 rounded-full bg-white text-purple-900 border border-purple-200 hover:bg-purple-100 text-[13px] font-bold shrink-0 active:scale-95 transition-all flex items-center gap-1.5 shadow-xs uppercase"
+                            className="px-3.5 py-1.5 rounded-full bg-white text-purple-900 border border-purple-200 hover:bg-purple-100 text-[13px] font-medium shrink-0 active:scale-95 transition-all flex items-center gap-1.5 shadow-xs uppercase"
                         >
                             {pkg.description}
                         </button>
@@ -579,30 +587,30 @@ export default function TransactionsPage() {
 
             {/* FIXED DOCKED PACKAGE BADGE ABOVE TEXT INPUT FIELD */}
             {selectedPackage && (
-                <div className="bg-purple-100/95 backdrop-blur-md px-3.5 py-2 border-t border-b border-purple-300/80 flex items-center justify-between z-20 animate-in slide-in-from-bottom-1 duration-200 shadow-xs">
+                <div className="bg-purple-50/95 backdrop-blur-md px-3.5 py-1.5 border-t border-b border-purple-200/80 flex items-center justify-between z-20 animate-in slide-in-from-bottom-1 duration-200 shadow-xs">
                     <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-[11px] font-extrabold tracking-wider text-purple-800 uppercase flex items-center gap-1 shrink-0 bg-purple-200/90 px-2.5 py-0.5 rounded-full border border-purple-300">
-                            <PackageIcon className="w-3.5 h-3.5 text-purple-700" /> PACKAGE
+                        <span className="text-[11px] font-semibold tracking-wider text-purple-700 uppercase flex items-center gap-1 shrink-0 bg-purple-100 px-2.5 py-0.5 rounded-full border border-purple-200">
+                            <PackageIcon className="w-3.5 h-3.5 text-purple-600" /> PACKAGE
                         </span>
-                        <span className="text-[14px] font-extrabold text-purple-950 truncate uppercase">
+                        <span className="text-[13px] font-semibold text-purple-900 truncate uppercase">
                             {selectedPackage.description}
                         </span>
                     </div>
                     <button
                         type="button"
                         onClick={() => setSelectedPackage(null)}
-                        className="p-1 text-purple-700 hover:text-purple-950 hover:bg-purple-200 rounded-full transition-colors shrink-0"
+                        className="p-1 text-purple-600 hover:text-purple-900 hover:bg-purple-100 rounded-full transition-colors shrink-0"
                         title="Remove package selection"
                     >
-                        <X className="w-4 h-4 stroke-[2.5]" />
+                        <X className="w-4 h-4 stroke-[2]" />
                     </button>
                 </div>
             )}
 
             {/* iOS WhatsApp Bottom Input Bar */}
-            <div className="shrink-0 bg-[#EFEAE2] border-t border-gray-300/60 px-3 py-2.5 flex items-center gap-2.5 safe-area-bottom z-20">
+            <div className="shrink-0 bg-[#EFEAE2] border-t border-gray-300/60 px-3 py-2 flex items-center gap-2 safe-area-bottom z-20">
                 {/* Rounded Input Field */}
-                <div className="flex-1 min-w-0 bg-white rounded-full border border-gray-300/80 px-4 py-2.5 flex items-center gap-2 shadow-xs">
+                <div className="flex-1 min-w-0 bg-white rounded-full border border-gray-300/80 px-4 py-2 flex items-center gap-2 shadow-xs">
                     <input
                         ref={inputRef}
                         type="text"
@@ -610,7 +618,7 @@ export default function TransactionsPage() {
                         onChange={(e) => handleInputChange(e.target.value)}
                         onKeyDown={handleKeyDown}
                         placeholder="+15000 BOOSTER BIS INCLUSION FEE"
-                        className="w-full text-[16px] font-bold text-gray-900 placeholder:text-gray-400 placeholder:font-normal outline-none font-sans bg-transparent tracking-wide uppercase"
+                        className="w-full text-[15px] font-normal text-gray-900 placeholder:text-gray-400 placeholder:font-normal outline-none font-sans bg-transparent tracking-normal uppercase"
                         disabled={sending}
                         autoComplete="off"
                         autoCapitalize="characters"
@@ -631,7 +639,7 @@ export default function TransactionsPage() {
                     type="button"
                     onClick={handleSend}
                     disabled={sending || !isFormValid}
-                    className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                    className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all ${
                         isFormValid 
                             ? 'bg-[#00A884] text-white shadow-md active:scale-95 cursor-pointer' 
                             : 'bg-gray-300 text-gray-500 opacity-60 cursor-not-allowed'
