@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { ChevronLeft, Send, AlertCircle, Building2, Package as PackageIcon, X } from 'lucide-react'
+import { ChevronLeft, Send, AlertCircle, Building2, Package as PackageIcon, X, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -495,12 +495,12 @@ export default function TransactionsPage() {
                         </div>
                     </div>
                 ) : (
-                    <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-1.5">
                         {messagesWithDates.map((item, idx) => {
                             if ('_dateSeparator' in item) {
                                 return (
-                                    <div key={`date-${idx}`} className="flex justify-center my-1.5">
-                                        <span className="px-3.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-[11px] font-medium text-gray-600 shadow-xs border border-gray-200/50 uppercase tracking-wider select-none">
+                                    <div key={`date-${idx}`} className="flex justify-center my-2">
+                                        <span className="px-3 py-1 rounded-[8px] bg-white text-[12px] font-medium text-[#54656F] shadow-[0_1px_0.5px_rgba(11,20,26,0.13)] tracking-normal select-none">
                                             {item._dateSeparator}
                                         </span>
                                     </div>
@@ -510,20 +510,20 @@ export default function TransactionsPage() {
                             const msg = item as ChatMessage
                             const isSuccess = msg.status === 'SUCCESS'
 
-                             return (
-                                <div key={msg.id} className="flex justify-end pr-2">
+                            return (
+                                <div key={msg.id} className="flex justify-end pr-1.5 my-0.5">
                                     <div 
                                         onClick={() => handleMessageClick(msg)}
-                                        className="rounded-[18px] rounded-br-[3px] px-3.5 py-2.5 min-w-[130px] max-w-[88%] shadow-[0_1px_1px_rgba(0,0,0,0.12)] bg-[#E7FFDB] text-[#111111] relative cursor-pointer active:scale-98 transition-all hover:shadow-md group"
+                                        className="rounded-[14px] rounded-tr-[2px] px-3 py-2 min-w-[120px] max-w-[85%] shadow-[0_1px_0.5px_rgba(11,20,26,0.13)] bg-[#E7FFDB] text-[#111111] relative cursor-pointer active:scale-98 transition-all hover:shadow-md group"
                                         title="Tap to view transaction package"
                                     >
                                         <div className="text-[15px] font-sans leading-snug break-words whitespace-pre-wrap font-normal">
                                             <ColorCodedMessageText text={msg.rawText} companyName={msg.companyName} />
                                             
-                                            <span className="inline-flex items-center gap-1.5 text-[11px] text-[#667781] ml-3 float-right mt-1 font-sans font-normal select-none">
+                                            <span className="inline-flex items-center gap-1 text-[11px] text-[#667781] ml-3 float-right mt-1 font-sans font-normal select-none">
                                                 {formatTime(msg.createdAt)}
                                                 {isSuccess ? (
-                                                    <svg viewBox="0 0 16 11" className="w-[16px] h-[11px] fill-[#53BDEB] inline-block shrink-0">
+                                                    <svg viewBox="0 0 16 11" className="w-[16px] h-[11px] fill-[#53BDEB] inline-block shrink-0 ml-0.5">
                                                         <path d="M11.002 0.402l-6.302 6.303-2.302-2.302-1.398 1.398 3.7 3.7 7.7-7.7-1.398-1.398zm3.7 0l-7.7 7.7-1.3-1.3-1.4 1.4 2.7 2.7 9.1-9.1-1.4-1.4z" />
                                                     </svg>
                                                 ) : (
@@ -532,10 +532,10 @@ export default function TransactionsPage() {
                                             </span>
                                         </div>
 
-                                        {/* iOS WhatsApp Outgoing Bubble Tail */}
-                                        <span className="absolute -right-[6px] bottom-0 w-[12px] h-[19px] overflow-hidden pointer-events-none">
+                                        {/* WhatsApp Outgoing Top-Right Tail */}
+                                        <span className="absolute -right-[6px] top-0 w-[12px] h-[19px] overflow-hidden pointer-events-none">
                                             <svg width="12" height="19" viewBox="0 0 12 19" fill="#E7FFDB">
-                                                <path d="M0,0 C3,4 8,9 12,10 C8,12 3,16 0,19 L0,0 Z" />
+                                                <path d="M0,0 L12,0 C7,3 4,7 0,14 Z" />
                                             </svg>
                                         </span>
                                     </div>
@@ -545,6 +545,15 @@ export default function TransactionsPage() {
                         <div ref={messagesEndRef} />
                     </div>
                 )}
+
+                {/* WhatsApp Floating Scroll to Bottom Button */}
+                <button 
+                    onClick={scrollToBottom}
+                    className="absolute right-4 bottom-20 z-20 w-9 h-9 rounded-full bg-white/95 text-[#54656F] shadow-[0_1px_3px_rgba(0,0,0,0.2)] flex items-center justify-center hover:bg-white active:scale-95 transition-all border border-gray-100"
+                    title="Scroll to bottom"
+                >
+                    <ChevronDown className="w-5 h-5 stroke-[2.2]" />
+                </button>
             </div>
 
             {/* Warning Alert Banner */}
