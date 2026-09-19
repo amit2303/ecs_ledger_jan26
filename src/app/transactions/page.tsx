@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { ChevronLeft, Send, AlertCircle, Building2, Package as PackageIcon, X, ChevronDown, Search, ListFilter, Check } from 'lucide-react'
+import { ChevronLeft, Send, AlertCircle, Building2, Package as PackageIcon, X, ChevronDown, Search, ListFilter, Check, Trash2, Ban, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -150,7 +150,38 @@ export default function TransactionsPage() {
     const [selectedPackage, setSelectedPackage] = useState<PackageItem | null>(null)
     const [warningMsg, setWarningMsg] = useState<string | null>(null)
 
+    // Message Action Modal & Delete State
+    const [activeMsgMenu, setActiveMsgMenu] = useState<ChatMessage | null>(null)
+    const [deletingMsgId, setDeletingMsgId] = useState<number | null>(null)
+
+    const handleDeleteMessage = async (msg: ChatMessage) => {
+        if (msg.status === 'DELETED') return
+        setDeletingMsgId(msg.id)
+        try {
+            const res = await fetch(`/api/transactions/chat/${msg.id}`, {
+                method: 'DELETE'
+            })
+            if (res.ok) {
+                setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, status: 'DELETED', paymentId: null, chargeId: null } : m))
+            } else {
+                alert('Failed to delete message')
+            }
+        } catch (err) {
+            console.error('Delete message error:', err)
+            alert('Failed to delete message')
+        } finally {
+            setDeletingMsgId(null)
+            setActiveMsgMenu(null)
+        }
+    }
+
     const handleMessageClick = (msg: ChatMessage) => {
+        if (msg.status === 'DELETED') return
+        setActiveMsgMenu(msg)
+    }
+
+    const handleNavigateToLedger = (msg: ChatMessage) => {
+        setActiveMsgMenu(null)
         if (!msg.companyId) return
         if (msg.packageId) {
             if (msg.paymentId) {
@@ -688,13 +719,45 @@ export default function TransactionsPage() {
 
                             const msg = item as ChatMessage
                             const isSuccess = msg.status === 'SUCCESS'
+                            const isDeleted = msg.status === 'DELETED'
+
+                            if (isDeleted) {
+                                return (
+                                    <div key={msg.id} className="flex justify-end pr-1.5 my-0.5">
+                                        <div className="rounded-[14px] rounded-tr-[2px] px-3.5 py-2 min-w-[170px] max-w-[85%] shadow-[0_1px_0.5px_rgba(11,20,26,0.1)] bg-[#EFECE6]/90 text-gray-500 relative flex items-center gap-2 italic text-[14px] select-none">
+                                            <Ban className="w-4 h-4 text-gray-400 shrink-0 not-italic stroke-[2]" />
+                                            <span className="font-normal text-[#667781] flex-1">This message was deleted</span>
+                                            <span className="text-[11px] text-[#8696a0] not-italic ml-2 self-end mb-0.5 font-sans">
+                                                {formatTime(msg.createdAt)}
+                                            </span>
+                                            
+                                            {/* Outgoing Top-Right Tail */}
+                                            <span className="absolute -right-[6px] top-0 w-[12px] h-[19px] overflow-hidden pointer-events-none">
+                                                <svg width="12" height="19" viewBox="0 0 12 19" fill="#EFECE6">
+                                                    <path d="M0,0 L12,0 C7,3 4,7 0,14 Z" />
+                                                </svg>
+                                            </span>
+                                        </div>
+                                    </div>
+                                )
+                            }
 
                             return (
-                                <div key={msg.id} className="flex justify-end pr-1.5 my-0.5">
+                                <div key={msg.id} className="flex justify-end pr-1.5 my-0.5 items-center group">
+                                    {/* Quick Delete Trash Button on Hover */}
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); handleDeleteMessage(msg); }}
+                                        disabled={deletingMsgId === msg.id}
+                                        className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-100/80 text-gray-400 hover:text-red-600 rounded-full transition-all mr-1.5 active:scale-90 shrink-0"
+                                        title="Delete entry from chat and ledger"
+                                    >
+                                        <Trash2 className="w-4 h-4 stroke-[2]" />
+                                    </button>
+
                                     <div 
                                         onClick={() => handleMessageClick(msg)}
-                                        className="rounded-[14px] rounded-tr-[2px] px-3 py-2 min-w-[120px] max-w-[85%] shadow-[0_1px_0.5px_rgba(11,20,26,0.13)] bg-[#E7FFDB] text-[#111111] relative cursor-pointer active:scale-98 transition-all hover:shadow-md group"
-                                        title="Tap to view transaction package"
+                                        className="rounded-[14px] rounded-tr-[2px] px-3 py-2 min-w-[120px] max-w-[85%] shadow-[0_1px_0.5px_rgba(11,20,26,0.13)] bg-[#E7FFDB] text-[#111111] relative cursor-pointer active:scale-98 transition-all hover:shadow-md"
+                                        title="Tap for options (view package or delete)"
                                     >
                                         <div className="text-[15px] font-sans leading-snug break-words whitespace-pre-wrap font-normal">
                                             <ColorCodedMessageText text={msg.rawText} companyName={msg.companyName} />
@@ -849,6 +912,48 @@ export default function TransactionsPage() {
                     </svg>
                 </button>
             </div>
+
+            {/* iOS Action Sheet Modal for Tapped Message */}
+            {activeMsgMenu && (
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150">
+                    <div 
+                        className="fixed inset-0" 
+                        onClick={() => setActiveMsgMenu(null)} 
+                    />
+                    <div className="w-full sm:max-w-xs bg-white/95 backdrop-blur-2xl rounded-t-2xl sm:rounded-2xl shadow-2xl p-4 z-10 flex flex-col gap-2.5 animate-in slide-in-from-bottom-4 duration-200">
+                        <div className="text-center pb-2 border-b border-gray-100">
+                            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Message Options</p>
+                            <p className="text-[14px] font-bold text-gray-900 truncate mt-0.5">{activeMsgMenu.rawText}</p>
+                        </div>
+
+                        {activeMsgMenu.companyId && (
+                            <button
+                                onClick={() => handleNavigateToLedger(activeMsgMenu)}
+                                className="w-full py-2.5 px-4 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#007AFF] text-[14px] font-semibold flex items-center justify-center gap-2 transition-all active:scale-98"
+                            >
+                                <ExternalLink className="w-4 h-4" />
+                                View Package Ledger
+                            </button>
+                        )}
+
+                        <button
+                            onClick={() => handleDeleteMessage(activeMsgMenu)}
+                            disabled={deletingMsgId === activeMsgMenu.id}
+                            className="w-full py-2.5 px-4 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-[14px] font-semibold flex items-center justify-center gap-2 transition-all active:scale-98"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                            {deletingMsgId === activeMsgMenu.id ? 'Deleting...' : 'Delete Message'}
+                        </button>
+
+                        <button
+                            onClick={() => setActiveMsgMenu(null)}
+                            className="w-full py-2.5 px-4 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-[14px] font-medium transition-all active:scale-98"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

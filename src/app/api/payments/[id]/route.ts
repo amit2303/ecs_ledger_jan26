@@ -57,6 +57,12 @@ export async function DELETE(request: Request, props: { params: Promise<{ id: st
 
         await prisma.payment.delete({ where: { id } })
 
+        // Mark associated TransactionMessage as DELETED
+        await prisma.transactionMessage.updateMany({
+            where: { paymentId: id },
+            data: { status: 'DELETED', paymentId: null }
+        })
+
         // Propagate update to Package and Company
         await prisma.package.update({
             where: { id: payment.packageId },
