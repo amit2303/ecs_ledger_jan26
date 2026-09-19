@@ -448,21 +448,21 @@ export default function TransactionsPage() {
     return (
         <div className="flex flex-col h-full relative font-sans overflow-hidden select-none" style={{ backgroundColor: '#EFEAE2' }}>
             {/* iOS WhatsApp Header */}
-            <header className="shrink-0 z-20 px-3 py-2 flex items-center justify-between bg-[#F6F6F6]/90 backdrop-blur-md border-b border-gray-300/70 shadow-xs">
-                <div className="flex items-center gap-2 min-w-0">
-                    <Link href="/" className="flex items-center text-[#007AFF] font-medium text-[15px] -ml-1 active:opacity-60 transition-opacity">
-                        <ChevronLeft className="w-6 h-6 stroke-[2.5]" />
+            <header className="shrink-0 z-20 px-4 py-3.5 flex items-center justify-between bg-[#F6F6F6]/95 backdrop-blur-md border-b border-gray-300/80 shadow-xs min-h-[68px]">
+                <div className="flex items-center gap-3 min-w-0">
+                    <Link href="/" className="flex items-center text-[#007AFF] font-medium text-[16px] -ml-1 active:opacity-60 transition-opacity">
+                        <ChevronLeft className="w-7 h-7 stroke-[2.5]" />
                     </Link>
                     
                     {/* Group Icon & Details */}
-                    <div className="flex items-center gap-2.5 min-w-0 ml-1">
+                    <div className="flex items-center gap-3 min-w-0">
                         <img 
                             src="/logo.jpg" 
                             alt="Logo" 
-                            className="w-9 h-9 rounded-full object-cover shrink-0 border border-gray-200"
+                            className="w-[42px] h-[42px] rounded-full object-cover shrink-0 border border-gray-200 shadow-xs"
                         />
                         <div className="flex flex-col min-w-0">
-                            <h1 className="text-[16px] font-bold text-gray-900 truncate leading-tight">EXPERT HISAB KITAB</h1>
+                            <h1 className="text-[17px] font-bold text-gray-900 truncate leading-tight tracking-tight">EXPERT HISAB KITAB</h1>
                         </div>
                     </div>
                 </div>
