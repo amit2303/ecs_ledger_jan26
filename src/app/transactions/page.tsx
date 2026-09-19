@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { ChevronLeft, Send, AlertCircle, Building2, Package as PackageIcon, X, ChevronDown } from 'lucide-react'
+import { ChevronLeft, Send, AlertCircle, Building2, Package as PackageIcon, X, ChevronDown, Search } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -137,6 +137,11 @@ export default function TransactionsPage() {
     const [companies, setCompanies] = useState<CompanyItem[]>([])
     const [companyPackages, setCompanyPackages] = useState<PackageItem[]>([])
     
+    // Filter & Search State
+    const [searchQuery, setSearchQuery] = useState('')
+    const [isSearchOpen, setIsSearchOpen] = useState(false)
+    const [filterCompanyId, setFilterCompanyId] = useState<number | null>(null)
+
     // Form & Input State
     const [input, setInput] = useState('')
     const [selectedCompany, setSelectedCompany] = useState<CompanyItem | null>(null)
@@ -434,9 +439,24 @@ export default function TransactionsPage() {
         return d.toLocaleDateString('en-IN', { weekday: 'long' })
     }
 
+    // Filter messages based on search query and company filter
+    const filteredMessages = messages.filter(msg => {
+        if (filterCompanyId !== null && msg.companyId !== filterCompanyId) {
+            return false
+        }
+        if (searchQuery.trim()) {
+            const q = searchQuery.toLowerCase().trim()
+            const textMatch = msg.rawText.toLowerCase().includes(q)
+            const compMatch = msg.companyName?.toLowerCase().includes(q)
+            const amountMatch = msg.amount?.toString().includes(q)
+            if (!textMatch && !compMatch && !amountMatch) return false
+        }
+        return true
+    })
+
     const messagesWithDates: (ChatMessage | { _dateSeparator: string })[] = []
     let lastDate = ''
-    for (const msg of messages) {
+    for (const msg of filteredMessages) {
         const dateLabel = getDateLabel(msg.createdAt)
         if (dateLabel !== lastDate) {
             messagesWithDates.push({ _dateSeparator: dateLabel })
@@ -448,25 +468,122 @@ export default function TransactionsPage() {
     return (
         <div className="flex flex-col h-full relative font-sans overflow-hidden select-none" style={{ backgroundColor: '#EFEAE2' }}>
             {/* iOS WhatsApp Header */}
-            <header className="shrink-0 z-20 px-4 py-3.5 flex items-center justify-between bg-[#F6F6F6]/95 backdrop-blur-md border-b border-gray-300/80 shadow-xs min-h-[68px]">
-                <div className="flex items-center gap-3 min-w-0">
-                    <Link href="/" className="flex items-center text-[#007AFF] font-medium text-[16px] -ml-1 active:opacity-60 transition-opacity">
-                        <ChevronLeft className="w-7 h-7 stroke-[2.5]" />
-                    </Link>
-                    
-                    {/* Group Icon & Details */}
-                    <div className="flex items-center gap-3 min-w-0">
-                        <img 
-                            src="/logo.jpg" 
-                            alt="Logo" 
-                            className="w-[42px] h-[42px] rounded-full object-cover shrink-0 border border-gray-200 shadow-xs"
-                        />
-                        <div className="flex flex-col min-w-0">
-                            <h1 className="text-[17px] font-bold text-gray-900 truncate leading-tight tracking-tight">EXPERT HISAB KITAB</h1>
+            <header className="shrink-0 z-20 px-3.5 py-3.5 flex items-center justify-between bg-[#F6F6F6]/95 backdrop-blur-md border-b border-gray-300/80 shadow-xs min-h-[68px]">
+                {isSearchOpen ? (
+                    <div className="flex items-center gap-2 w-full animate-in fade-in duration-200">
+                        <button 
+                            onClick={() => { setIsSearchOpen(false); setSearchQuery('') }} 
+                            className="text-[#007AFF] p-1.5 active:opacity-60 rounded-full hover:bg-gray-200/50 shrink-0"
+                            title="Back"
+                        >
+                            <ChevronLeft className="w-6 h-6 stroke-[2.5]" />
+                        </button>
+                        <div className="relative flex-1">
+                            <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <input 
+                                type="text"
+                                placeholder="Search text, amount, company..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                autoFocus
+                                className="w-full bg-gray-200/80 focus:bg-white text-gray-900 text-[14px] pl-9 pr-8 py-1.5 rounded-full outline-none border border-transparent focus:border-[#007AFF] transition-all shadow-xs"
+                            />
+                            {searchQuery && (
+                                <button 
+                                    onClick={() => setSearchQuery('')} 
+                                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            )}
                         </div>
                     </div>
-                </div>
+                ) : (
+                    <>
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
+                            <Link href="/" className="flex items-center text-[#007AFF] font-medium text-[16px] -ml-1 active:opacity-60 transition-opacity shrink-0">
+                                <ChevronLeft className="w-7 h-7 stroke-[2.5]" />
+                            </Link>
+                            
+                            {/* Group Icon & Details */}
+                            <div className="flex items-center gap-2.5 min-w-0">
+                                <img 
+                                    src="/logo.jpg" 
+                                    alt="Logo" 
+                                    className="w-[42px] h-[42px] rounded-full object-cover shrink-0 border border-gray-200 shadow-xs"
+                                />
+                                <div className="flex flex-col min-w-0">
+                                    <h1 className="text-[16px] sm:text-[17px] font-bold text-gray-900 truncate leading-tight tracking-tight">EXPERT HISAB KITAB</h1>
+                                    {filterCompanyId !== null && (
+                                        <span className="text-[11px] font-medium text-blue-700 truncate flex items-center gap-1">
+                                            Filtered: {companies.find(c => c.id === filterCompanyId)?.name.replace(/^\d+\.?\s*/, '')}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Top Header Actions (Search Icon & Company Filter Dropdown) */}
+                        <div className="flex items-center gap-2 shrink-0">
+                            {/* Company Filter Select Dropdown */}
+                            <div className="relative flex items-center">
+                                <select
+                                    value={filterCompanyId ?? ''}
+                                    onChange={(e) => setFilterCompanyId(e.target.value ? Number(e.target.value) : null)}
+                                    className="appearance-none bg-gray-200/80 hover:bg-gray-200 text-gray-800 text-[12px] font-semibold pl-7 pr-6 py-1.5 rounded-full outline-none border border-gray-300/60 cursor-pointer transition-all max-w-[125px] sm:max-w-[150px] truncate shadow-xs"
+                                    title="Filter by Company"
+                                >
+                                    <option value="">All Companies</option>
+                                    {companies.map(comp => (
+                                        <option key={comp.id} value={comp.id}>
+                                            {comp.name.replace(/^\d+\.?\s*/, '')}
+                                        </option>
+                                    ))}
+                                </select>
+                                <Building2 className="w-3.5 h-3.5 text-blue-600 absolute left-2.5 pointer-events-none" />
+                                <ChevronDown className="w-3.5 h-3.5 text-gray-600 absolute right-2 pointer-events-none" />
+                            </div>
+
+                            {/* Search Icon Button */}
+                            <button 
+                                onClick={() => setIsSearchOpen(true)}
+                                className="p-2 text-[#007AFF] hover:bg-gray-200/60 rounded-full active:scale-95 transition-all relative"
+                                title="Search Chat"
+                            >
+                                <Search className="w-5 h-5 stroke-[2.2]" />
+                                {searchQuery && (
+                                    <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#007AFF]" />
+                                )}
+                            </button>
+                        </div>
+                    </>
+                )}
             </header>
+
+            {/* Active Filter Bar (when searching or company filtered) */}
+            {(searchQuery || filterCompanyId !== null) && (
+                <div className="bg-blue-50/95 backdrop-blur-md px-3.5 py-1.5 border-b border-blue-200/80 flex items-center justify-between z-20 text-[12px] shadow-xs">
+                    <div className="flex items-center gap-2 truncate">
+                        <span className="font-semibold uppercase tracking-wider text-[10px] bg-blue-100 px-2 py-0.5 rounded text-blue-800 shrink-0">
+                            FILTERED
+                        </span>
+                        <span className="text-blue-950 font-medium truncate">
+                            {filterCompanyId !== null && `Company: ${companies.find(c => c.id === filterCompanyId)?.name.replace(/^\d+\.?\s*/, '')}`}
+                            {filterCompanyId !== null && searchQuery && ' | '}
+                            {searchQuery && `Query: "${searchQuery}"`}
+                        </span>
+                        <span className="text-gray-500 font-normal shrink-0">
+                            ({filteredMessages.length} {filteredMessages.length === 1 ? 'msg' : 'msgs'})
+                        </span>
+                    </div>
+                    <button 
+                        onClick={() => { setSearchQuery(''); setFilterCompanyId(null); setIsSearchOpen(false) }}
+                        className="text-blue-700 hover:text-blue-900 font-semibold text-[11px] underline ml-2 shrink-0 uppercase tracking-wide"
+                    >
+                        Reset
+                    </button>
+                </div>
+            )}
 
             {/* Chat Body (WhatsApp Image Background) */}
             <div 
