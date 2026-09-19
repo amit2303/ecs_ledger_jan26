@@ -470,35 +470,38 @@ export default function TransactionsPage() {
     return (
         <div className="flex flex-col h-full relative font-sans overflow-hidden select-none" style={{ backgroundColor: '#EFEAE2' }}>
             {/* iOS WhatsApp Header */}
-            <header className="shrink-0 z-20 px-3.5 py-3.5 flex items-center justify-between bg-[#F6F6F6]/95 backdrop-blur-md border-b border-gray-300/80 shadow-xs min-h-[68px]">
+            <header className="shrink-0 z-20 px-3.5 py-3 flex items-center justify-between bg-[#F6F6F6]/95 backdrop-blur-md border-b border-gray-300/80 shadow-xs min-h-[68px]">
                 {isSearchOpen ? (
-                    <div className="flex items-center gap-2 w-full animate-in fade-in duration-200">
-                        <button 
-                            onClick={() => { setIsSearchOpen(false); setSearchQuery('') }} 
-                            className="text-[#007AFF] p-1.5 active:opacity-60 rounded-full hover:bg-gray-200/50 shrink-0"
-                            title="Back"
-                        >
-                            <ChevronLeft className="w-6 h-6 stroke-[2.5]" />
-                        </button>
+                    <div className="flex items-center gap-2.5 w-full animate-in fade-in duration-200">
+                        {/* Search Pill Input (Matching iOS WhatsApp Screenshot) */}
                         <div className="relative flex-1">
-                            <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <Search className="w-5 h-5 text-gray-800 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none stroke-[2]" />
                             <input 
                                 type="text"
-                                placeholder="Search text, amount, company..."
+                                placeholder="Search"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 autoFocus
-                                className="w-full bg-gray-200/80 focus:bg-white text-gray-900 text-[14px] pl-9 pr-8 py-1.5 rounded-full outline-none border border-transparent focus:border-[#007AFF] transition-all shadow-xs"
+                                className="w-full bg-[#F5F3EF] hover:bg-[#EFECE6] focus:bg-white text-gray-900 text-[16px] font-normal pl-11 pr-9 py-2.5 rounded-full outline-none border border-gray-300/50 focus:border-[#007AFF] transition-all shadow-xs"
                             />
                             {searchQuery && (
                                 <button 
                                     onClick={() => setSearchQuery('')} 
-                                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
                                 >
                                     <X className="w-4 h-4" />
                                 </button>
                             )}
                         </div>
+
+                        {/* Separate Circular Close Button (Matching iOS WhatsApp Screenshot) */}
+                        <button 
+                            onClick={() => { setIsSearchOpen(false); setSearchQuery('') }} 
+                            className="w-11 h-11 rounded-full bg-[#F5F3EF] hover:bg-gray-200 border border-gray-300/50 shadow-xs flex items-center justify-center shrink-0 active:scale-95 transition-all text-gray-900"
+                            title="Close Search"
+                        >
+                            <X className="w-5 h-5 stroke-[2]" />
+                        </button>
                     </div>
                 ) : (
                     <>
@@ -551,26 +554,26 @@ export default function TransactionsPage() {
                                             className="fixed inset-0 z-40" 
                                             onClick={() => { setIsFilterMenuOpen(false); setCompanySearchQuery(''); }} 
                                         />
-                                        <div className="absolute right-0 mt-2 w-64 bg-white/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-gray-200/80 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                                            <div className="px-3.5 pb-2 border-b border-gray-100 flex flex-col gap-2">
+                                        <div className="absolute right-0 mt-2 w-64 bg-white/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-gray-200/80 py-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                                            <div className="px-3.5 pb-2.5 border-b border-gray-100 flex flex-col gap-2">
                                                 <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
                                                     Filter by Company
                                                 </span>
-                                                {/* Search Company Input */}
+                                                {/* iOS Pill Search Company Input */}
                                                 <div className="relative flex items-center">
-                                                    <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 pointer-events-none" />
+                                                    <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none stroke-[2]" />
                                                     <input 
                                                         type="text"
-                                                        placeholder="Search company..."
+                                                        placeholder="Search"
                                                         value={companySearchQuery}
                                                         onChange={(e) => setCompanySearchQuery(e.target.value)}
                                                         autoFocus
-                                                        className="w-full bg-gray-100 focus:bg-white text-gray-900 text-[13px] pl-8 pr-7 py-1.5 rounded-xl outline-none border border-transparent focus:border-[#007AFF] transition-all"
+                                                        className="w-full bg-[#F5F3EF] focus:bg-white text-gray-900 text-[14px] font-normal pl-9 pr-7 py-1.5 rounded-full outline-none border border-gray-300/40 focus:border-[#007AFF] transition-all"
                                                     />
                                                     {companySearchQuery && (
                                                         <button 
                                                             onClick={() => setCompanySearchQuery('')} 
-                                                            className="absolute right-2 text-gray-400 hover:text-gray-600 p-0.5"
+                                                            className="absolute right-2.5 text-gray-400 hover:text-gray-600 p-0.5"
                                                         >
                                                             <X className="w-3.5 h-3.5" />
                                                         </button>
