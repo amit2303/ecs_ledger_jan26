@@ -647,7 +647,9 @@ export default function TransactionsPage() {
                             : 'bg-gray-300 text-gray-500 opacity-60 cursor-not-allowed'
                     }`}
                 >
-                    <Send className="w-5 h-5 ml-0.5" />
+                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current ml-0.5">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                    </svg>
                 </button>
             </div>
         </div>
