@@ -647,7 +647,7 @@ export default function TransactionsPage() {
                             : 'bg-gray-300 text-gray-500 opacity-60 cursor-not-allowed'
                     }`}
                 >
-                    <Send className="w-5 h-5" style={{ transform: 'rotate(-45deg)', marginLeft: '2px' }} />
+                    <Send className="w-5 h-5 ml-0.5" />
                 </button>
             </div>
         </div>
