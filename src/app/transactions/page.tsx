@@ -142,6 +142,7 @@ export default function TransactionsPage() {
     const [isSearchOpen, setIsSearchOpen] = useState(false)
     const [filterCompanyId, setFilterCompanyId] = useState<number | null>(null)
     const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false)
+    const [companySearchQuery, setCompanySearchQuery] = useState('')
 
     // Form & Input State
     const [input, setInput] = useState('')
@@ -548,38 +549,79 @@ export default function TransactionsPage() {
                                     <>
                                         <div 
                                             className="fixed inset-0 z-40" 
-                                            onClick={() => setIsFilterMenuOpen(false)} 
+                                            onClick={() => { setIsFilterMenuOpen(false); setCompanySearchQuery(''); }} 
                                         />
-                                        <div className="absolute right-0 mt-2 w-56 bg-white/95 backdrop-blur-2xl rounded-2xl shadow-xl border border-gray-200/80 py-1.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                                            <div className="px-3.5 py-1.5 border-b border-gray-100 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
-                                                Filter by Company
+                                        <div className="absolute right-0 mt-2 w-64 bg-white/95 backdrop-blur-2xl rounded-2xl shadow-2xl border border-gray-200/80 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                                            <div className="px-3.5 pb-2 border-b border-gray-100 flex flex-col gap-2">
+                                                <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+                                                    Filter by Company
+                                                </span>
+                                                {/* Search Company Input */}
+                                                <div className="relative flex items-center">
+                                                    <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 pointer-events-none" />
+                                                    <input 
+                                                        type="text"
+                                                        placeholder="Search company..."
+                                                        value={companySearchQuery}
+                                                        onChange={(e) => setCompanySearchQuery(e.target.value)}
+                                                        autoFocus
+                                                        className="w-full bg-gray-100 focus:bg-white text-gray-900 text-[13px] pl-8 pr-7 py-1.5 rounded-xl outline-none border border-transparent focus:border-[#007AFF] transition-all"
+                                                    />
+                                                    {companySearchQuery && (
+                                                        <button 
+                                                            onClick={() => setCompanySearchQuery('')} 
+                                                            className="absolute right-2 text-gray-400 hover:text-gray-600 p-0.5"
+                                                        >
+                                                            <X className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </div>
+
                                             <button
-                                                onClick={() => { setFilterCompanyId(null); setIsFilterMenuOpen(false) }}
-                                                className={`w-full text-left px-4 py-2.5 text-[14px] flex items-center justify-between transition-colors ${
+                                                onClick={() => { setFilterCompanyId(null); setIsFilterMenuOpen(false); setCompanySearchQuery(''); }}
+                                                className={`w-full text-left px-4 py-2.5 text-[14px] flex items-center justify-between transition-colors border-b border-gray-50 ${
                                                     filterCompanyId === null ? 'font-semibold text-[#007AFF] bg-blue-50/60' : 'text-gray-800 hover:bg-gray-50'
                                                 }`}
                                             >
                                                 <span>All Companies</span>
                                                 {filterCompanyId === null && <Check className="w-4 h-4 text-[#007AFF]" />}
                                             </button>
+
                                             <div className="max-h-60 overflow-y-auto ios-scroll divide-y divide-gray-50">
-                                                {companies.map(comp => {
-                                                    const isSelected = filterCompanyId === comp.id
-                                                    const cleanName = comp.name.replace(/^\d+\.?\s*/, '')
-                                                    return (
-                                                        <button
-                                                            key={comp.id}
-                                                            onClick={() => { setFilterCompanyId(comp.id); setIsFilterMenuOpen(false) }}
-                                                            className={`w-full text-left px-4 py-2.5 text-[14px] flex items-center justify-between transition-colors ${
-                                                                isSelected ? 'font-semibold text-[#007AFF] bg-blue-50/60' : 'text-gray-800 hover:bg-gray-50'
-                                                            }`}
-                                                        >
-                                                            <span className="truncate">{cleanName}</span>
-                                                            {isSelected && <Check className="w-4 h-4 text-[#007AFF] shrink-0" />}
-                                                        </button>
-                                                    )
-                                                })}
+                                                {companies
+                                                    .filter(comp => {
+                                                        if (!companySearchQuery.trim()) return true
+                                                        const q = companySearchQuery.toLowerCase().trim()
+                                                        const cleanName = comp.name.replace(/^\d+\.?\s*/, '').toLowerCase()
+                                                        return cleanName.includes(q) || comp.name.toLowerCase().includes(q)
+                                                    })
+                                                    .map(comp => {
+                                                        const isSelected = filterCompanyId === comp.id
+                                                        const cleanName = comp.name.replace(/^\d+\.?\s*/, '')
+                                                        return (
+                                                            <button
+                                                                key={comp.id}
+                                                                onClick={() => { setFilterCompanyId(comp.id); setIsFilterMenuOpen(false); setCompanySearchQuery(''); }}
+                                                                className={`w-full text-left px-4 py-2.5 text-[14px] flex items-center justify-between transition-colors ${
+                                                                    isSelected ? 'font-semibold text-[#007AFF] bg-blue-50/60' : 'text-gray-800 hover:bg-gray-50'
+                                                                }`}
+                                                            >
+                                                                <span className="truncate">{cleanName}</span>
+                                                                {isSelected && <Check className="w-4 h-4 text-[#007AFF] shrink-0" />}
+                                                            </button>
+                                                        )
+                                                    })}
+                                                {companies.filter(comp => {
+                                                    if (!companySearchQuery.trim()) return true
+                                                    const q = companySearchQuery.toLowerCase().trim()
+                                                    const cleanName = comp.name.replace(/^\d+\.?\s*/, '').toLowerCase()
+                                                    return cleanName.includes(q) || comp.name.toLowerCase().includes(q)
+                                                }).length === 0 && (
+                                                    <div className="px-4 py-3 text-[13px] text-gray-400 text-center font-normal">
+                                                        No companies matching &quot;{companySearchQuery}&quot;
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </>
