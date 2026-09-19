@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { ChevronLeft, Send, AlertCircle, Building2, Package as PackageIcon, X, ChevronDown, Search } from 'lucide-react'
+import { ChevronLeft, Send, AlertCircle, Building2, Package as PackageIcon, X, ChevronDown, Search, ListFilter, Check } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -141,6 +141,7 @@ export default function TransactionsPage() {
     const [searchQuery, setSearchQuery] = useState('')
     const [isSearchOpen, setIsSearchOpen] = useState(false)
     const [filterCompanyId, setFilterCompanyId] = useState<number | null>(null)
+    const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false)
 
     // Form & Input State
     const [input, setInput] = useState('')
@@ -523,36 +524,77 @@ export default function TransactionsPage() {
                             </div>
                         </div>
 
-                        {/* Top Header Actions (Search Icon & Company Filter Dropdown) */}
-                        <div className="flex items-center gap-2 shrink-0">
-                            {/* Company Filter Select Dropdown */}
-                            <div className="relative flex items-center">
-                                <select
-                                    value={filterCompanyId ?? ''}
-                                    onChange={(e) => setFilterCompanyId(e.target.value ? Number(e.target.value) : null)}
-                                    className="appearance-none bg-gray-200/80 hover:bg-gray-200 text-gray-800 text-[12px] font-semibold pl-7 pr-6 py-1.5 rounded-full outline-none border border-gray-300/60 cursor-pointer transition-all max-w-[125px] sm:max-w-[150px] truncate shadow-xs"
+                        {/* Top Header Actions (iPhone Default Filter Icon & Search Icon) */}
+                        <div className="flex items-center gap-1.5 shrink-0">
+                            {/* iPhone Default Filter Icon Button & Context Dropdown */}
+                            <div className="relative">
+                                <button
+                                    onClick={() => setIsFilterMenuOpen(!isFilterMenuOpen)}
+                                    className={`p-2 rounded-full transition-all active:scale-95 flex items-center justify-center relative ${
+                                        filterCompanyId !== null 
+                                            ? 'text-[#007AFF] bg-blue-100/80 font-bold' 
+                                            : 'text-[#007AFF] hover:bg-gray-200/60'
+                                    }`}
                                     title="Filter by Company"
                                 >
-                                    <option value="">All Companies</option>
-                                    {companies.map(comp => (
-                                        <option key={comp.id} value={comp.id}>
-                                            {comp.name.replace(/^\d+\.?\s*/, '')}
-                                        </option>
-                                    ))}
-                                </select>
-                                <Building2 className="w-3.5 h-3.5 text-blue-600 absolute left-2.5 pointer-events-none" />
-                                <ChevronDown className="w-3.5 h-3.5 text-gray-600 absolute right-2 pointer-events-none" />
+                                    <ListFilter className="w-5 h-5 stroke-[2.2]" />
+                                    {filterCompanyId !== null && (
+                                        <span className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-[#007AFF] border-2 border-[#F6F6F6]" />
+                                    )}
+                                </button>
+
+                                {/* iOS Action Sheet / Filter Dropdown Menu */}
+                                {isFilterMenuOpen && (
+                                    <>
+                                        <div 
+                                            className="fixed inset-0 z-40" 
+                                            onClick={() => setIsFilterMenuOpen(false)} 
+                                        />
+                                        <div className="absolute right-0 mt-2 w-56 bg-white/95 backdrop-blur-2xl rounded-2xl shadow-xl border border-gray-200/80 py-1.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                                            <div className="px-3.5 py-1.5 border-b border-gray-100 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+                                                Filter by Company
+                                            </div>
+                                            <button
+                                                onClick={() => { setFilterCompanyId(null); setIsFilterMenuOpen(false) }}
+                                                className={`w-full text-left px-4 py-2.5 text-[14px] flex items-center justify-between transition-colors ${
+                                                    filterCompanyId === null ? 'font-semibold text-[#007AFF] bg-blue-50/60' : 'text-gray-800 hover:bg-gray-50'
+                                                }`}
+                                            >
+                                                <span>All Companies</span>
+                                                {filterCompanyId === null && <Check className="w-4 h-4 text-[#007AFF]" />}
+                                            </button>
+                                            <div className="max-h-60 overflow-y-auto ios-scroll divide-y divide-gray-50">
+                                                {companies.map(comp => {
+                                                    const isSelected = filterCompanyId === comp.id
+                                                    const cleanName = comp.name.replace(/^\d+\.?\s*/, '')
+                                                    return (
+                                                        <button
+                                                            key={comp.id}
+                                                            onClick={() => { setFilterCompanyId(comp.id); setIsFilterMenuOpen(false) }}
+                                                            className={`w-full text-left px-4 py-2.5 text-[14px] flex items-center justify-between transition-colors ${
+                                                                isSelected ? 'font-semibold text-[#007AFF] bg-blue-50/60' : 'text-gray-800 hover:bg-gray-50'
+                                                            }`}
+                                                        >
+                                                            <span className="truncate">{cleanName}</span>
+                                                            {isSelected && <Check className="w-4 h-4 text-[#007AFF] shrink-0" />}
+                                                        </button>
+                                                    )
+                                                })}
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
                             </div>
 
                             {/* Search Icon Button */}
                             <button 
-                                onClick={() => setIsSearchOpen(true)}
+                                onClick={() => { setIsSearchOpen(true); setIsFilterMenuOpen(false) }}
                                 className="p-2 text-[#007AFF] hover:bg-gray-200/60 rounded-full active:scale-95 transition-all relative"
                                 title="Search Chat"
                             >
                                 <Search className="w-5 h-5 stroke-[2.2]" />
                                 {searchQuery && (
-                                    <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#007AFF]" />
+                                    <span className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-[#007AFF] border-2 border-[#F6F6F6]" />
                                 )}
                             </button>
                         </div>
