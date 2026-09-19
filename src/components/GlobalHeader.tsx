@@ -6,8 +6,8 @@ import { HeaderActions } from '@/components/HeaderActions'
 export function GlobalHeader() {
     const pathname = usePathname()
 
-    // Hide header on company detail pages and login
-    if (pathname?.startsWith('/companies/') || pathname === '/login') {
+    // Hide header on company detail pages, transactions chat, and login
+    if (pathname?.startsWith('/companies/') || pathname === '/transactions' || pathname === '/login') {
         return null
     }
 
