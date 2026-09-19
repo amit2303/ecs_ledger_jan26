@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { ChevronLeft, Send, CheckCheck, AlertCircle, Building2, Package as PackageIcon, X } from 'lucide-react'
+import { ChevronLeft, Send, AlertCircle, Building2, Package as PackageIcon, X } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -510,25 +510,34 @@ export default function TransactionsPage() {
                             const msg = item as ChatMessage
                             const isSuccess = msg.status === 'SUCCESS'
 
-                            return (
-                                <div key={msg.id} className="flex justify-end">
+                             return (
+                                <div key={msg.id} className="flex justify-end pr-2">
                                     <div 
                                         onClick={() => handleMessageClick(msg)}
-                                        className="rounded-[18px] rounded-tr-[3px] px-3.5 py-2.5 min-w-[130px] max-w-[88%] shadow-[0_1px_2px_rgba(0,0,0,0.06)] bg-[#DCF8C6] text-[#111111] relative cursor-pointer active:scale-98 transition-all hover:shadow-md group"
+                                        className="rounded-[18px] rounded-br-[3px] px-3.5 py-2.5 min-w-[130px] max-w-[88%] shadow-[0_1px_1px_rgba(0,0,0,0.12)] bg-[#E7FFDB] text-[#111111] relative cursor-pointer active:scale-98 transition-all hover:shadow-md group"
                                         title="Tap to view transaction package"
                                     >
                                         <div className="text-[15px] font-sans leading-snug break-words whitespace-pre-wrap font-normal">
                                             <ColorCodedMessageText text={msg.rawText} companyName={msg.companyName} />
                                             
-                                            <span className="inline-flex items-center gap-1 text-[11px] text-[#667781] ml-3 float-right mt-1 font-sans font-normal">
+                                            <span className="inline-flex items-center gap-1.5 text-[11px] text-[#667781] ml-3 float-right mt-1 font-sans font-normal select-none">
                                                 {formatTime(msg.createdAt)}
                                                 {isSuccess ? (
-                                                    <CheckCheck className="w-4 h-4 text-[#34B7F1] stroke-[2.5]" />
+                                                    <svg viewBox="0 0 16 11" className="w-[16px] h-[11px] fill-[#53BDEB] inline-block shrink-0">
+                                                        <path d="M11.002 0.402l-6.302 6.303-2.302-2.302-1.398 1.398 3.7 3.7 7.7-7.7-1.398-1.398zm3.7 0l-7.7 7.7-1.3-1.3-1.4 1.4 2.7 2.7 9.1-9.1-1.4-1.4z" />
+                                                    </svg>
                                                 ) : (
                                                     <span className="text-red-500 font-bold">!</span>
                                                 )}
                                             </span>
                                         </div>
+
+                                        {/* iOS WhatsApp Outgoing Bubble Tail */}
+                                        <span className="absolute -right-[6px] bottom-0 w-[12px] h-[19px] overflow-hidden pointer-events-none">
+                                            <svg width="12" height="19" viewBox="0 0 12 19" fill="#E7FFDB">
+                                                <path d="M0,0 C3,4 8,9 12,10 C8,12 3,16 0,19 L0,0 Z" />
+                                            </svg>
+                                        </span>
                                     </div>
                                 </div>
                             )
