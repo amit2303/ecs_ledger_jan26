@@ -32,9 +32,9 @@ interface PackageItem {
 }
 
 /**
- * Color Coded Message Text Component (Native WhatsApp Style - No Heavy Bold)
- * + AMOUNT    -> Standard Green (#00875A)
- * - AMOUNT    -> Standard Red (#D9383A)
+ * Color Coded Message Text Component (Native WhatsApp Style)
+ * + AMOUNT    -> Standard Green (#00875A) e.g. "+ ₹20,000/-"
+ * - AMOUNT    -> Standard Red (#D9383A)   e.g. "- ₹20,000/-"
  * Company     -> Standard Blue (#007AFF)
  * Description -> Standard Black (#111827)
  */
@@ -59,6 +59,8 @@ function ColorCodedMessageText({ text, companyName }: { text: string; companyNam
     }
 
     const amountStr = amountMatch[1]
+    const amountNum = parseFloat(amountStr)
+    const formattedAmount = !isNaN(amountNum) ? amountNum.toLocaleString('en-IN') : amountStr
     const restAfterAmount = afterSign.substring(amountMatch[0].length)
 
     // Standard WhatsApp/iOS colors with normal font weight
@@ -101,9 +103,9 @@ function ColorCodedMessageText({ text, companyName }: { text: string; companyNam
 
     return (
         <span className="font-sans text-[15px] leading-relaxed tracking-normal font-normal">
-            {/* + AMOUNT or - AMOUNT */}
+            {/* + ₹20,000/- or - ₹20,000/- */}
             <span className={amountColorClass}>
-                {sign}{amountStr}
+                {sign} ₹{formattedAmount}/-
             </span>
 
             {/* GUARANTEED SPACE + COMPANY NAME */}
