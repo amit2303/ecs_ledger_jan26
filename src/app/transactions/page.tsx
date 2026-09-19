@@ -647,31 +647,6 @@ export default function TransactionsPage() {
                 )}
             </header>
 
-            {/* Active Filter Bar (when searching or company filtered) */}
-            {(searchQuery || filterCompanyId !== null) && (
-                <div className="bg-blue-50/95 backdrop-blur-md px-3.5 py-1.5 border-b border-blue-200/80 flex items-center justify-between z-20 text-[12px] shadow-xs">
-                    <div className="flex items-center gap-2 truncate">
-                        <span className="font-semibold uppercase tracking-wider text-[10px] bg-blue-100 px-2 py-0.5 rounded text-blue-800 shrink-0">
-                            FILTERED
-                        </span>
-                        <span className="text-blue-950 font-medium truncate">
-                            {filterCompanyId !== null && `Company: ${companies.find(c => c.id === filterCompanyId)?.name.replace(/^\d+\.?\s*/, '')}`}
-                            {filterCompanyId !== null && searchQuery && ' | '}
-                            {searchQuery && `Query: "${searchQuery}"`}
-                        </span>
-                        <span className="text-gray-500 font-normal shrink-0">
-                            ({filteredMessages.length} {filteredMessages.length === 1 ? 'msg' : 'msgs'})
-                        </span>
-                    </div>
-                    <button 
-                        onClick={() => { setSearchQuery(''); setFilterCompanyId(null); setIsSearchOpen(false) }}
-                        className="text-blue-700 hover:text-blue-900 font-semibold text-[11px] underline ml-2 shrink-0 uppercase tracking-wide"
-                    >
-                        Reset
-                    </button>
-                </div>
-            )}
-
             {/* Chat Body (WhatsApp Image Background) */}
             <div 
                 className="flex-1 overflow-y-auto ios-scroll px-3.5 py-3.5 bg-cover bg-center bg-no-repeat"
