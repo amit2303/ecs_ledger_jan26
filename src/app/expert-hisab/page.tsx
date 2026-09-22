@@ -91,7 +91,7 @@ export default function ExpertDashboardPage() {
         historicalSummaries.forEach(h => set.add(h.month))
         // Active chat message months (only count chats from Sept 2026 onwards)
         messages.forEach(m => { 
-            if (m.status !== 'DELETED') {
+            if (m.status === 'SUCCESS') {
                 const k = getMonthKey(new Date(m.createdAt))
                 if (k >= '2026-09') {
                     set.add(k)
@@ -121,7 +121,7 @@ export default function ExpertDashboardPage() {
 
         // Live chat messages (only count from Sept 2026 onwards)
         messages.forEach(m => {
-            if (m.status === 'DELETED') return
+            if (m.status !== 'SUCCESS') return
             const k = getMonthKey(new Date(m.createdAt))
             if (k < '2026-09') return // Ignore old chats, handled by HistoricalMonthSummary
 
@@ -184,7 +184,7 @@ export default function ExpertDashboardPage() {
     const monthMessages = useMemo(() => {
         if (selectedMonth < '2026-09') return [] // No chat breakdown for historical months
         return messages.filter(m => 
-            m.status !== 'DELETED' && 
+            m.status === 'SUCCESS' && 
             getMonthKey(new Date(m.createdAt)) === selectedMonth
         ).reverse()
     }, [messages, selectedMonth])
