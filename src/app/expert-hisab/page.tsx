@@ -89,8 +89,15 @@ export default function ExpertDashboardPage() {
         const set = new Set<string>()
         // Historical months
         historicalSummaries.forEach(h => set.add(h.month))
-        // Active chat message months
-        messages.forEach(m => { if (m.status !== 'DELETED') set.add(getMonthKey(new Date(m.createdAt))) })
+        // Active chat message months (only count chats from Sept 2026 onwards)
+        messages.forEach(m => { 
+            if (m.status !== 'DELETED') {
+                const k = getMonthKey(new Date(m.createdAt))
+                if (k >= '2026-09') {
+                    set.add(k)
+                }
+            } 
+        })
         // Ensure current month is always present
         const cur = getMonthKey(new Date())
         set.add(cur)
@@ -112,10 +119,12 @@ export default function ExpertDashboardPage() {
             })
         })
 
-        // Live chat messages
+        // Live chat messages (only count from Sept 2026 onwards)
         messages.forEach(m => {
             if (m.status === 'DELETED') return
             const k = getMonthKey(new Date(m.createdAt))
+            if (k < '2026-09') return // Ignore old chats, handled by HistoricalMonthSummary
+
             const existing = map.get(k) || { month: k, income: 0, expense: 0, net: 0, count: 0 }
             if (m.type === 'PAYMENT') existing.income += m.amount
             else if (m.type === 'CHARGE') existing.expense += m.amount
@@ -173,10 +182,11 @@ export default function ExpertDashboardPage() {
     }, [historicalSummaries, selectedMonth])
 
     const monthMessages = useMemo(() => {
+        if (selectedMonth < '2026-09') return [] // No chat breakdown for historical months
         return messages.filter(m => 
-            m.status !== 'DELETED' &&
+            m.status !== 'DELETED' && 
             getMonthKey(new Date(m.createdAt)) === selectedMonth
-        )
+        ).reverse()
     }, [messages, selectedMonth])
 
     const totals = useMemo(() => {
