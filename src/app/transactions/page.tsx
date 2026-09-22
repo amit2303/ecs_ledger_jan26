@@ -198,24 +198,7 @@ const TransactionMessageItem = memo(({
     const isDeleted = msg.status === 'DELETED'
 
     if (isDeleted) {
-        return (
-            <div className="flex justify-end pr-1.5 my-0.5">
-                <div className="rounded-[14px] rounded-tr-[2px] px-3.5 py-2 min-w-[170px] max-w-[85%] shadow-md bg-[#EFECE6]/90 text-gray-500 relative flex items-center gap-2 italic text-[14px] select-none">
-                    <Ban className="w-4 h-4 text-gray-400 shrink-0 not-italic stroke-[2]" />
-                    <span className="font-normal text-[#667781] flex-1">This message was deleted</span>
-                    <span className="text-[11px] text-[#8696a0] not-italic ml-2 self-end mb-0.5 font-sans">
-                        {formatTime(msg.createdAt)}
-                    </span>
-                    
-                    {/* Outgoing Top-Right Tail */}
-                    <span className="absolute -right-[6px] top-0 w-[12px] h-[19px] overflow-hidden pointer-events-none">
-                        <svg width="12" height="19" viewBox="0 0 12 19" fill="#EFECE6">
-                            <path d="M0,0 L12,0 C7,3 4,7 0,14 Z" />
-                        </svg>
-                    </span>
-                </div>
-            </div>
-        )
+        return null
     }
 
     return (
