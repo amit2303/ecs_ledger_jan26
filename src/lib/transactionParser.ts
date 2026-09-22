@@ -8,12 +8,29 @@
  * Format: [+/-] <amount> <company name> [description]
  */
 
+export const PERSON_ALIASES: { pattern: RegExp; canonical: string }[] = [
+    { pattern: /@\s*(amit\s*mishra|amit)/i, canonical: 'Amit Mishra' },
+    { pattern: /@\s*(sumit\s*mishra|sumit)/i, canonical: 'Sumit Mishra' },
+    { pattern: /@\s*(shyam\s*sunder\s*mishra|shyam\s*sunder|ssm|papa|mamaji)/i, canonical: 'Shyam Sunder Mishra' },
+    { pattern: /@\s*(pankaj\s*sharma|pankaj\s*bhaiya|pankaj|bhaiya)/i, canonical: 'Pankaj Sharma' },
+]
+
+export function extractPerson(text: string): string | null {
+    for (const item of PERSON_ALIASES) {
+        if (item.pattern.test(text)) {
+            return item.canonical
+        }
+    }
+    return null
+}
+
 export interface ParsedTransaction {
     type: 'PAYMENT' | 'CHARGE'
     amount: number
     companyQuery: string
     description: string
     targetPackageQuery?: string
+    person?: string | null
     raw: string
 }
 
@@ -26,6 +43,32 @@ export type ParseResult = ParsedTransaction | ParseError
 
 export function isParseError(result: ParseResult): result is ParseError {
     return 'error' in result
+}
+
+export function stripPersonMention(text: string | null | undefined): string {
+    if (!text) return ''
+    return text
+        .replace(/@\s*(amit\s*mishra|amit|sumit\s*mishra|sumit|shyam\s*sunder\s*mishra|shyam\s*sunder|ssm|papa|mamaji|pankaj\s*sharma|pankaj\s*bhaiya|pankaj|bhaiya)\b/gi, '')
+        .replace(/@\s*[A-Za-z0-9_]+/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+}
+
+export function extractMiscDescription(text: string | null | undefined): string {
+    if (!text) return ''
+    const raw = text.trim()
+    if (!raw || (raw[0] !== '+' && raw[0] !== '-')) return ''
+    
+    // Remove sign and find amount
+    const afterSign = raw.substring(1).trim()
+    const amountMatch = afterSign.match(/^(\d+(?:\.\d+)?)/)
+    if (!amountMatch) return ''
+    
+    const rest = afterSign.substring(amountMatch[0].length).trim()
+    const withoutPerson = stripPersonMention(rest)
+    // Strip explicit ECS MISC / ECS MSC / MISC keywords if typed
+    const clean = withoutPerson.replace(/\b(ECS\s*MISC|ECS\s*MSC|MISC)\b/gi, '').trim()
+    return clean
 }
 
 export function parseTransactionMessage(text: string): ParseResult {
@@ -48,12 +91,16 @@ export function parseTransactionMessage(text: string): ParseResult {
         return { error: 'Missing amount after sign', raw }
     }
 
-    // Check if there is a @ package specification at the end
+    const detectedPerson = extractPerson(raw)
+
+    // Check if there is a @ package specification at the end (only if NOT a person mention)
     let targetPackageQuery: string | undefined = undefined
-    const atIndex = rest.indexOf('@')
-    if (atIndex !== -1) {
-        targetPackageQuery = rest.substring(atIndex + 1).trim()
-        rest = rest.substring(0, atIndex).trim()
+    if (!detectedPerson) {
+        const atIndex = rest.indexOf('@')
+        if (atIndex !== -1) {
+            targetPackageQuery = rest.substring(atIndex + 1).trim()
+            rest = rest.substring(0, atIndex).trim()
+        }
     }
 
     // Extract the amount (first token that looks like a number)
@@ -69,6 +116,20 @@ export function parseTransactionMessage(text: string): ParseResult {
 
     // Everything after the amount
     const afterAmount = rest.substring(amountMatch[0].length).trim()
+
+    // For CHARGE / expense: no company required
+    if (type === 'CHARGE') {
+        const description = stripPersonMention(afterAmount)
+        return {
+            type,
+            amount,
+            companyQuery: '',
+            description,
+            person: detectedPerson,
+            raw
+        }
+    }
+
     if (!afterAmount) {
         return { error: 'Missing company name after amount', raw }
     }
@@ -77,7 +138,9 @@ export function parseTransactionMessage(text: string): ParseResult {
     
     // First token = company query (or multi-word if handles)
     const companyQuery = tokens[0]
-    const description = tokens.slice(1).join(' ')
+    // Entry description should only have the actual description, not @ or person
+    const rawDescription = tokens.slice(1).join(' ')
+    const description = stripPersonMention(rawDescription)
 
     return {
         type,
@@ -85,6 +148,7 @@ export function parseTransactionMessage(text: string): ParseResult {
         companyQuery,
         description,
         targetPackageQuery,
+        person: detectedPerson,
         raw
     }
 }

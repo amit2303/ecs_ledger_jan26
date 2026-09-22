@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { parseTransactionMessage, isParseError, findBestCompanyMatch } from '@/lib/transactionParser'
+import { parseTransactionMessage, isParseError, findBestCompanyMatch, stripPersonMention, extractMiscDescription } from '@/lib/transactionParser'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,6 +38,18 @@ export async function POST(request: Request) {
 
         // 1. Parse the message
         const parsed = parseTransactionMessage(text)
+        const person = body.person || (!isParseError(parsed) ? parsed.person : null) || null
+        const targetDate = body.customDate 
+            ? (body.customDate.includes('T') ? new Date(body.customDate) : new Date(`${body.customDate}T12:00:00Z`)) 
+            : new Date()
+
+        const isExplicitMisc = body.isMisc || body.companyId === -1 || body.companyName === 'ECS MISC' || text.toUpperCase().includes('ECS MISC') || text.toUpperCase().includes('ECS MSC')
+        if (isExplicitMisc) {
+            const cleanDesc = extractMiscDescription(text)
+            if (!cleanDesc) {
+                return NextResponse.json({ error: 'Description is mandatory for ECS MISC entries' }, { status: 400 })
+            }
+        }
 
         if (isParseError(parsed)) {
             // Save as failed message
@@ -54,7 +66,113 @@ export async function POST(request: Request) {
             return NextResponse.json(msg)
         }
 
-        // 2. Find the company
+        // 2. Check if message is for ECS MISC head (General Income / Hisab Kitab)
+        const isMiscPayment = parsed.type === 'PAYMENT' && (
+            body.isMisc || 
+            body.companyId === -1 || 
+            body.companyName === 'ECS MISC' ||
+            parsed.companyQuery.toUpperCase().includes('MISC') || 
+            parsed.companyQuery.toUpperCase().includes('MSC') ||
+            parsed.companyQuery.toUpperCase() === 'ECS'
+        )
+
+        if (isMiscPayment) {
+            const cleanDesc = extractMiscDescription(text)
+            if (!cleanDesc) {
+                return NextResponse.json({ error: 'Description is mandatory for ECS MISC entries' }, { status: 400 })
+            }
+            const msg = await prisma.transactionMessage.create({
+                data: {
+                    rawText: text,
+                    type: 'PAYMENT',
+                    amount: parsed.amount,
+                    companyName: 'ECS MISC',
+                    companyId: null,
+                    packageId: null,
+                    description: cleanDesc,
+                    status: 'SUCCESS',
+                    paymentId: null,
+                    chargeId: null,
+                    person: person || null,
+                    isEdited: !!body.isEdited,
+                    createdAt: targetDate
+                }
+            })
+            return NextResponse.json(msg)
+        }
+
+        // 3. If it's an expense (CHARGE), record in Hisab Kitab (either under ECS MISC head or Employee/General)
+        if (parsed.type === 'CHARGE' && (!body.companyId || body.isExpense)) {
+            const isMiscExpense = body.isMisc || body.companyName === 'ECS MISC' || text.toUpperCase().includes('ECS MISC') || text.toUpperCase().includes('ECS MSC')
+            
+            let cleanDesc = ''
+            if (isMiscExpense) {
+                cleanDesc = extractMiscDescription(text)
+                if (!cleanDesc) {
+                    return NextResponse.json({ error: 'Description is mandatory for ECS MISC entries' }, { status: 400 })
+                }
+            } else {
+                cleanDesc = stripPersonMention(parsed.description || '')
+            }
+            
+            // Check if an employee is specified (only if NOT an explicit ECS MISC head entry)
+            let matchedEmployeeId: number | null = null
+            if (!isMiscExpense) {
+                if (body.employeeId && typeof body.employeeId === 'number') {
+                    const emp = await prisma.employee.findUnique({ where: { id: body.employeeId } })
+                    if (emp) matchedEmployeeId = emp.id
+                }
+
+                if (!matchedEmployeeId && cleanDesc) {
+                    // Check if any employee name is mentioned at start or inside cleanDesc
+                    const allEmployees = await prisma.employee.findMany()
+                    const descUpper = cleanDesc.toUpperCase()
+                    for (const emp of allEmployees) {
+                        const empNameUpper = emp.name.toUpperCase().trim()
+                        if (descUpper.startsWith(empNameUpper) || descUpper.includes(empNameUpper)) {
+                            matchedEmployeeId = emp.id
+                            break
+                        }
+                    }
+                }
+            }
+
+            let salaryPaymentId: number | null = null
+            if (matchedEmployeeId) {
+                const salaryPayment = await prisma.salaryPayment.create({
+                    data: {
+                        employeeId: matchedEmployeeId,
+                        amount: parsed.amount,
+                        description: cleanDesc || 'Salary Payment',
+                        date: targetDate
+                    }
+                })
+                salaryPaymentId = salaryPayment.id
+            }
+
+            const msg = await prisma.transactionMessage.create({
+                data: {
+                    rawText: text,
+                    type: 'CHARGE',
+                    amount: parsed.amount,
+                    companyName: isMiscExpense ? 'ECS MISC' : '',
+                    companyId: null,
+                    packageId: null,
+                    description: cleanDesc || null,
+                    status: 'SUCCESS',
+                    paymentId: null,
+                    chargeId: null,
+                    salaryPaymentId,
+                    employeeId: matchedEmployeeId,
+                    person: person || null,
+                    isEdited: !!body.isEdited,
+                    createdAt: targetDate
+                }
+            })
+            return NextResponse.json(msg)
+        }
+
+        // 3. Find the company (for Payments / Company Charges)
         let matchedCompany: { id: number; name: string } | null = null
         
         if (body.companyId && typeof body.companyId === 'number') {
@@ -164,6 +282,10 @@ export async function POST(request: Request) {
         }
 
         // 4. Create the payment or charge
+        // Only the description has to show in the added entry, not @ and person
+        const cleanEntryDescription = stripPersonMention(finalDescription)
+        const entryDescToSave = cleanEntryDescription || targetPackage.description
+
         let paymentId: number | null = null
         let chargeId: number | null = null
 
@@ -171,8 +293,8 @@ export async function POST(request: Request) {
             const payment = await prisma.payment.create({
                 data: {
                     packageId: targetPackage.id,
-                    date: new Date(),
-                    description: finalDescription || targetPackage.description,
+                    date: targetDate,
+                    description: entryDescToSave,
                     amount: parsed.amount,
                     hasUpdates: true
                 }
@@ -182,8 +304,8 @@ export async function POST(request: Request) {
             const charge = await prisma.charge.create({
                 data: {
                     packageId: targetPackage.id,
-                    date: new Date(),
-                    description: finalDescription || targetPackage.description,
+                    date: targetDate,
+                    description: entryDescToSave,
                     amount: parsed.amount,
                     hasUpdates: true
                 }
@@ -210,10 +332,13 @@ export async function POST(request: Request) {
                 companyName: matchedCompany.name,
                 companyId: matchedCompany.id,
                 packageId: targetPackage.id,
-                description: finalDescription || null,
+                description: cleanEntryDescription || null,
                 status: 'SUCCESS',
                 paymentId,
-                chargeId
+                chargeId,
+                person: person || null,
+                isEdited: !!body.isEdited,
+                createdAt: targetDate
             }
         })
 

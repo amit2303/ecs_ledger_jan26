@@ -63,6 +63,15 @@ export async function DELETE(request: Request, props: { params: Promise<{ id: st
             }
         }
 
+        // Delete linked SalaryPayment if exists
+        if (msg.salaryPaymentId) {
+            try {
+                await prisma.salaryPayment.delete({ where: { id: msg.salaryPaymentId } })
+            } catch (sErr) {
+                console.warn('SalaryPayment delete warning:', sErr)
+            }
+        }
+
         // Propagate updates to Package and Company
         if (packageIdToUpdate) {
             await prisma.package.update({
@@ -83,7 +92,8 @@ export async function DELETE(request: Request, props: { params: Promise<{ id: st
             data: {
                 status: 'DELETED',
                 paymentId: null,
-                chargeId: null
+                chargeId: null,
+                salaryPaymentId: null
             }
         })
 

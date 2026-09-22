@@ -43,7 +43,7 @@ export default function AddPayment({ params }: { params: Promise<{ id: string }>
 
     return (
         <div className="flex flex-col h-full bg-gray-50">
-            <header className="px-5 py-3 bg-gray-50/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10 flex items-center gap-3 shrink-0">
+            <header className="px-5 py-3 bg-gray-50/80  border-b border-gray-200 sticky top-0 z-10 flex items-center gap-3 shrink-0">
                 <Link href={`/companies/${id}`} className="p-1 -ml-1 text-gray-400 hover:text-gray-600">
                     <ChevronLeft className="w-6 h-6" />
                 </Link>

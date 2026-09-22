@@ -57,10 +57,10 @@ export async function DELETE(request: Request, props: { params: Promise<{ id: st
 
         await prisma.charge.delete({ where: { id } })
 
-        // Mark associated TransactionMessage as DELETED
+        // Unlink associated TransactionMessage without deleting chat message history
         await prisma.transactionMessage.updateMany({
             where: { chargeId: id },
-            data: { status: 'DELETED', chargeId: null }
+            data: { chargeId: null }
         })
 
         // Propagate update to Package and Company

@@ -114,7 +114,59 @@ model TransactionMessage {
   description String?
   status      String   @default("SUCCESS") // SUCCESS | FAILED | AMBIGUOUS
   errorMsg    String?  @db.Text
-  paymentId   Int?
-  chargeId    Int?
+  paymentId       Int?
+  chargeId        Int?
+  salaryPaymentId Int?
+  employeeId      Int?
+  person          String?  // Tagged person: Amit Mishra | Sumit Mishra | Shyam Sunder Mishra | Pankaj Sharma
+  isEdited        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+}
+
+model Employee {
+  id          Int      @id @default(autoincrement())
+  name        String
+  salary      Decimal
+  designation String?
+  address     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  salaryEntries  SalaryEntry[]
+  salaryPayments SalaryPayment[]
+}
+
+model SalaryEntry {
+  id          Int      @id @default(autoincrement())
+  employeeId  Int
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  month       String   // "2026-01" format (YYYY-MM)
+  amount      Decimal
+  description String?
   createdAt   DateTime @default(now())
 }
+
+model SalaryPayment {
+  id          Int      @id @default(autoincrement())
+  employeeId  Int
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  amount      Decimal
+  description String?
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+}
+
+model HistoricalMonthSummary {
+  id            Int      @id @default(autoincrement())
+  month         String   @unique // "YYYY-MM" (e.g. "2025-06")
+  income        Float
+  expense       Float
+  net           Float
+  ssmIncome     Float    @default(0)
+  ssmExpense    Float    @default(0)
+  pankajIncome  Float    @default(0)
+  pankajExpense Float    @default(0)
+  entryCount    Int      @default(0)
+  createdAt     DateTime @default(now())
+}
+

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { HeaderActions } from '@/components/HeaderActions'
 import { GlobalHeader } from '@/components/GlobalHeader'
+import { BottomNav } from "@/components/layout/BottomNav";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -12,8 +13,9 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "ECS Ledger",
-  description: "ECS Client & Vendor Ledger",
+  title: "ECS",
+  description: "ECS Transactions & Ledger",
+  manifest: "/manifest.json",
   icons: {
     icon: '/logo.jpg',
     apple: '/logo.jpg',
@@ -21,7 +23,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "ECS Ledger",
+    title: "ECS",
   }
 };
 
@@ -38,6 +40,7 @@ export default function RootLayout({
           <div className="flex-1 overflow-hidden relative flex flex-col">
             {children}
           </div>
+          <BottomNav />
         </main>
       </body>
     </html>
