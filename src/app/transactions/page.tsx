@@ -198,7 +198,24 @@ const TransactionMessageItem = memo(({
     const isDeleted = msg.status === 'DELETED'
 
     if (isDeleted) {
-        return null
+        return (
+            <div className="flex justify-end pr-1.5 my-0.5">
+                <div className="rounded-[14px] rounded-tr-[2px] px-3.5 py-2 min-w-[170px] max-w-[85%] shadow-md bg-[#EFECE6]/90 text-gray-500 relative flex items-center gap-2 italic text-[14px] select-none">
+                    <Ban className="w-4 h-4 text-gray-400 shrink-0 not-italic stroke-[2]" />
+                    <span className="font-normal text-[#667781] flex-1">This message was deleted</span>
+                    <span className="text-[11px] text-[#8696a0] not-italic ml-2 self-end mb-0.5 font-sans">
+                        {formatTime(msg.createdAt)}
+                    </span>
+                    
+                    {/* Outgoing Top-Right Tail */}
+                    <span className="absolute -right-[6px] top-0 w-[12px] h-[19px] overflow-hidden pointer-events-none">
+                        <svg width="12" height="19" viewBox="0 0 12 19" fill="#EFECE6">
+                            <path d="M0,0 L12,0 C7,3 4,7 0,14 Z" />
+                        </svg>
+                    </span>
+                </div>
+            </div>
+        )
     }
 
     return (
@@ -1967,6 +1984,136 @@ export default function TransactionsPage() {
                 </div>
             )}
 
+            {/* FIXED DOCKED HEAD (ECS MISC) BADGE ABOVE TEXT INPUT FIELD */}
+            {selectedCompany?.id === -1 && (
+                <div className="bg-white/95  px-3.5 py-1.5 border-t border-gray-200/80 flex items-center justify-between z-20 animate-in slide-in-from-bottom-1 duration-150">
+                    <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-[12px] font-bold text-[#D97706] bg-[#FEF3C7] border border-[#FDE68A] px-2.5 py-0.5 rounded-full shadow-sm shrink-0">
+                            Head: ECS MISC
+                        </span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setSelectedCompany(null)}
+                        className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors shrink-0"
+                        title="Remove ECS MISC selection"
+                    >
+                        <X className="w-3.5 h-3.5" />
+                    </button>
+                </div>
+            )}
+
+            {/* FIXED DOCKED EMPLOYEE BADGE ABOVE TEXT INPUT FIELD */}
+            {selectedEmployee && input.startsWith('-') && (
+                <div className="bg-white/95  px-3.5 py-1.5 border-t border-gray-200/80 flex items-center justify-between z-20 animate-in slide-in-from-bottom-1 duration-150">
+                    <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-[11px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
+                            <UserCircle2 className="w-3 h-3 text-gray-500" /> Employee
+                        </span>
+                        <span className="text-[13px] font-medium text-gray-800 truncate">
+                            {selectedEmployee.name}
+                        </span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setSelectedEmployee(null)}
+                        className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors shrink-0"
+                        title="Remove employee selection"
+                    >
+                        <X className="w-3.5 h-3.5" />
+                    </button>
+                </div>
+            )}
+
+            {/* FIXED DOCKED CUSTOM DATE BADGE ABOVE TEXT INPUT FIELD */}
+            {customEntryDate && (
+                <div className="bg-white/95  px-3.5 py-1.5 border-t border-gray-200/80 flex items-center justify-between z-20 animate-in slide-in-from-bottom-1 duration-150">
+                    <div className="flex items-center gap-2 min-w-0 text-[13px] text-gray-600">
+                        <span>Date:</span>
+                        <strong className="font-medium text-gray-900">{formatDisplayCustomDate(customEntryDate)}</strong>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setCustomEntryDate(null)}
+                        className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors shrink-0"
+                        title="Reset to today"
+                    >
+                        <X className="w-3.5 h-3.5" />
+                    </button>
+                </div>
+            )}
+
+
+
+            {/* FIXED DOCKED PACKAGE BADGE ABOVE TEXT INPUT FIELD */}
+            {selectedPackage && (
+                <div className="bg-white/95  px-3.5 py-1.5 border-t border-gray-200/80 flex items-center justify-between z-20 animate-in slide-in-from-bottom-1 duration-150">
+                    <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-[11px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
+                            <PackageIcon className="w-3 h-3 text-gray-500" /> Package
+                        </span>
+                        <span className="text-[13px] font-medium text-gray-800 truncate">
+                            {selectedPackage.description}
+                        </span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setSelectedPackage(null)}
+                        className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors shrink-0"
+                        title="Remove package selection"
+                    >
+                        <X className="w-3.5 h-3.5" />
+                    </button>
+                </div>
+            )}
+
+            <div className="shrink-0 bg-[#EFEAE2] safe-area-bottom z-20">
+            {/* iOS WhatsApp Bottom Input Bar */}
+            <div className="border-t border-gray-300/60 px-3 py-2 flex items-center gap-2">
+                {/* Rounded Input Field */}
+                <div className="flex-1 min-w-0 bg-white rounded-full border border-gray-300/80 px-4 py-2 flex items-center gap-2 shadow-xs">
+                    <input
+                        ref={inputRef}
+                        type="text"
+                        value={input}
+                        onChange={(e) => handleInputChange(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        className="w-full text-[15px] font-normal text-gray-900 placeholder:text-gray-400 placeholder:font-normal outline-none font-sans bg-transparent tracking-normal uppercase"
+                        disabled={sending}
+                        autoComplete="off"
+                        autoCorrect="off"
+                        spellCheck={false}
+                        data-form-type="other"
+                        autoCapitalize="characters"
+                    />
+                    {input && (
+                        <button
+                            type="button"
+                            onClick={() => handleInputChange('')}
+                            className="p-1 text-gray-400 hover:text-gray-600 rounded-full shrink-0"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    )}
+                </div>
+
+                {/* WhatsApp Green Round Send Button */}
+                <button
+                    type="button"
+                    onClick={handleSend}
+                    disabled={sending || !isFormValid}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                        isFormValid 
+                            ? 'bg-[#00A884] text-white shadow-md active:scale-95 cursor-pointer' 
+                            : 'bg-gray-300 text-gray-500 opacity-60 cursor-not-allowed'
+                    }`}
+                >
+                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current ml-0.5">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                    </svg>
+                </button>
+            </div>
+
             {/* Live Company Suggestions Bar */}
             {companySuggestions.length > 0 && !selectedCompany && (
                 <div className="bg-[#F6F6F6]/95  px-3 py-1.5 border-t border-gray-200/80 shadow-xs flex items-center gap-2 overflow-x-auto ios-scroll z-20">
@@ -2060,131 +2207,6 @@ export default function TransactionsPage() {
                     </button>
                 </div>
             )}
-
-            {/* FIXED DOCKED HEAD (ECS MISC) BADGE ABOVE TEXT INPUT FIELD */}
-            {selectedCompany?.id === -1 && (
-                <div className="bg-white/95  px-3.5 py-1.5 border-t border-gray-200/80 flex items-center justify-between z-20 animate-in slide-in-from-bottom-1 duration-150">
-                    <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-[12px] font-bold text-[#D97706] bg-[#FEF3C7] border border-[#FDE68A] px-2.5 py-0.5 rounded-full shadow-sm shrink-0">
-                            Head: ECS MISC
-                        </span>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => setSelectedCompany(null)}
-                        className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors shrink-0"
-                        title="Remove ECS MISC selection"
-                    >
-                        <X className="w-3.5 h-3.5" />
-                    </button>
-                </div>
-            )}
-
-            {/* FIXED DOCKED EMPLOYEE BADGE ABOVE TEXT INPUT FIELD */}
-            {selectedEmployee && input.startsWith('-') && (
-                <div className="bg-white/95  px-3.5 py-1.5 border-t border-gray-200/80 flex items-center justify-between z-20 animate-in slide-in-from-bottom-1 duration-150">
-                    <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-[11px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
-                            <UserCircle2 className="w-3 h-3 text-gray-500" /> Employee
-                        </span>
-                        <span className="text-[13px] font-medium text-gray-800 truncate">
-                            {selectedEmployee.name}
-                        </span>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => setSelectedEmployee(null)}
-                        className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors shrink-0"
-                        title="Remove employee selection"
-                    >
-                        <X className="w-3.5 h-3.5" />
-                    </button>
-                </div>
-            )}
-
-            {/* FIXED DOCKED CUSTOM DATE BADGE ABOVE TEXT INPUT FIELD */}
-            {customEntryDate && (
-                <div className="bg-white/95  px-3.5 py-1.5 border-t border-gray-200/80 flex items-center justify-between z-20 animate-in slide-in-from-bottom-1 duration-150">
-                    <div className="flex items-center gap-2 min-w-0 text-[13px] text-gray-600">
-                        <span>Date:</span>
-                        <strong className="font-medium text-gray-900">{formatDisplayCustomDate(customEntryDate)}</strong>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => setCustomEntryDate(null)}
-                        className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors shrink-0"
-                        title="Reset to today"
-                    >
-                        <X className="w-3.5 h-3.5" />
-                    </button>
-                </div>
-            )}
-
-
-
-            {/* FIXED DOCKED PACKAGE BADGE ABOVE TEXT INPUT FIELD */}
-            {selectedPackage && (
-                <div className="bg-white/95  px-3.5 py-1.5 border-t border-gray-200/80 flex items-center justify-between z-20 animate-in slide-in-from-bottom-1 duration-150">
-                    <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-[11px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
-                            <PackageIcon className="w-3 h-3 text-gray-500" /> Package
-                        </span>
-                        <span className="text-[13px] font-medium text-gray-800 truncate">
-                            {selectedPackage.description}
-                        </span>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => setSelectedPackage(null)}
-                        className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors shrink-0"
-                        title="Remove package selection"
-                    >
-                        <X className="w-3.5 h-3.5" />
-                    </button>
-                </div>
-            )}
-
-            {/* iOS WhatsApp Bottom Input Bar */}
-            <div className="shrink-0 bg-[#EFEAE2] border-t border-gray-300/60 px-3 py-2 flex items-center gap-2 safe-area-bottom z-20">
-                {/* Rounded Input Field */}
-                <div className="flex-1 min-w-0 bg-white rounded-full border border-gray-300/80 px-4 py-2 flex items-center gap-2 shadow-xs">
-                    <input
-                        ref={inputRef}
-                        type="text"
-                        value={input}
-                        onChange={(e) => handleInputChange(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        className="w-full text-[15px] font-normal text-gray-900 placeholder:text-gray-400 placeholder:font-normal outline-none font-sans bg-transparent tracking-normal uppercase"
-                        disabled={sending}
-                        autoComplete="off"
-                        autoCapitalize="characters"
-                    />
-                    {input && (
-                        <button
-                            type="button"
-                            onClick={() => handleInputChange('')}
-                            className="p-1 text-gray-400 hover:text-gray-600 rounded-full shrink-0"
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
-                    )}
-                </div>
-
-                {/* WhatsApp Green Round Send Button */}
-                <button
-                    type="button"
-                    onClick={handleSend}
-                    disabled={sending || !isFormValid}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all ${
-                        isFormValid 
-                            ? 'bg-[#00A884] text-white shadow-md active:scale-95 cursor-pointer' 
-                            : 'bg-gray-300 text-gray-500 opacity-60 cursor-not-allowed'
-                    }`}
-                >
-                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current ml-0.5">
-                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-                    </svg>
-                </button>
             </div>
 
 
