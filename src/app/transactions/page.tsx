@@ -1391,13 +1391,9 @@ export default function TransactionsPage() {
                                 />
                                 <div className="flex flex-col min-w-0">
                                     <h1 className="text-[16px] sm:text-[17px] font-bold text-gray-900 truncate leading-tight tracking-tight">EXPERT HISAB KITAB</h1>
-                                    {activeFilterCount > 0 ? (
+                                    {activeFilterCount > 0 && (
                                         <span className="text-[11px] font-medium text-blue-700 truncate flex items-center gap-1">
                                             {activeFilterCount} active filter{activeFilterCount > 1 ? 's' : ''} ({filteredMessages.length} results)
-                                        </span>
-                                    ) : (
-                                        <span className="text-[11px] font-normal text-gray-500 truncate">
-                                            Tap to view group info
                                         </span>
                                     )}
                                 </div>
