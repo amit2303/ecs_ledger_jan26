@@ -74,7 +74,7 @@ export default function ExpertDashboardPage() {
 
     useEffect(() => {
         Promise.all([
-            fetch('/api/transactions/chat').then(r => r.json()),
+            fetch('/api/transactions/chat?includeArchived=true').then(r => r.json()),
             fetch('/api/expert-hisab/summaries').then(r => r.json())
         ])
         .then(([chatData, histData]) => {

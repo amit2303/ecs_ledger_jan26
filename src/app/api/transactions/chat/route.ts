@@ -8,9 +8,15 @@ export const dynamic = 'force-dynamic'
  * GET /api/transactions/chat
  * Returns all transaction messages, newest first
  */
-export async function GET() {
+export async function GET(request: Request) {
     try {
+        const url = new URL(request.url)
+        const includeArchived = url.searchParams.get('includeArchived') === 'true'
+        
+        const where = includeArchived ? {} : { NOT: { status: 'ARCHIVED' } }
+
         const messages = await prisma.transactionMessage.findMany({
+            where,
             orderBy: { createdAt: 'asc' }
         })
         return NextResponse.json(messages)
