@@ -597,7 +597,26 @@ export default function TransactionsPage() {
     const [sending, setSending] = useState(false)
     const [loading, setLoading] = useState(true)
     const messagesEndRef = useRef<HTMLDivElement>(null)
-    const inputRef = useRef<HTMLInputElement>(null)
+    const inputRef = useRef<HTMLDivElement>(null)
+
+    // Sync contentEditable div with input state
+    useEffect(() => {
+        if (inputRef.current && inputRef.current.textContent !== input) {
+            inputRef.current.textContent = input;
+            // Move cursor to the end
+            try {
+                const range = document.createRange();
+                const sel = window.getSelection();
+                range.selectNodeContents(inputRef.current);
+                range.collapse(false);
+                if (sel) {
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                }
+            } catch (e) {}
+        }
+    }, [input]);
+
 
     const scrollToBottom = () => {
         setTimeout(() => {
@@ -1189,7 +1208,7 @@ export default function TransactionsPage() {
         }
     }
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLDivElement>) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault()
             if (isFormValid) {
@@ -1204,9 +1223,11 @@ export default function TransactionsPage() {
         // Prevent typing after person tag
         const personEndMatch = input.match(/@\s*(AMIT|SUMIT|SSM|PAPA|MAMAJI|PANKAJ|BHAIYA)$/i)
         if (personEndMatch && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-            const inputEl = e.currentTarget
             const personStartIndex = input.lastIndexOf('@')
-            if (inputEl.selectionStart !== null && inputEl.selectionStart > personStartIndex) {
+            const sel = typeof window !== 'undefined' ? window.getSelection() : null;
+            const cursorPos = sel && sel.rangeCount > 0 ? sel.getRangeAt(0).startOffset : 0;
+            
+            if (cursorPos > personStartIndex) {
                 e.preventDefault()
                 setWarningMsg('Cannot write anything after selecting person tag')
                 return
@@ -2072,19 +2093,22 @@ export default function TransactionsPage() {
             <div className="border-t border-gray-300/60 px-3 py-2 flex items-center gap-2">
                 {/* Rounded Input Field */}
                 <div className="flex-1 min-w-0 bg-white rounded-full border border-gray-300/80 px-4 py-2 flex items-center gap-2 shadow-xs">
-                    <input
+                    <div
+                        contentEditable={!sending}
+                        suppressContentEditableWarning
                         ref={inputRef}
-                        type="text"
-                        value={input}
-                        onChange={(e) => handleInputChange(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        className="w-full text-[15px] font-normal text-gray-900 placeholder:text-gray-400 placeholder:font-normal outline-none font-sans bg-transparent tracking-normal uppercase"
-                        disabled={sending}
-                        autoComplete="off"
-                        autoCorrect="off"
-                        spellCheck={false}
-                        data-form-type="other"
-                        autoCapitalize="characters"
+                        onInput={(e) => handleInputChange(e.currentTarget.textContent || '')}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault(); // Prevent newlines
+                                handleKeyDown(e as any);
+                            } else {
+                                handleKeyDown(e as any);
+                            }
+                        }}
+                        className="w-full text-[15px] font-normal text-gray-900 outline-none font-sans bg-transparent tracking-normal uppercase empty:before:content-[''] before:text-gray-400 empty:before:inline-block min-h-[22px] break-all whitespace-pre-wrap cursor-text overflow-hidden"
+                        data-placeholder=""
+                        style={{ WebkitUserModify: 'read-write-plaintext-only' }}
                     />
                     {input && (
                         <button
