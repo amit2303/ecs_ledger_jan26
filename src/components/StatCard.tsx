@@ -28,7 +28,7 @@ export function StatCard({ label, value, icon: Icon, className = '', valueColor 
     return (
         <div
             onClick={onClick}
-            className={`relative overflow-hidden rounded-2xl p-4 transition-all flex flex-col items-start ${className} ${onClick ? 'ios-press cursor-pointer' : ''}`}
+            className={`relative overflow-hidden rounded-xl px-3.5 py-2.5 transition-all flex flex-col items-start ${className} ${onClick ? 'ios-press cursor-pointer' : ''}`}
             style={{
                 backgroundColor: isActive ? activeConf.bg : '#FFFFFF',
                 boxShadow: isActive
@@ -36,11 +36,11 @@ export function StatCard({ label, value, icon: Icon, className = '', valueColor 
                     : '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
             }}
         >
-            <span className="text-[13px] font-medium text-ios-gray mb-1">{label}</span>
-            <div className={`text-[22px] font-semibold tracking-tight tabular-nums ${isActive ? activeConf.text : valueColor}`}>
+            <span className="text-[12px] font-medium text-ios-gray mb-0.5">{label}</span>
+            <div className={`text-[19px] font-semibold tracking-tight tabular-nums ${isActive ? activeConf.text : valueColor}`}>
                 {typeof value === 'number' && showCurrency ? (value < 0 ? `- ₹${Math.abs(value).toLocaleString('en-IN')}` : `₹${value.toLocaleString('en-IN')}`) : value}
             </div>
-            {Icon && <Icon className="w-4 h-4 text-ios-gray mt-2" />}
+            {Icon && <Icon className="w-4 h-4 text-ios-gray mt-1.5" />}
         </div>
     )
 }

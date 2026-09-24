@@ -202,8 +202,8 @@ export default function Home() {
       {/* Main scroll container — 4 cards scroll away, search bar sticks to top */}
       <div className="flex-1 overflow-y-auto ios-scroll pb-44">
         {/* 4 Stat Cards — Scroll away when user scrolls down */}
-        <div className="px-4 pt-3 pb-1">
-          <div className="grid grid-cols-2 gap-2.5">
+        <div className="px-4 pt-2 pb-1">
+          <div className="grid grid-cols-2 gap-2">
             <StatCard
               label="Total Client Due"
               value={stats?.totalClientDue ?? '-'}
@@ -237,21 +237,21 @@ export default function Home() {
 
         {/* Sticky Search Bar & Headers — Stays pinned at top */}
         <div
-          className="sticky top-0 z-20 px-4 pt-2.5 pb-2 space-y-2 bg-[#F2F2F7]/95 backdrop-blur-md border-b border-black/[0.04]"
+          className="sticky top-0 z-20 px-4 pt-2 pb-1.5 space-y-1.5 bg-[#F2F2F7]/95 backdrop-blur-md border-b border-black/[0.04]"
         >
           {/* Search Bar & Actions — Premium Apple Card Style */}
-          <div className="relative flex items-center gap-2.5 h-[44px]">
+          <div className="relative flex items-center gap-2 h-[40px]">
             <div
-              className="flex-1 h-full relative rounded-2xl bg-white flex items-center px-3.5 transition-all focus-within:ring-2 focus-within:ring-ios-blue/30"
+              className="flex-1 h-full relative rounded-xl bg-white flex items-center px-3 transition-all focus-within:ring-2 focus-within:ring-ios-blue/30"
               style={{
                 boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)',
               }}
             >
-              <Search className="w-[18px] h-[18px] text-gray-400 shrink-0 mr-2.5" />
+              <Search className="w-4 h-4 text-gray-400 shrink-0 mr-2" />
               <input
                 type="text"
                 placeholder="Search companies..."
-                className="h-full w-full text-[15px] text-gray-900 placeholder-gray-400 bg-transparent outline-none"
+                className="h-full w-full text-[14.5px] text-gray-900 placeholder-gray-400 bg-transparent outline-none"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -261,33 +261,33 @@ export default function Home() {
                   onClick={() => setSearch('')}
                   className="p-1 text-gray-400 hover:text-gray-600 active:opacity-60 transition-opacity shrink-0"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
             <button
               onClick={() => setShowDashboardActions(true)}
-              className="h-[44px] w-[44px] rounded-2xl bg-white flex items-center justify-center text-gray-600 ios-press shrink-0 transition-transform"
+              className="h-[40px] w-[40px] rounded-xl bg-white flex items-center justify-center text-gray-600 ios-press shrink-0 transition-transform"
               style={{
                 boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)',
               }}
               title="More Options"
             >
-              <MoreVertical className="w-5 h-5 text-gray-600" />
+              <MoreVertical className="w-4 h-4 text-gray-600" />
             </button>
           </div>
 
           {/* List Header */}
-          <div className="flex justify-between items-center px-4 pt-0.5 text-[12px] font-semibold text-ios-gray uppercase tracking-wider select-none">
+          <div className="flex justify-between items-center px-3.5 pt-0.5 text-[11px] font-semibold text-ios-gray uppercase tracking-wider select-none">
             <span>COMPANY</span>
-            <span className="pr-6">DUE</span>
+            <span className="pr-5">DUE</span>
           </div>
         </div>
 
         {/* Company List */}
-        <div className="px-4 pt-2.5">
+        <div className="px-4 pt-1.5">
           {filteredCompanies.length > 0 ? (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1.5">
               {filteredCompanies.map((company) => (
                 <CompanyItem
                   key={company.id}
@@ -299,20 +299,20 @@ export default function Home() {
               {/* Add Company at bottom of list */}
               <Link
                 href="/add-company"
-                className="mt-2 flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl bg-white border border-dashed border-gray-300 text-ios-blue font-medium text-[15px] hover:bg-blue-50/50 active:scale-[0.99] transition-all shadow-sm"
+                className="mt-1.5 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-white border border-dashed border-gray-300 text-ios-blue font-medium text-[14px] hover:bg-blue-50/50 active:scale-[0.99] transition-all shadow-sm"
               >
-                <Plus className="w-5 h-5" strokeWidth={2.5} />
+                <Plus className="w-4 h-4" strokeWidth={2.5} />
                 <span>Add New {filter === 'CLIENT' ? 'Client' : 'Vendor'}</span>
               </Link>
             </div>
           ) : (
-            <div className="flex flex-col gap-3">
-              <div className="ios-card p-8 text-center text-ios-gray text-[15px] rounded-2xl">No companies found.</div>
+            <div className="flex flex-col gap-2">
+              <div className="ios-card p-6 text-center text-ios-gray text-[14px] rounded-xl">No companies found.</div>
               <Link
                 href="/add-company"
-                className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl bg-white border border-dashed border-gray-300 text-ios-blue font-medium text-[15px] hover:bg-blue-50/50 active:scale-[0.99] transition-all shadow-sm"
+                className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-white border border-dashed border-gray-300 text-ios-blue font-medium text-[14px] hover:bg-blue-50/50 active:scale-[0.99] transition-all shadow-sm"
               >
-                <Plus className="w-5 h-5" strokeWidth={2.5} />
+                <Plus className="w-4 h-4" strokeWidth={2.5} />
                 <span>Add New {filter === 'CLIENT' ? 'Client' : 'Vendor'}</span>
               </Link>
             </div>
@@ -433,7 +433,7 @@ export default function Home() {
   )
 }
 
-// Company card item — rounded card with color-coded left accent stripe
+// Company card item — compact rounded card
 function CompanyItem({ company, onLongPress }: { company: CompanySummary, onLongPress: () => void }) {
   const bind = useLongPress(() => {
     onLongPress()
@@ -449,7 +449,7 @@ function CompanyItem({ company, onLongPress }: { company: CompanySummary, onLong
     <Link
       href={`/companies/${company.id}`}
       {...bind}
-      className={`relative overflow-hidden rounded-2xl ios-press select-none block ${company.isOnHold ? 'opacity-55' : ''}`}
+      className={`relative overflow-hidden rounded-xl ios-press select-none block ${company.isOnHold ? 'opacity-55' : ''}`}
       style={{
         backgroundColor: '#FFFFFF',
         boxShadow: isClient
@@ -457,38 +457,38 @@ function CompanyItem({ company, onLongPress }: { company: CompanySummary, onLong
           : '0 1px 3px rgba(0,0,0,0.04), 0 0 0 1px rgba(224, 83, 83, 0.22)',
       }}
     >
-      <div className="flex items-center justify-between px-4 py-3.5">
-        <div className="flex-1 min-w-0 pr-3">
-          {/* Top line: 1 BOOSTER */}
+      <div className="flex items-center justify-between px-3.5 py-2.5">
+        <div className="flex-1 min-w-0 pr-2.5">
+          {/* Top line: S.No + Company Name */}
           <div className="flex items-center min-w-0">
-            <h3 className="text-[17px] font-semibold text-gray-900 leading-snug truncate">
+            <h3 className="text-[15.5px] font-semibold text-gray-900 leading-tight truncate">
               {sNo && (
                 <span className="font-bold tabular-nums mr-1.5">{sNo}</span>
               )}
               {displayName}
             </h3>
             {company.isOnHold && (
-              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md text-ios-orange flex items-center gap-1 shrink-0 ml-2" style={{ backgroundColor: 'rgba(245,158,11,0.08)' }}>
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded text-ios-orange flex items-center gap-1 shrink-0 ml-1.5" style={{ backgroundColor: 'rgba(245,158,11,0.08)' }}>
                 <span className="w-1.5 h-1.5 rounded-full bg-ios-orange" />
-                On Hold
+                Hold
               </span>
             )}
           </div>
 
           {/* Packages count below company name */}
           {company.packageCount !== undefined && (
-            <p className="text-[13px] text-ios-gray mt-1">
+            <p className="text-[12px] text-ios-gray mt-0.5 leading-tight">
               {company.packageCount} {company.packageCount === 1 ? 'Package' : 'Packages'}
             </p>
           )}
         </div>
 
         {/* Right: Due Amount + Chevron */}
-        <div className="flex items-center gap-2.5 shrink-0">
-          <span className={`text-[17px] font-semibold tabular-nums ${company.isOnHold ? 'text-ios-gray line-through' : (company.amountDue || 0) > 0 ? 'text-ios-red' : (company.amountDue || 0) < 0 ? 'text-ios-green' : 'text-ios-blue'}`}>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className={`text-[15.5px] font-semibold tabular-nums ${company.isOnHold ? 'text-ios-gray line-through' : (company.amountDue || 0) > 0 ? 'text-ios-red' : (company.amountDue || 0) < 0 ? 'text-ios-green' : 'text-ios-blue'}`}>
             {(company.amountDue || 0) < 0 ? `- ₹${Math.abs(company.amountDue || 0).toLocaleString('en-IN')}` : `₹${(company.amountDue || 0).toLocaleString('en-IN')}`}
           </span>
-          <ChevronRight className="w-5 h-5 text-ios-gray3" />
+          <ChevronRight className="w-4 h-4 text-ios-gray3" />
         </div>
       </div>
     </Link>
