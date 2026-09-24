@@ -48,10 +48,10 @@ export function BottomNav() {
 
   return (
     <div 
-      className="fixed bottom-0 left-0 right-0 z-50 md:max-w-md lg:max-w-lg xl:max-w-xl mx-auto bg-[#F9F9F9]/92 dark:bg-[#1C1C1E]/92 backdrop-blur-xl border-t border-black/[0.08] shadow-[0_-2px_12px_rgba(0,0,0,0.03)] transition-all duration-300"
-      style={{ paddingBottom: 'max(0.35rem, env(safe-area-inset-bottom, 8px))' }}
+      className="fixed left-3.5 right-3.5 z-50 md:max-w-md lg:max-w-lg xl:max-w-xl mx-auto bg-[#F9F9F9]/92 dark:bg-[#1C1C1E]/92 backdrop-blur-xl border border-white/60 shadow-[0_6px_24px_rgba(0,0,0,0.08)] ring-1 ring-black/5 rounded-[28px] transition-all duration-300"
+      style={{ bottom: 'max(8px, env(safe-area-inset-bottom, 8px))' }}
     >
-      <nav className="flex justify-around items-center h-[54px] px-1">
+      <nav className="flex justify-around items-center h-[56px] px-1.5">
         {tabs.map((tab) => {
           const isActive = ('matchPaths' in tab && Array.isArray(tab.matchPaths))
             ? tab.matchPaths.some(p => pathname === p || (p !== '/' && pathname.startsWith(p)))
@@ -67,9 +67,9 @@ export function BottomNav() {
               }`}
             >
               <Icon 
-                className={`w-[22px] h-[22px] transition-transform ${isActive ? "scale-105 stroke-[2.4]" : "stroke-[1.8]"}`} 
+                className={`w-[21px] h-[21px] transition-transform ${isActive ? "scale-105 stroke-[2.4]" : "stroke-[1.8]"}`} 
               />
-              <span className={`text-[10.5px] tracking-tight leading-tight transition-all ${
+              <span className={`text-[10px] tracking-tight leading-tight transition-all ${
                 isActive ? "font-semibold text-[#1D68F2]" : "font-medium text-gray-500"
               }`}>
                 {tab.name}

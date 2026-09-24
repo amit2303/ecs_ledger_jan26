@@ -889,7 +889,7 @@ export default function ExpertDashboardPage() {
             {/* Floating Action Button - + New Entry */}
             <div 
                 className="fixed left-0 right-0 mx-auto w-full max-w-md lg:max-w-lg xl:max-w-xl flex justify-center pointer-events-none z-40 px-4"
-                style={{ bottom: 'calc(54px + max(0.35rem, env(safe-area-inset-bottom, 8px)) + 14px)' }}
+                style={{ bottom: 'calc(56px + max(8px, env(safe-area-inset-bottom, 8px)) + 12px)' }}
             >
                 <Link
                     href="/transactions"
