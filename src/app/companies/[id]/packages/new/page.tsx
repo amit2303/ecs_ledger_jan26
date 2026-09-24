@@ -56,7 +56,7 @@ export default function AddPackage({ params }: { params: Promise<{ id: string }>
                 </div>
             </header>
 
-            <div className="flex-1 overflow-y-auto ios-scroll px-4 pt-4 pb-28">
+            <div className="flex-1 overflow-y-auto ios-scroll px-4 pt-4 pb-36">
                 <form id="add-package-form" onSubmit={handleSubmit}>
                     <div className="ios-card overflow-hidden">
                         <div className="px-4 py-3" style={{ borderBottom: '0.5px solid rgba(60,60,67,0.12)' }}>
@@ -86,7 +86,7 @@ export default function AddPackage({ params }: { params: Promise<{ id: string }>
             </div>
 
             {/* Bottom Button */}
-            <div className="fixed bottom-0 left-0 w-full flex justify-center pointer-events-none z-20">
+            <div className="fixed bottom-0 left-0 w-full flex justify-center pointer-events-none z-40">
                 <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl p-4 pointer-events-auto safe-area-bottom" style={{ backgroundColor: 'rgba(242,242,247,0.9)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderTop: '0.5px solid rgba(60,60,67,0.12)' }}>
                     <button
                         form="add-package-form"

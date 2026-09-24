@@ -259,6 +259,14 @@ export default function Home() {
               </button>
             )}
           </div>
+          <Link
+            href="/add-company"
+            className="h-[44px] px-3.5 rounded-2xl bg-ios-blue text-white flex items-center justify-center gap-1.5 font-semibold text-[13px] ios-press shrink-0 shadow-sm"
+            title="Add Company"
+          >
+            <Plus className="w-4.5 h-4.5 stroke-[2.5]" />
+            <span>Add</span>
+          </Link>
           <button
             onClick={() => setShowDashboardActions(true)}
             className="h-[44px] w-[44px] rounded-2xl bg-white flex items-center justify-center text-gray-600 ios-press shrink-0 transition-transform"
@@ -281,7 +289,7 @@ export default function Home() {
           <span className="pr-6">DUE</span>
         </div>
 
-        <div className="flex-1 overflow-y-auto ios-scroll px-4 pb-32">
+        <div className="flex-1 overflow-y-auto ios-scroll px-4 pb-44">
           {filteredCompanies.length > 0 ? (
             <div className="flex flex-col gap-2">
               {filteredCompanies.map((company) => (

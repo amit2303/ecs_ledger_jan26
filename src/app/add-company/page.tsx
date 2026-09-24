@@ -57,10 +57,14 @@ export default function AddCompany() {
             {/* iOS Nav Bar */}
             <header className="ios-navbar shrink-0 z-10">
                 <div className="flex items-center gap-1 px-1 py-2">
-                    <Link href="/" className="shrink-0 text-ios-blue active:opacity-60 transition-opacity flex items-center gap-0.5 pl-1 pr-2">
+                    <button 
+                        type="button"
+                        onClick={() => router.back()} 
+                        className="shrink-0 text-ios-blue active:opacity-60 transition-opacity flex items-center gap-0.5 pl-1 pr-2"
+                    >
                         <ChevronLeft className="w-[22px] h-[22px]" />
                         <span className="text-[17px]">Back</span>
-                    </Link>
+                    </button>
                     <div className="flex-1 text-center">
                         <h1 className="text-[17px] font-semibold text-gray-900">New Company</h1>
                     </div>
@@ -68,7 +72,7 @@ export default function AddCompany() {
                 </div>
             </header>
 
-            <div className="flex-1 overflow-y-auto ios-scroll px-4 pt-4 pb-28">
+            <div className="flex-1 overflow-y-auto ios-scroll px-4 pt-4 pb-36">
                 <form id="add-company-form" onSubmit={handleSubmit} className="space-y-6">
                     {/* Type Selector — iOS Segmented Control */}
                     <div>
@@ -161,7 +165,7 @@ export default function AddCompany() {
             </div>
 
             {/* Bottom Button */}
-            <div className="fixed bottom-0 left-0 w-full flex justify-center pointer-events-none z-20">
+            <div className="fixed bottom-0 left-0 w-full flex justify-center pointer-events-none z-40">
                 <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl p-4 pointer-events-auto safe-area-bottom" style={{ backgroundColor: 'rgba(242,242,247,0.9)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderTop: '0.5px solid rgba(60,60,67,0.12)' }}>
                     <button
                         form="add-company-form"

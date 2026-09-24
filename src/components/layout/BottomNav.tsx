@@ -40,11 +40,19 @@ const tabs = [
   },
 ];
 
+const MAIN_TAB_ROUTES = [
+  '/quotations',
+  '/ecs-ledger',
+  '/expert-hisab',
+  '/employee-payments',
+  '/drive',
+];
+
 export function BottomNav() {
   const pathname = usePathname();
 
-  // Hide nav on the full-screen chat page
-  if (pathname === '/transactions') return null;
+  // Bottom navigation is only for top-level main tab screens
+  if (!pathname || !MAIN_TAB_ROUTES.includes(pathname)) return null;
 
   return (
     <div 

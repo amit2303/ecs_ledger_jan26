@@ -164,7 +164,7 @@ export default function EmployeePaymentsPage() {
                     <span className="pr-6">BALANCE</span>
                 </div>
 
-                <div className="flex-1 overflow-y-auto ios-scroll px-4 pb-24">
+                <div className="flex-1 overflow-y-auto ios-scroll px-4 pb-44">
                     {employees.length === 0 ? (
                         <div className="ios-card p-8 text-center text-ios-gray text-[15px] rounded-2xl">
                             No employees added yet.
@@ -185,12 +185,12 @@ export default function EmployeePaymentsPage() {
             </div>
 
             {/* FAB */}
-            <div className="fixed bottom-0 left-0 w-full flex justify-center pointer-events-none z-20">
+            <div className="fixed bottom-0 left-0 w-full flex justify-center pointer-events-none z-40">
                 <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl relative h-0">
                     <button
                         onClick={() => setShowAddModal(true)}
-                        className="absolute bottom-[102px] right-5 w-14 h-14 bg-ios-blue text-white rounded-full flex items-center justify-center ios-press pointer-events-auto"
-                        style={{ boxShadow: '0 4px 14px rgba(0,122,255,0.4)' }}
+                        className="absolute right-5 w-14 h-14 bg-ios-blue text-white rounded-full flex items-center justify-center ios-press pointer-events-auto shadow-[0_6px_20px_rgba(0,122,255,0.4)]"
+                        style={{ bottom: 'calc(56px + max(8px, env(safe-area-inset-bottom, 8px)) + 12px)' }}
                     >
                         <Plus className="w-7 h-7" strokeWidth={2.5} />
                     </button>

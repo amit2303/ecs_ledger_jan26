@@ -34,8 +34,15 @@ function getHeaderInfo(pathname: string | null) {
 export function GlobalHeader() {
     const pathname = usePathname()
 
-    // Hide header on company detail pages, transactions chat, and login
-    if (pathname?.startsWith('/companies/') || pathname === '/transactions' || pathname === '/login') {
+    // Hide header on company detail pages, transactions chat, login, and child pages with their own back navbar
+    if (
+        pathname?.startsWith('/companies/') || 
+        pathname?.startsWith('/employee-payments/') || 
+        pathname === '/transactions' || 
+        pathname === '/login' || 
+        pathname === '/add-company' || 
+        pathname === '/change-password'
+    ) {
         return null
     }
 

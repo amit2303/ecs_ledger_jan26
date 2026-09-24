@@ -80,7 +80,7 @@ export default function ChangePasswordPage() {
                 </div>
             </header>
 
-            <div className="flex-1 overflow-y-auto ios-scroll px-4 pt-4 pb-28">
+            <div className="flex-1 overflow-y-auto ios-scroll px-4 pt-4 pb-36">
                 <form id="change-password-form" onSubmit={handleSubmit} className="space-y-6">
                     {error && (
                         <div className="ios-card p-3 text-center text-[15px] text-ios-red font-medium" style={{ backgroundColor: 'rgba(255,59,48,0.08)' }}>
@@ -154,7 +154,7 @@ export default function ChangePasswordPage() {
             </div>
 
             {/* Bottom Button */}
-            <div className="fixed bottom-0 left-0 w-full flex justify-center pointer-events-none z-20">
+            <div className="fixed bottom-0 left-0 w-full flex justify-center pointer-events-none z-40">
                 <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl p-4 pointer-events-auto safe-area-bottom" style={{ backgroundColor: 'rgba(242,242,247,0.9)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderTop: '0.5px solid rgba(60,60,67,0.12)' }}>
                     <button
                         form="change-password-form"
