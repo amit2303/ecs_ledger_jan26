@@ -370,8 +370,10 @@ export function IOSKeyboard({
                         </div>
                         <div className="flex justify-center gap-[5px] px-[1px]">
                             {renderSpecialKey(
-                                <span className="text-[15px] font-semibold select-none pointer-events-none">123</span>,
-                                { onTap: () => setMode('numbers') }
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="pointer-events-none">
+                                    <path d="M12 20V4M12 4L6 10M12 4L18 10"/>
+                                </svg>,
+                                { onTap: () => triggerHaptic() }
                             )}
                             {LETTER_ROW_3.map(k => renderKey(k))}
                             {renderBackspace()}
