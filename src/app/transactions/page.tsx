@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef, useMemo, memo } from 'react'
-import { ChevronLeft, AlertCircle, Building2, Package as PackageIcon, X, ChevronDown, Search, ListFilter, Check, Trash2, Ban, Calendar, MoreVertical, Pencil, Eye, UserCircle2 } from 'lucide-react'
+import { ChevronLeft, AlertCircle, Package as PackageIcon, X, ChevronDown, Search, ListFilter, Check, Trash2, Ban, Calendar, MoreVertical, Pencil, Eye, UserCircle2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { extractMiscDescription } from '@/lib/transactionParser'
@@ -2153,101 +2153,7 @@ export default function TransactionsPage() {
                 </button>
             </div>
 
-            {/* Live Company Suggestions Bar */}
-            {companySuggestions.length > 0 && !selectedCompany && (
-                <div className="bg-[#F6F6F6]/95  px-3 py-1.5 border-t border-gray-200/80 shadow-xs flex items-center gap-2 overflow-x-auto ios-scroll z-20">
-                    <span className="text-[12px] font-medium text-gray-500 flex items-center gap-1 shrink-0">
-                        <Building2 className="w-3.5 h-3.5 text-gray-400" /> Company:
-                    </span>
-                    {companySuggestions.map(comp => {
-                        const isMisc = comp.id === -1
-                        return (
-                            <button
-                                key={comp.id}
-                                type="button"
-                                onClick={() => handleSelectCompany(comp)}
-                                className={`px-3 py-1 rounded-full bg-white text-gray-800 text-[13px] shrink-0 active:scale-95 active:bg-gray-100 transition-all border border-gray-300/60 shadow-xs ${
-                                    isMisc ? 'font-bold' : 'font-normal'
-                                }`}
-                            >
-                                {comp.name.replace(/^\d+\.?\s*/, '')}
-                            </button>
-                        )
-                    })}
-                </div>
-            )}
-
-            {/* Live Head / Employee Suggestions Bar for Expenses (-) */}
-            {input.startsWith('-') && !selectedEmployee && !selectedCompany && (
-                <div className="bg-[#F6F6F6]/95  px-3 py-1.5 border-t border-gray-200/80 shadow-xs flex items-center gap-2 overflow-x-auto ios-scroll z-20">
-                    <span className="text-[12px] font-medium text-gray-500 flex items-center gap-1 shrink-0">
-                        <UserCircle2 className="w-3.5 h-3.5 text-gray-400" /> Head / Employee:
-                    </span>
-                    <button
-                        type="button"
-                        onClick={() => handleSelectCompany({ id: -1, name: 'ECS MISC' })}
-                        className="px-3 py-1 rounded-full bg-white text-gray-800 text-[13px] font-bold shrink-0 active:scale-95 active:bg-gray-100 transition-all border border-gray-300/60 shadow-xs"
-                    >
-                        ECS MISC
-                    </button>
-                    {employeeSuggestions.map(emp => (
-                        <button
-                            key={emp.id}
-                            type="button"
-                            onClick={() => handleSelectEmployee(emp)}
-                            className="px-3 py-1 rounded-full bg-white text-gray-800 text-[13px] font-normal shrink-0 active:scale-95 active:bg-gray-100 transition-all border border-gray-300/60 shadow-xs"
-                        >
-                            {emp.name}
-                        </button>
-                    ))}
-                </div>
-            )}
-
-            {/* Live Package Suggestions Bar (hides when a package is selected) */}
-            {selectedCompany && companyPackages.length > 0 && !selectedPackage && (
-                <div className="bg-[#F6F6F6]/95  px-3 py-1.5 border-t border-gray-200/80 shadow-xs flex items-center gap-2 overflow-x-auto ios-scroll z-20">
-                    <span className="text-[12px] font-medium text-gray-500 flex items-center gap-1 shrink-0">
-                        <PackageIcon className="w-3.5 h-3.5 text-gray-400" /> Package:
-                    </span>
-                    {companyPackages.map(pkg => (
-                        <button
-                            key={pkg.id}
-                            type="button"
-                            onClick={() => handleSelectPackage(pkg)}
-                            className="px-3 py-1 rounded-full bg-white text-gray-800 text-[13px] font-normal shrink-0 active:scale-95 active:bg-gray-100 transition-all border border-gray-300/60 shadow-xs"
-                        >
-                            {pkg.description}
-                        </button>
-                    ))}
-                </div>
-            )}
-
-            {/* @Person Floating Picker — appears when user types @ */}
-            {isPersonPickerOpen && (
-                <div className="bg-[#F6F6F6]/95  px-3 py-1.5 border-t border-gray-200/80 flex items-center gap-2 z-20 shadow-xs animate-in slide-in-from-bottom-1 duration-150 overflow-x-auto ios-scroll">
-                    <span className="text-[12px] font-medium text-gray-500 shrink-0">@ Tag:</span>
-                    {PERSONS.map(p => (
-                        <button
-                            key={p.canonical}
-                            type="button"
-                            onClick={() => handleSelectPerson(p)}
-                            className="px-3 py-1 rounded-full bg-white text-gray-800 text-[13px] font-normal shrink-0 active:scale-95 active:bg-gray-100 transition-all border border-gray-300/60 shadow-xs"
-                        >
-                            {p.display}
-                        </button>
-                    ))}
-                    <button
-                        type="button"
-                        onClick={() => setIsPersonPickerOpen(false)}
-                        className="ml-auto p-1 text-gray-400 hover:text-gray-600 rounded-full shrink-0"
-                        title="Dismiss"
-                    >
-                        <X className="w-3.5 h-3.5" />
-                    </button>
-                </div>
-            )}
-
-            {/* Custom Native-Identical iOS Keyboard */}
+            {/* Custom iOS 26 Liquid Glass Keyboard with integrated suggestions */}
             <IOSKeyboard
                 isOpen={isCustomKeyboardOpen}
                 onClose={() => setIsCustomKeyboardOpen(false)}
@@ -2256,6 +2162,20 @@ export default function TransactionsPage() {
                 onSend={handleSend}
                 isFormValid={isFormValid}
                 sending={sending}
+                inputValue={input}
+                companySuggestions={companySuggestions}
+                employeeSuggestions={employeeSuggestions}
+                companyPackages={companyPackages}
+                persons={PERSONS}
+                selectedCompany={selectedCompany}
+                selectedEmployee={selectedEmployee}
+                selectedPackage={selectedPackage}
+                selectedPerson={selectedPerson}
+                isPersonPickerOpen={isPersonPickerOpen}
+                onSelectCompany={handleSelectCompany}
+                onSelectEmployee={handleSelectEmployee}
+                onSelectPackage={handleSelectPackage}
+                onSelectPerson={handleSelectPerson}
             />
             </div>
 
