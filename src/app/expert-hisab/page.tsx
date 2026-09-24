@@ -889,17 +889,13 @@ export default function ExpertDashboardPage() {
             {/* Floating Action Button - + New Entry */}
             <div 
                 className="fixed left-0 right-0 mx-auto w-full max-w-md lg:max-w-lg xl:max-w-xl flex justify-center pointer-events-none z-40 px-4"
-                style={{ bottom: '102px' }}
+                style={{ bottom: 'calc(54px + max(0.35rem, env(safe-area-inset-bottom, 8px)) + 14px)' }}
             >
                 <Link
                     href="/transactions"
-                    className="inline-flex items-center gap-2 px-6 py-3.5 bg-[#1D68F2] hover:bg-[#1557D0] text-white text-[15px] font-semibold rounded-full pointer-events-auto active:scale-95 transition-all"
-                    style={{
-                        backgroundColor: '#1D68F2',
-                        boxShadow: '0 8px 24px rgba(29, 104, 242, 0.45)'
-                    }}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#1D68F2] hover:bg-[#1557D0] text-white text-[14px] font-semibold rounded-full pointer-events-auto active:scale-95 transition-all shadow-[0_6px_20px_rgba(29,104,242,0.38)]"
                 >
-                    <Plus className="w-5 h-5 stroke-[2.5]" />
+                    <Plus className="w-4.5 h-4.5 stroke-[2.5]" />
                     <span>New Entry</span>
                 </Link>
             </div>
