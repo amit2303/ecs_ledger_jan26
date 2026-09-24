@@ -93,7 +93,7 @@ function ColorCodedMessageText({ text, companyName }: { text: string; companyNam
     const afterSign = raw.substring(1).trim()
     
     // Extract numerical amount
-    const amountMatch = afterSign.match(/^(\d+(?:\.\d+)?)/)
+    const amountMatch = afterSign.match(/^(\d*\.?\d+)/)
     if (!amountMatch) {
         return <span className="font-normal text-[#111827] uppercase">{renderFormattedText(text.toUpperCase())}</span>
     }
@@ -486,7 +486,7 @@ export default function TransactionsPage() {
         try {
             const raw = (msg.rawText || '').trim()
             const afterSign = raw.startsWith('+') || raw.startsWith('-') ? raw.substring(1).trim() : raw
-            const amountMatch = afterSign.match(/^(\d+(?:\.\d+)?)/)
+            const amountMatch = afterSign.match(/^(\d*\.?\d+)/)
             const isInc = msg.rawText.startsWith('+')
             const sign = isInc ? '+' : '-'
             const amountNum = msg.amount || (amountMatch ? parseFloat(amountMatch[1]) : 0)
@@ -599,6 +599,13 @@ export default function TransactionsPage() {
     const [loading, setLoading] = useState(true)
     const [isCustomKeyboardOpen, setIsCustomKeyboardOpen] = useState(false)
     const messagesEndRef = useRef<HTMLDivElement>(null)
+    const inputScrollRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        if (inputScrollRef.current) {
+            inputScrollRef.current.scrollLeft = inputScrollRef.current.scrollWidth
+        }
+    }, [input])
 
     const handleCustomKeyPress = (char: string) => {
         // Prevent typing after person tag
@@ -759,7 +766,7 @@ export default function TransactionsPage() {
 
         const sign = raw[0] === '+' || raw[0] === '-' ? raw[0] : null
         const afterSign = sign ? raw.substring(1).trim() : raw
-        const amountMatch = afterSign.match(/^(\d+(?:\.\d+)?)/)
+        const amountMatch = afterSign.match(/^(\d*\.?\d+)/)
         const amount = amountMatch ? parseFloat(amountMatch[1]) : null
         const restAfterAmount = amountMatch ? afterSign.substring(amountMatch[0].length).trim() : afterSign
 
@@ -788,7 +795,7 @@ export default function TransactionsPage() {
         if (raw.startsWith('-')) return [] // No company suggestions for Expenses!
         if (selectedCompany || !raw) return []
         const afterSign = raw.startsWith('+') ? raw.substring(1).trim() : raw
-        const amountMatch = afterSign.match(/^(\d+(?:\.\d+)?)/)
+        const amountMatch = afterSign.match(/^(\d*\.?\d+)/)
         const rest = amountMatch ? afterSign.substring(amountMatch[0].length).trim() : afterSign
 
         const allHeads: CompanyItem[] = [
@@ -816,7 +823,7 @@ export default function TransactionsPage() {
         if (!raw.startsWith('-')) return [] // Only for Expenses
         if (selectedEmployee || !employees.length) return []
         const afterSign = raw.substring(1).trim()
-        const amountMatch = afterSign.match(/^(\d+(?:\.\d+)?)/)
+        const amountMatch = afterSign.match(/^(\d*\.?\d+)/)
         const rest = amountMatch ? afterSign.substring(amountMatch[0].length).trim() : afterSign
         if (!rest) return employees.slice(0, 8)
 
@@ -876,7 +883,7 @@ export default function TransactionsPage() {
             if (companyPackages.length > 0) setCompanyPackages([])
 
             const afterSign = upperVal.substring(1).trim()
-            const amountMatch = afterSign.match(/^(\d+(?:\.\d+)?)/)
+            const amountMatch = afterSign.match(/^(\d*\.?\d+)/)
             const rest = amountMatch ? afterSign.substring(amountMatch[0].length).trim() : afterSign
             const textWithoutPerson = rest.replace(/@[A-Z0-9_]+/gi, '').trim()
 
@@ -912,7 +919,7 @@ export default function TransactionsPage() {
             if (selectedEmployee) setSelectedEmployee(null)
 
             const afterSign = upperVal.substring(1).trim()
-            const amountMatch = afterSign.match(/^(\d+(?:\.\d+)?)/)
+            const amountMatch = afterSign.match(/^(\d*\.?\d+)/)
             const rest = amountMatch ? afterSign.substring(amountMatch[0].length).trim() : afterSign
             const textWithoutPerson = rest.replace(/@[A-Z0-9_]+/gi, '').trim()
 
@@ -2028,7 +2035,7 @@ export default function TransactionsPage() {
                     }}
                     className="flex-1 min-w-0 bg-white rounded-full border border-gray-300/80 px-4 py-2 flex items-center gap-2 shadow-xs cursor-text"
                 >
-                    <div className="w-full text-[15px] font-normal text-gray-900 font-sans tracking-normal uppercase min-h-[22px] flex items-center overflow-x-auto whitespace-nowrap">
+                    <div ref={inputScrollRef} className="w-full text-[15px] font-normal text-gray-900 font-sans tracking-normal uppercase min-h-[22px] flex items-center overflow-x-auto whitespace-nowrap scroll-smooth">
                         {input ? (
                             <span className="font-medium tracking-wide whitespace-pre">{input}</span>
                         ) : (

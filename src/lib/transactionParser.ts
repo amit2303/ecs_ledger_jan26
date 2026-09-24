@@ -61,7 +61,7 @@ export function extractMiscDescription(text: string | null | undefined): string 
     
     // Remove sign and find amount
     const afterSign = raw.substring(1).trim()
-    const amountMatch = afterSign.match(/^(\d+(?:\.\d+)?)/)
+    const amountMatch = afterSign.match(/^(\d*\.?\d+)/)
     if (!amountMatch) return ''
     
     const rest = afterSign.substring(amountMatch[0].length).trim()
@@ -104,7 +104,7 @@ export function parseTransactionMessage(text: string): ParseResult {
     }
 
     // Extract the amount (first token that looks like a number)
-    const amountMatch = rest.match(/^(\d+(?:\.\d+)?)/)
+    const amountMatch = rest.match(/^(\d*\.?\d+)/)
     if (!amountMatch) {
         return { error: 'Invalid amount. Expected a number after +/-', raw }
     }
