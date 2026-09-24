@@ -5,6 +5,7 @@ import { ChevronLeft, AlertCircle, Building2, Package as PackageIcon, X, Chevron
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { extractMiscDescription } from '@/lib/transactionParser'
+import { IOSKeyboard } from '@/components/IOSKeyboard'
 
 // ─── Person Config ────────────────────────────────────────────
 const PERSONS = [
@@ -475,7 +476,7 @@ export default function TransactionsPage() {
         if (detected) setSelectedPerson(detected)
 
         setTimeout(() => {
-            inputRef.current?.focus()
+            setIsCustomKeyboardOpen(true)
         }, 100)
     }
 
@@ -596,29 +597,33 @@ export default function TransactionsPage() {
     
     const [sending, setSending] = useState(false)
     const [loading, setLoading] = useState(true)
+    const [isCustomKeyboardOpen, setIsCustomKeyboardOpen] = useState(false)
     const messagesEndRef = useRef<HTMLDivElement>(null)
-    const inputRef = useRef<HTMLDivElement>(null)
 
-    // Sync contentEditable div with input state when modified programmatically
-    useEffect(() => {
-        if (inputRef.current) {
-            const currentUpper = (inputRef.current.textContent || '').toUpperCase()
-            if (currentUpper !== input) {
-                inputRef.current.textContent = input
-                // Move cursor to the end
-                try {
-                    const range = document.createRange()
-                    const sel = window.getSelection()
-                    range.selectNodeContents(inputRef.current)
-                    range.collapse(false)
-                    if (sel) {
-                        sel.removeAllRanges()
-                        sel.addRange(range)
-                    }
-                } catch (e) {}
-            }
+    const handleCustomKeyPress = (char: string) => {
+        // Prevent typing after person tag
+        const personEndMatch = input.match(/@\s*(AMIT|SUMIT|SSM|PAPA|MAMAJI|PANKAJ|BHAIYA)$/i)
+        if (personEndMatch) {
+            setWarningMsg('Cannot write anything after selecting person tag')
+            return
         }
-    }, [input])
+
+        // Prevent typing any non (+/-) key as first character when input is empty
+        if (!input && char !== '+' && char !== '-') {
+            setWarningMsg('Chat message MUST start with + or - symbol')
+            return
+        }
+
+        const nextVal = (input + char).toUpperCase()
+        handleInputChange(nextVal)
+    }
+
+    const handleCustomBackspace = () => {
+        if (input.length > 0) {
+            const nextVal = input.slice(0, -1)
+            handleInputChange(nextVal)
+        }
+    }
 
     
 
@@ -1001,7 +1006,7 @@ export default function TransactionsPage() {
         setSelectedCompany(null)
         if (currentPerson) setSelectedPerson(currentPerson)
         setWarningMsg(null)
-        inputRef.current?.focus()
+        setIsCustomKeyboardOpen(true)
     }
 
     const handleSelectPerson = (p: typeof PERSONS[number]) => {
@@ -1024,9 +1029,7 @@ export default function TransactionsPage() {
         }
 
         setWarningMsg(null)
-        setTimeout(() => {
-            inputRef.current?.focus()
-        }, 10)
+        setIsCustomKeyboardOpen(true)
     }
 
     const handleSelectCompany = (comp: CompanyItem) => {
@@ -1037,7 +1040,7 @@ export default function TransactionsPage() {
             setSelectedEmployee(null)
             setCompanyPackages([])
             setWarningMsg(null)
-            inputRef.current?.focus()
+            setIsCustomKeyboardOpen(true)
             return
         }
 
@@ -1053,7 +1056,7 @@ export default function TransactionsPage() {
         setSelectedEmployee(null)
         if (currentPerson) setSelectedPerson(currentPerson)
         setWarningMsg(null)
-        inputRef.current?.focus()
+        setIsCustomKeyboardOpen(true)
     }
 
     const handleSelectPackage = (pkg: PackageItem) => {
@@ -1063,7 +1066,7 @@ export default function TransactionsPage() {
             setSelectedPackage(pkg)
         }
         setWarningMsg(null)
-        inputRef.current?.focus()
+        setIsCustomKeyboardOpen(true)
     }
 
     // Validation Rules:
@@ -1209,7 +1212,7 @@ export default function TransactionsPage() {
             setWarningMsg('Failed to record entry. Please try again.')
         } finally {
             setSending(false)
-            inputRef.current?.focus()
+            setIsCustomKeyboardOpen(true)
         }
     }
 
@@ -1936,6 +1939,7 @@ export default function TransactionsPage() {
 
             {/* Chat Body (WhatsApp Image Background) */}
             <div 
+                onClick={() => setIsCustomKeyboardOpen(false)}
                 className="flex-1 overflow-y-auto ios-scroll px-3.5 py-3.5 bg-cover bg-center bg-no-repeat"
                 style={{
                     backgroundImage: "url('/uploads/WHATSAPP.jpeg')",
@@ -2098,41 +2102,32 @@ export default function TransactionsPage() {
 
             <div className="shrink-0 bg-[#EFEAE2] safe-area-bottom z-20">
             {/* iOS WhatsApp Bottom Input Bar */}
-            <form
-                onSubmit={(e) => {
-                    e.preventDefault()
-                    if (isFormValid && !sending) {
-                        handleSend()
-                    }
-                }}
-                action="javascript:void(0);"
-                className="border-t border-gray-300/60 px-3 py-2 flex items-center gap-2"
-            >
+            <div className="border-t border-gray-300/60 px-3 py-2 flex items-center gap-2">
                 {/* Rounded Input Field */}
                 <div 
-                    onClick={() => inputRef.current?.focus()}
+                    onClick={() => {
+                        setIsCustomKeyboardOpen(true)
+                        setTimeout(scrollToBottom, 50)
+                    }}
                     className="flex-1 min-w-0 bg-white rounded-full border border-gray-300/80 px-4 py-2 flex items-center gap-2 shadow-xs cursor-text"
                 >
-                    <div
-                        ref={inputRef}
-                        contentEditable={!sending}
-                        suppressContentEditableWarning
-                        inputMode="email"
-                        enterKeyHint="send"
-                        role="textbox"
-                        aria-multiline="false"
-                        onInput={(e) => handleInputChange(e.currentTarget.textContent || '')}
-                        onKeyDown={handleKeyDown}
-                        className="w-full text-[15px] font-normal text-gray-900 outline-none font-sans bg-transparent tracking-normal uppercase min-h-[22px] whitespace-pre-wrap break-all cursor-text empty:before:content-[''] before:text-gray-400 select-text"
-                        style={{ WebkitUserModify: 'read-write-plaintext-only', userSelect: 'text', WebkitUserSelect: 'text' }}
-                    />
+                    <div className="w-full text-[15px] font-normal text-gray-900 font-sans tracking-normal uppercase min-h-[22px] flex items-center overflow-x-auto whitespace-nowrap">
+                        {input ? (
+                            <span className="font-medium tracking-wide">{input}</span>
+                        ) : (
+                            <span className="text-gray-400 select-none">Tap to type transaction...</span>
+                        )}
+                        {/* Blinking iOS Blue Cursor */}
+                        {isCustomKeyboardOpen && (
+                            <span className="inline-block w-[2px] h-[19px] bg-[#007AFF] ml-0.5 animate-pulse shrink-0 rounded-full" />
+                        )}
+                    </div>
                     {input && (
                         <button
                             type="button"
                             onClick={(e) => {
                                 e.stopPropagation()
                                 handleInputChange('')
-                                if (inputRef.current) inputRef.current.textContent = ''
                             }}
                             className="p-1 text-gray-400 hover:text-gray-600 rounded-full shrink-0"
                         >
@@ -2143,7 +2138,8 @@ export default function TransactionsPage() {
 
                 {/* WhatsApp Green Round Send Button */}
                 <button
-                    type="submit"
+                    type="button"
+                    onClick={handleSend}
                     disabled={sending || !isFormValid}
                     className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all ${
                         isFormValid 
@@ -2155,7 +2151,7 @@ export default function TransactionsPage() {
                         <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
                     </svg>
                 </button>
-            </form>
+            </div>
 
             {/* Live Company Suggestions Bar */}
             {companySuggestions.length > 0 && !selectedCompany && (
@@ -2250,6 +2246,17 @@ export default function TransactionsPage() {
                     </button>
                 </div>
             )}
+
+            {/* Custom Native-Identical iOS Keyboard */}
+            <IOSKeyboard
+                isOpen={isCustomKeyboardOpen}
+                onClose={() => setIsCustomKeyboardOpen(false)}
+                onKeyPress={handleCustomKeyPress}
+                onBackspace={handleCustomBackspace}
+                onSend={handleSend}
+                isFormValid={isFormValid}
+                sending={sending}
+            />
             </div>
 
 
