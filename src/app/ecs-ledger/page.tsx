@@ -199,89 +199,93 @@ export default function Home() {
 
   return (
     <div className="flex flex-col h-full relative overflow-hidden" style={{ backgroundColor: '#F2F2F7' }} suppressHydrationWarning>
-      {/* Stats & Controls — Fixed top */}
-      <div className="shrink-0 z-10 px-4 pt-3 pb-0">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-2.5">
-          <StatCard
-            label="Total Client Due"
-            value={stats?.totalClientDue ?? '-'}
-            valueColor="text-ios-green"
-            accentColor="green"
-          />
-          <StatCard
-            label="Total Vendor Due"
-            value={stats?.totalVendorDue ?? '-'}
-            valueColor="text-ios-red"
-            accentColor="red"
-          />
-          <StatCard
-            label="Clients"
-            value={stats?.totalClients ?? '-'}
-            showCurrency={false}
-            onClick={() => setFilter('CLIENT')}
-            isActive={filter === 'CLIENT'}
-            accentColor="blue"
-          />
-          <StatCard
-            label="Vendors"
-            value={stats?.totalVendors ?? '-'}
-            showCurrency={false}
-            onClick={() => setFilter('VENDOR')}
-            isActive={filter === 'VENDOR'}
-            accentColor="orange"
-          />
-        </div>
-
-        {/* Search Bar & Actions — Premium Apple Card Style */}
-        <div className="relative mt-3 flex items-center gap-2.5 h-[44px]">
-          <div
-            className="flex-1 h-full relative rounded-2xl bg-white flex items-center px-3.5 transition-all focus-within:ring-2 focus-within:ring-ios-blue/30"
-            style={{
-              boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)',
-            }}
-          >
-            <Search className="w-[18px] h-[18px] text-gray-400 shrink-0 mr-2.5" />
-            <input
-              type="text"
-              placeholder="Search companies..."
-              className="h-full w-full text-[15px] text-gray-900 placeholder-gray-400 bg-transparent outline-none"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+      {/* Main scroll container — 4 cards scroll away, search bar sticks to top */}
+      <div className="flex-1 overflow-y-auto ios-scroll pb-44">
+        {/* 4 Stat Cards — Scroll away when user scrolls down */}
+        <div className="px-4 pt-3 pb-1">
+          <div className="grid grid-cols-2 gap-2.5">
+            <StatCard
+              label="Total Client Due"
+              value={stats?.totalClientDue ?? '-'}
+              valueColor="text-ios-green"
+              accentColor="green"
             />
-            {search && (
-              <button
-                type="button"
-                onClick={() => setSearch('')}
-                className="p-1 text-gray-400 hover:text-gray-600 active:opacity-60 transition-opacity shrink-0"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
+            <StatCard
+              label="Total Vendor Due"
+              value={stats?.totalVendorDue ?? '-'}
+              valueColor="text-ios-red"
+              accentColor="red"
+            />
+            <StatCard
+              label="Clients"
+              value={stats?.totalClients ?? '-'}
+              showCurrency={false}
+              onClick={() => setFilter('CLIENT')}
+              isActive={filter === 'CLIENT'}
+              accentColor="blue"
+            />
+            <StatCard
+              label="Vendors"
+              value={stats?.totalVendors ?? '-'}
+              showCurrency={false}
+              onClick={() => setFilter('VENDOR')}
+              isActive={filter === 'VENDOR'}
+              accentColor="orange"
+            />
           </div>
-          <button
-            onClick={() => setShowDashboardActions(true)}
-            className="h-[44px] w-[44px] rounded-2xl bg-white flex items-center justify-center text-gray-600 ios-press shrink-0 transition-transform"
-            style={{
-              boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)',
-            }}
-            title="More Options"
-          >
-            <MoreVertical className="w-5 h-5 text-gray-600" />
-          </button>
         </div>
 
-      </div>
+        {/* Sticky Search Bar & Headers — Stays pinned at top */}
+        <div
+          className="sticky top-0 z-20 px-4 pt-2.5 pb-2 space-y-2 bg-[#F2F2F7]/95 backdrop-blur-md border-b border-black/[0.04]"
+        >
+          {/* Search Bar & Actions — Premium Apple Card Style */}
+          <div className="relative flex items-center gap-2.5 h-[44px]">
+            <div
+              className="flex-1 h-full relative rounded-2xl bg-white flex items-center px-3.5 transition-all focus-within:ring-2 focus-within:ring-ios-blue/30"
+              style={{
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)',
+              }}
+            >
+              <Search className="w-[18px] h-[18px] text-gray-400 shrink-0 mr-2.5" />
+              <input
+                type="text"
+                placeholder="Search companies..."
+                className="h-full w-full text-[15px] text-gray-900 placeholder-gray-400 bg-transparent outline-none"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch('')}
+                  className="p-1 text-gray-400 hover:text-gray-600 active:opacity-60 transition-opacity shrink-0"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+            <button
+              onClick={() => setShowDashboardActions(true)}
+              className="h-[44px] w-[44px] rounded-2xl bg-white flex items-center justify-center text-gray-600 ios-press shrink-0 transition-transform"
+              style={{
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.05)',
+              }}
+              title="More Options"
+            >
+              <MoreVertical className="w-5 h-5 text-gray-600" />
+            </button>
+          </div>
 
-      {/* Company List */}
-      <div className="flex-1 flex flex-col min-h-0 mt-3">
-        {/* List Header */}
-        <div className="flex justify-between items-center px-8 pb-2 text-[12px] font-semibold text-ios-gray uppercase tracking-wider select-none">
-          <span>COMPANY</span>
-          <span className="pr-6">DUE</span>
+          {/* List Header */}
+          <div className="flex justify-between items-center px-4 pt-0.5 text-[12px] font-semibold text-ios-gray uppercase tracking-wider select-none">
+            <span>COMPANY</span>
+            <span className="pr-6">DUE</span>
+          </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto ios-scroll px-4 pb-44">
+        {/* Company List */}
+        <div className="px-4 pt-2.5">
           {filteredCompanies.length > 0 ? (
             <div className="flex flex-col gap-2">
               {filteredCompanies.map((company) => (
