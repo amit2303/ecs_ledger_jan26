@@ -259,14 +259,6 @@ export default function Home() {
               </button>
             )}
           </div>
-          <Link
-            href="/add-company"
-            className="h-[44px] px-3.5 rounded-2xl bg-ios-blue text-white flex items-center justify-center gap-1.5 font-semibold text-[13px] ios-press shrink-0 shadow-sm"
-            title="Add Company"
-          >
-            <Plus className="w-4.5 h-4.5 stroke-[2.5]" />
-            <span>Add</span>
-          </Link>
           <button
             onClick={() => setShowDashboardActions(true)}
             className="h-[44px] w-[44px] rounded-2xl bg-white flex items-center justify-center text-gray-600 ios-press shrink-0 transition-transform"
@@ -465,7 +457,7 @@ function CompanyItem({ company, onLongPress }: { company: CompanySummary, onLong
         <div className="flex-1 min-w-0 pr-3">
           {/* Top line: 1 BOOSTER */}
           <div className="flex items-center min-w-0">
-            <h3 className="text-[16px] font-semibold text-gray-900 leading-snug truncate">
+            <h3 className="text-[17px] font-semibold text-gray-900 leading-snug truncate">
               {sNo && (
                 <span className="font-bold tabular-nums mr-1.5">{sNo}</span>
               )}
