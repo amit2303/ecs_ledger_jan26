@@ -2006,96 +2006,13 @@ export default function TransactionsPage() {
                 </button>
             </div>
 
-            {/* iOS Style Floating Error Toast */}
+
             {warningMsg && (
                 <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 bg-gray-900/95  text-white px-4 py-2.5 rounded-full text-[13px] font-medium flex items-center gap-2.5 shadow-[0_4px_16px_rgba(0,0,0,0.15)] z-50 animate-in slide-in-from-bottom-2 fade-in duration-200 w-max max-w-[90vw]">
                     <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
                     <span className="truncate">{warningMsg}</span>
                     <button onClick={() => setWarningMsg(null)} className="p-0.5 hover:bg-white/10 rounded-full ml-1 transition-colors">
                         <X className="w-4 h-4" />
-                    </button>
-                </div>
-            )}
-
-            {/* FIXED DOCKED HEAD (ECS MISC) BADGE ABOVE TEXT INPUT FIELD */}
-            {selectedCompany?.id === -1 && (
-                <div className="bg-white/95  px-3.5 py-1.5 border-t border-gray-200/80 flex items-center justify-between z-20 animate-in slide-in-from-bottom-1 duration-150">
-                    <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-[12px] font-bold text-[#D97706] bg-[#FEF3C7] border border-[#FDE68A] px-2.5 py-0.5 rounded-full shadow-sm shrink-0">
-                            Head: ECS MISC
-                        </span>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => setSelectedCompany(null)}
-                        className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors shrink-0"
-                        title="Remove ECS MISC selection"
-                    >
-                        <X className="w-3.5 h-3.5" />
-                    </button>
-                </div>
-            )}
-
-            {/* FIXED DOCKED EMPLOYEE BADGE ABOVE TEXT INPUT FIELD */}
-            {selectedEmployee && input.startsWith('-') && (
-                <div className="bg-white/95  px-3.5 py-1.5 border-t border-gray-200/80 flex items-center justify-between z-20 animate-in slide-in-from-bottom-1 duration-150">
-                    <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-[11px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
-                            <UserCircle2 className="w-3 h-3 text-gray-500" /> Employee
-                        </span>
-                        <span className="text-[13px] font-medium text-gray-800 truncate">
-                            {selectedEmployee.name}
-                        </span>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => setSelectedEmployee(null)}
-                        className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors shrink-0"
-                        title="Remove employee selection"
-                    >
-                        <X className="w-3.5 h-3.5" />
-                    </button>
-                </div>
-            )}
-
-            {/* FIXED DOCKED CUSTOM DATE BADGE ABOVE TEXT INPUT FIELD */}
-            {customEntryDate && (
-                <div className="bg-white/95  px-3.5 py-1.5 border-t border-gray-200/80 flex items-center justify-between z-20 animate-in slide-in-from-bottom-1 duration-150">
-                    <div className="flex items-center gap-2 min-w-0 text-[13px] text-gray-600">
-                        <span>Date:</span>
-                        <strong className="font-medium text-gray-900">{formatDisplayCustomDate(customEntryDate)}</strong>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => setCustomEntryDate(null)}
-                        className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors shrink-0"
-                        title="Reset to today"
-                    >
-                        <X className="w-3.5 h-3.5" />
-                    </button>
-                </div>
-            )}
-
-
-
-            {/* FIXED DOCKED PACKAGE BADGE ABOVE TEXT INPUT FIELD */}
-            {selectedPackage && (
-                <div className="bg-white/95  px-3.5 py-1.5 border-t border-gray-200/80 flex items-center justify-between z-20 animate-in slide-in-from-bottom-1 duration-150">
-                    <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-[11px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
-                            <PackageIcon className="w-3 h-3 text-gray-500" /> Package
-                        </span>
-                        <span className="text-[13px] font-medium text-gray-800 truncate">
-                            {selectedPackage.description}
-                        </span>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => setSelectedPackage(null)}
-                        className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors shrink-0"
-                        title="Remove package selection"
-                    >
-                        <X className="w-3.5 h-3.5" />
                     </button>
                 </div>
             )}
@@ -2152,6 +2069,85 @@ export default function TransactionsPage() {
                     </svg>
                 </button>
             </div>
+
+            {/* ─── Selected State Badges (inside keyboard zone, below text bar) ─── */}
+
+            {/* Selected Head: ECS MISC */}
+            {selectedCompany?.id === -1 && (
+                <div className="px-3 py-1.5 flex items-center justify-between" style={{ borderTop: '0.5px solid rgba(0,0,0,0.06)', background: 'rgba(210,210,215,0.5)' }}>
+                    <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-[12px] font-bold text-[#D97706] bg-[#FEF3C7] border border-[#FDE68A] px-2.5 py-0.5 rounded-full shadow-sm shrink-0">
+                            Head: ECS MISC
+                        </span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setSelectedCompany(null)}
+                        className="p-1 text-gray-400 hover:text-gray-600 rounded-full transition-colors shrink-0"
+                    >
+                        <X className="w-3.5 h-3.5" />
+                    </button>
+                </div>
+            )}
+
+            {/* Selected Employee */}
+            {selectedEmployee && input.startsWith('-') && (
+                <div className="px-3 py-1.5 flex items-center justify-between" style={{ borderTop: '0.5px solid rgba(0,0,0,0.06)', background: 'rgba(210,210,215,0.5)' }}>
+                    <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-[11px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
+                            <UserCircle2 className="w-3 h-3 text-gray-500" /> Employee
+                        </span>
+                        <span className="text-[13px] font-medium text-gray-800 truncate">
+                            {selectedEmployee.name}
+                        </span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setSelectedEmployee(null)}
+                        className="p-1 text-gray-400 hover:text-gray-600 rounded-full transition-colors shrink-0"
+                    >
+                        <X className="w-3.5 h-3.5" />
+                    </button>
+                </div>
+            )}
+
+            {/* Custom Date Badge */}
+            {customEntryDate && (
+                <div className="px-3 py-1.5 flex items-center justify-between" style={{ borderTop: '0.5px solid rgba(0,0,0,0.06)', background: 'rgba(210,210,215,0.5)' }}>
+                    <div className="flex items-center gap-2 min-w-0 text-[13px] text-gray-600">
+                        <span>Date:</span>
+                        <strong className="font-medium text-gray-900">{formatDisplayCustomDate(customEntryDate)}</strong>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setCustomEntryDate(null)}
+                        className="p-1 text-gray-400 hover:text-gray-600 rounded-full transition-colors shrink-0"
+                    >
+                        <X className="w-3.5 h-3.5" />
+                    </button>
+                </div>
+            )}
+
+            {/* Selected Package */}
+            {selectedPackage && (
+                <div className="px-3 py-1.5 flex items-center justify-between" style={{ borderTop: '0.5px solid rgba(0,0,0,0.06)', background: 'rgba(210,210,215,0.5)' }}>
+                    <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-[11px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
+                            <PackageIcon className="w-3 h-3 text-gray-500" /> Package
+                        </span>
+                        <span className="text-[13px] font-medium text-gray-800 truncate">
+                            {selectedPackage.description}
+                        </span>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setSelectedPackage(null)}
+                        className="p-1 text-gray-400 hover:text-gray-600 rounded-full transition-colors shrink-0"
+                    >
+                        <X className="w-3.5 h-3.5" />
+                    </button>
+                </div>
+            )}
 
             {/* Custom iOS 26 Liquid Glass Keyboard with integrated suggestions */}
             <IOSKeyboard
