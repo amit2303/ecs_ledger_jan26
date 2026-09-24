@@ -2030,7 +2030,7 @@ export default function TransactionsPage() {
                 >
                     <div className="w-full text-[15px] font-normal text-gray-900 font-sans tracking-normal uppercase min-h-[22px] flex items-center overflow-x-auto whitespace-nowrap">
                         {input ? (
-                            <span className="font-medium tracking-wide">{input}</span>
+                            <span className="font-medium tracking-wide whitespace-pre">{input}</span>
                         ) : (
                             <span className="text-gray-400 select-none">Tap to type transaction...</span>
                         )}

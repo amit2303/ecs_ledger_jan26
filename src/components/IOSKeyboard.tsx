@@ -296,8 +296,7 @@ export function IOSKeyboard({
                             {renderSuggestionPill(
                                 'ecs-misc',
                                 'ECS MISC',
-                                () => onSelectCompany?.({ id: -1, name: 'ECS MISC' }),
-                                true
+                                () => onSelectCompany?.({ id: -1, name: 'ECS MISC' })
                             )}
                             {employeeSuggestions.map(emp =>
                                 renderSuggestionPill(
@@ -333,9 +332,7 @@ export function IOSKeyboard({
                                 renderSuggestionPill(
                                     p.canonical,
                                     p.display,
-                                    () => onSelectPerson?.(p),
-                                    false,
-                                    { background: p.bg, color: p.color, border: `0.5px solid ${p.border}`, fontWeight: 600 }
+                                    () => onSelectPerson?.(p)
                                 )
                             )}
                         </>
