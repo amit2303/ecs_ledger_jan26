@@ -272,63 +272,17 @@ export default function ExpertDashboardPage() {
         return { message, isSettled, amount, payer, payee, ssmExpected, pankajExpected, ssmActual, pankajActual, ssmDiff, pankajDiff }
     }, [totals, ssmStats, pankajStats, selectedMonth])
 
-    const currentIdx = availableMonths.indexOf(selectedMonth)
-    const canPrev = currentIdx < availableMonths.length - 1
-    const canNext = currentIdx > 0
-
     return (
         <div className="flex-1 flex flex-col h-full overflow-y-auto ios-scroll pb-44" style={{ backgroundColor: '#F2F2F7' }}>
-            {/* Top Header matching iOS Ledger header style */}
-            <div className="px-4 pt-4 pb-2">
-                <div className="flex items-center justify-between gap-3">
-                    {/* Left: Blue Icon Box + Dashboard + Month */}
-                    <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-10 h-10 rounded-[14px] bg-[#E8F1FD] flex items-center justify-center shrink-0 border border-black/5">
-                            <Calendar className="w-5 h-5 text-[#2563EB] stroke-[2.2]" />
-                        </div>
-                        <div className="min-w-0">
-                            <h1 className="text-[20px] sm:text-[22px] font-bold text-gray-900 tracking-tight leading-tight">Dashboard</h1>
-                            <p className="text-[12px] sm:text-[13px] text-gray-500 font-normal truncate">{monthLabel(selectedMonth)}</p>
-                        </div>
-                    </div>
-
-                    {/* Right: Select Month Dropdown */}
-                    <div className="flex items-center gap-2 shrink-0">
-                        <div className="relative">
-                            <select 
-                                value={selectedMonth}
-                                onChange={(e) => setSelectedMonth(e.target.value)}
-                                className="appearance-none bg-white border border-gray-200/90 rounded-xl pl-3 pr-7 py-1.5 text-[12px] sm:text-[13px] font-semibold text-gray-800 shadow-2xs focus:outline-none cursor-pointer"
-                            >
-                                {availableMonths.map((mKey) => (
-                                    <option key={mKey} value={mKey}>
-                                        {shortMonthLabel(mKey)}
-                                    </option>
-                                ))}
-                            </select>
-                            <ChevronDown className="w-3.5 h-3.5 text-gray-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             {loading ? (
                 <div className="flex-1 flex items-center justify-center">
                     <div className="text-gray-500 text-[14px] bg-white px-5 py-3 rounded-full shadow-sm border border-black/5 font-medium animate-pulse">Loading...</div>
                 </div>
-            ) : monthMessages.length === 0 && (!histSummary || histSummary.entryCount === 0) ? (
-                <div className="flex-1 flex flex-col items-center justify-center px-6 mt-12 opacity-80 ios-fade-in">
-                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                        <BookText className="w-10 h-10 text-gray-400" />
-                    </div>
-                    <h3 className="text-[17px] font-semibold text-gray-900 tracking-tight">No Transactions</h3>
-                    <p className="text-[14px] text-gray-500 text-center mt-1">There is no financial history recorded for {monthLabel(selectedMonth)}.</p>
-                </div>
             ) : (
-                <div className="px-4 space-y-3 mt-3 ios-fade-in">
-                    {/* Monthly Metrics: Net on Top, Income & Expense side-by-side (2 columns) */}
+                <div className="px-4 space-y-3 pt-3.5 ios-fade-in">
+                    {/* Monthly Metrics: Net on Top with Integrated Month Selector, Income & Expense side-by-side (2 columns) */}
                     <div className="space-y-3">
-                        {/* 1. Net Card */}
+                        {/* 1. Net Card with Integrated Month Selector */}
                         <div 
                             className="bg-white rounded-[20px] p-4 flex items-center justify-between shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-black/5 transition-transform active:scale-[0.98]"
                         >
@@ -338,8 +292,21 @@ export default function ExpertDashboardPage() {
                                     ₹{formatCurrency(totals.net)}
                                 </p>
                             </div>
-                            <div className="w-11 h-11 rounded-[14px] bg-[#EBF3FE] flex items-center justify-center shrink-0">
-                                <IndianRupee className="w-5 h-5 text-[#2563EB] stroke-[2.2]" />
+                            
+                            {/* Month Selector Dropdown */}
+                            <div className="relative shrink-0">
+                                <select 
+                                    value={selectedMonth}
+                                    onChange={(e) => setSelectedMonth(e.target.value)}
+                                    className="appearance-none bg-[#F2F2F7] hover:bg-gray-200/70 border border-black/5 rounded-xl pl-3 pr-7 py-1.5 text-[12px] sm:text-[13px] font-semibold text-gray-800 shadow-2xs focus:outline-none cursor-pointer active:scale-95 transition-all"
+                                >
+                                    {availableMonths.map((mKey) => (
+                                        <option key={mKey} value={mKey}>
+                                            {shortMonthLabel(mKey)}
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronDown className="w-3.5 h-3.5 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             </div>
                         </div>
 
