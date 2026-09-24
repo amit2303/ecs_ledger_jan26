@@ -72,7 +72,7 @@ export default function AddCompany() {
                 </div>
             </header>
 
-            <div className="flex-1 overflow-y-auto ios-scroll px-4 pt-4 pb-36">
+            <div className="flex-1 overflow-y-auto ios-scroll px-4 pt-4 pb-44">
                 <form id="add-company-form" onSubmit={handleSubmit} className="space-y-6">
                     {/* Type Selector — iOS Segmented Control */}
                     <div>
@@ -164,18 +164,19 @@ export default function AddCompany() {
                 </form>
             </div>
 
-            {/* Bottom Button */}
-            <div className="fixed bottom-0 left-0 w-full flex justify-center pointer-events-none z-40">
-                <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl p-4 pointer-events-auto safe-area-bottom" style={{ backgroundColor: 'rgba(242,242,247,0.9)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderTop: '0.5px solid rgba(60,60,67,0.12)' }}>
-                    <button
-                        form="add-company-form"
-                        disabled={loading}
-                        type="submit"
-                        className="w-full py-[14px] bg-ios-blue text-white text-[17px] font-semibold rounded-2xl ios-press disabled:opacity-50"
-                    >
-                        {loading ? 'Creating...' : 'Create Company'}
-                    </button>
-                </div>
+            {/* Bottom Button above BottomNav */}
+            <div 
+                className="fixed left-0 right-0 mx-auto w-full max-w-md lg:max-w-lg xl:max-w-xl px-4 pointer-events-none z-40"
+                style={{ bottom: 'calc(56px + max(8px, env(safe-area-inset-bottom, 8px)) + 10px)' }}
+            >
+                <button
+                    form="add-company-form"
+                    disabled={loading}
+                    type="submit"
+                    className="w-full py-[14px] bg-ios-blue text-white text-[16px] font-semibold rounded-2xl shadow-[0_4px_16px_rgba(0,122,255,0.35)] ios-press pointer-events-auto disabled:opacity-50 active:scale-[0.98] transition-all"
+                >
+                    {loading ? 'Creating...' : 'Create Company'}
+                </button>
             </div>
         </div>
     )

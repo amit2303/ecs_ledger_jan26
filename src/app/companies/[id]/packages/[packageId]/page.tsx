@@ -633,7 +633,7 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
 
             {/* Content */}
             <div className="flex-1 flex flex-col min-h-0">
-                <div className="flex-1 overflow-y-auto ios-scroll px-4 pt-3 pb-36">
+                <div className="flex-1 overflow-y-auto ios-scroll px-4 pt-3 pb-44">
                     {activeTab === 'AMOUNT' ? (
                         <div className="space-y-4">
                             {/* Monthly Charges Section */}
@@ -991,13 +991,13 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                 onChange={handleFileUpload}
             />
 
-            {/* Floating Action Buttons */}
+            {/* Floating Action Buttons above BottomNav */}
             <div className="fixed bottom-0 left-0 w-full flex justify-center pointer-events-none z-40">
                 <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl relative h-0">
                     <button
                         onClick={() => fileInputRef.current?.click()}
-                        className="absolute left-5 w-14 h-14 bg-white text-ios-blue rounded-full flex items-center justify-center ios-press pointer-events-auto"
-                        style={{ bottom: 'max(1.5rem, env(safe-area-inset-bottom, 1rem))', boxShadow: '0 2px 12px rgba(0,0,0,0.12)' }}
+                        className="absolute left-5 w-14 h-14 bg-white text-ios-blue rounded-full flex items-center justify-center ios-press pointer-events-auto shadow-[0_4px_16px_rgba(0,0,0,0.12)] border border-black/5"
+                        style={{ bottom: 'calc(56px + max(8px, env(safe-area-inset-bottom, 8px)) + 12px)' }}
                     >
                         <Upload className="w-6 h-6" />
                     </button>
@@ -1017,8 +1017,8 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                                 }
                             }
                         }}
-                        className="absolute right-5 w-14 h-14 bg-ios-blue text-white rounded-full flex items-center justify-center ios-press pointer-events-auto"
-                        style={{ bottom: 'max(1.5rem, env(safe-area-inset-bottom, 1rem))', boxShadow: '0 4px 14px rgba(0,122,255,0.4)' }}
+                        className="absolute right-5 w-14 h-14 bg-ios-blue text-white rounded-full flex items-center justify-center ios-press pointer-events-auto shadow-[0_6px_20px_rgba(0,122,255,0.4)]"
+                        style={{ bottom: 'calc(56px + max(8px, env(safe-area-inset-bottom, 8px)) + 12px)' }}
                     >
                         {(activeTab === 'AMOUNT' && showAddCharge) || (activeTab === 'PAYMENTS' && showAddPayment) ? <X className="w-7 h-7" strokeWidth={2.5} /> : <Plus className="w-7 h-7" strokeWidth={2.5} />}
                     </button>

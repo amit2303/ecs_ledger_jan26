@@ -50,7 +50,7 @@ export default function AddPayment({ params }: { params: Promise<{ id: string }>
                 <h1 className="text-lg font-medium text-gray-900">Add Payment</h1>
             </header>
 
-            <div className="flex-1 overflow-y-auto ios-scroll px-2 pt-2 pb-36">
+            <div className="flex-1 overflow-y-auto ios-scroll px-2 pt-2 pb-44">
                 <form id="add-payment-form" onSubmit={handleSubmit} className="space-y-4">
                     <div className="bg-white p-3 space-y-4 rounded-xl shadow-sm border border-gray-100">
                         <div>
@@ -88,17 +88,19 @@ export default function AddPayment({ params }: { params: Promise<{ id: string }>
                 </form>
             </div>
 
-            <div className="fixed bottom-0 left-0 w-full flex justify-center pointer-events-none z-40">
-                <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl bg-white border-t border-gray-100 p-4 pointer-events-auto">
-                    <button
-                        form="add-payment-form"
-                        disabled={loading}
-                        type="submit"
-                        className="w-full py-3.5 bg-green-600 text-white font-medium rounded-xl shadow-lg active:scale-[98%] transition-transform disabled:opacity-70"
-                    >
-                        {loading ? 'Saving...' : 'Save Payment'}
-                    </button>
-                </div>
+            {/* Bottom Button above BottomNav */}
+            <div 
+                className="fixed left-0 right-0 mx-auto w-full max-w-md lg:max-w-lg xl:max-w-xl px-4 pointer-events-none z-40"
+                style={{ bottom: 'calc(56px + max(8px, env(safe-area-inset-bottom, 8px)) + 10px)' }}
+            >
+                <button
+                    form="add-payment-form"
+                    disabled={loading}
+                    type="submit"
+                    className="w-full py-3.5 bg-green-600 text-white font-medium rounded-2xl shadow-[0_4px_16px_rgba(22,163,74,0.35)] ios-press pointer-events-auto active:scale-[0.98] transition-all disabled:opacity-70"
+                >
+                    {loading ? 'Saving...' : 'Save Payment'}
+                </button>
             </div>
         </div>
     )
