@@ -1357,6 +1357,7 @@ export default function TransactionsPage() {
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 autoFocus
+                                tabIndex={-1}
                                 className="w-full bg-[#F5F3EF] hover:bg-[#EFECE6] focus:bg-white text-gray-900 text-[16px] font-normal pl-11 pr-9 py-2.5 rounded-full outline-none border border-gray-300/50 focus:border-[#007AFF] transition-all shadow-xs"
                             />
                             {searchQuery && (
@@ -1627,6 +1628,7 @@ export default function TransactionsPage() {
                                                                     value={filterCompanySearch}
                                                                     onChange={(e) => setFilterCompanySearch(e.target.value)}
                                                                     autoFocus
+                                                                    tabIndex={-1}
                                                                     className="w-full bg-[#767680]/12 text-[13px] rounded-lg pl-7 pr-7 py-1 text-black placeholder:text-gray-400 outline-none border border-transparent focus:border-[#007AFF]/40"
                                                                 />
                                                                 {filterCompanySearch && (
@@ -1699,6 +1701,7 @@ export default function TransactionsPage() {
                                                                     value={filterEmployeeSearch}
                                                                     onChange={(e) => setFilterEmployeeSearch(e.target.value)}
                                                                     autoFocus
+                                                                    tabIndex={-1}
                                                                     className="w-full bg-[#767680]/12 text-[13px] rounded-lg pl-7 pr-7 py-1 text-black placeholder:text-gray-400 outline-none border border-transparent focus:border-[#007AFF]/40"
                                                                 />
                                                                 {filterEmployeeSearch && (
@@ -1808,6 +1811,7 @@ export default function TransactionsPage() {
 
                                             <input 
                                                 type="date"
+                                                tabIndex={-1}
                                                 max={getTodayStr()}
                                                 value={customEntryDate || getTodayStr()}
                                                 onChange={(e) => {
@@ -2072,16 +2076,31 @@ export default function TransactionsPage() {
 
             <div className="shrink-0 bg-[#EFEAE2] safe-area-bottom z-20">
             {/* iOS WhatsApp Bottom Input Bar */}
-            <div className="border-t border-gray-300/60 px-3 py-2 flex items-center gap-2">
+            <form
+                onSubmit={(e) => {
+                    e.preventDefault()
+                    if (isFormValid && !sending) {
+                        handleSend()
+                    }
+                }}
+                action="javascript:void(0);"
+                className="border-t border-gray-300/60 px-3 py-2 flex items-center gap-2"
+            >
                 {/* Rounded Input Field */}
                 <div className="flex-1 min-w-0 bg-white rounded-full border border-gray-300/80 px-4 py-2 flex items-center gap-2 shadow-xs">
                     <input
                         ref={inputRef}
                         type="text"
                         inputMode="email"
+                        enterKeyHint="send"
                         value={input}
                         onChange={(e) => handleInputChange(e.target.value)}
                         onKeyDown={handleKeyDown}
+                        onFocus={() => {
+                            setTimeout(() => {
+                                inputRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+                            }, 300)
+                        }}
                         className="w-full text-[15px] font-normal text-gray-900 placeholder:text-gray-400 placeholder:font-normal outline-none font-sans bg-transparent tracking-normal uppercase"
                         disabled={sending}
                         autoComplete="off"
@@ -2102,8 +2121,7 @@ export default function TransactionsPage() {
 
                 {/* WhatsApp Green Round Send Button */}
                 <button
-                    type="button"
-                    onClick={handleSend}
+                    type="submit"
                     disabled={sending || !isFormValid}
                     className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all ${
                         isFormValid 
@@ -2115,7 +2133,7 @@ export default function TransactionsPage() {
                         <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
                     </svg>
                 </button>
-            </div>
+            </form>
 
             {/* Live Company Suggestions Bar */}
             {companySuggestions.length > 0 && !selectedCompany && (
