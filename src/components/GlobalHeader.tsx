@@ -4,16 +4,16 @@ import { usePathname } from 'next/navigation'
 import { HeaderActions } from '@/components/HeaderActions'
 
 function getHeaderInfo(pathname: string | null) {
-    if (!pathname) return { title: 'ECS Ledger', subtitle: 'Financial Dashboard' }
+    if (!pathname) return { title: 'ECS Ledger', subtitle: 'Expert Hisab Kitab' }
 
     if (pathname.startsWith('/quotations')) {
-        return { title: 'Quotations', subtitle: 'Estimates & Proposals' }
+        return { title: 'Quotations', subtitle: 'Packages and Proposals' }
     }
     if (pathname.startsWith('/ecs-ledger')) {
-        return { title: 'Clients Ledger', subtitle: 'Company Accounts & Balances' }
+        return { title: 'Clients Ledger', subtitle: 'Payments and Dues' }
     }
     if (pathname.startsWith('/expert-hisab')) {
-        return { title: 'Company Ledger', subtitle: 'Financial Dashboard' }
+        return { title: 'Company Ledger', subtitle: 'Expert Hisab Kitab' }
     }
     if (pathname.startsWith('/employee-payments')) {
         return { title: 'Employee', subtitle: 'Salaries & Advances' }
@@ -28,7 +28,7 @@ function getHeaderInfo(pathname: string | null) {
         return { title: 'Security', subtitle: 'Change Password' }
     }
 
-    return { title: 'ECS Ledger', subtitle: 'Financial Dashboard' }
+    return { title: 'ECS Ledger', subtitle: 'Expert Hisab Kitab' }
 }
 
 export function GlobalHeader() {
