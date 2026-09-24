@@ -34,6 +34,8 @@ interface IOSKeyboardProps {
     onSelectPackage?: (pkg: PackageItem) => void
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onSelectPerson?: (p: any) => void
+    cursorPosition?: number
+    onCursorMove?: (pos: number) => void
 }
 
 type KeyboardMode = 'letters' | 'numbers' | 'symbols'
@@ -109,8 +111,16 @@ export function IOSKeyboard({
     onSelectEmployee,
     onSelectPackage,
     onSelectPerson,
+    cursorPosition = 0,
+    onCursorMove
 }: IOSKeyboardProps) {
     const [mode, setMode] = useState<KeyboardMode>('letters')
+    
+    // Trackpad mode for spacebar long press
+    const [isTrackpadMode, setIsTrackpadMode] = useState(false)
+    const trackpadStartX = useRef(0)
+    const trackpadStartCursor = useRef(0)
+    const spaceLongPressTimeout = useRef<NodeJS.Timeout | null>(null)
     const [activeKey, setActiveKey] = useState<string | null>(null)
     const backspaceIntervalRef = useRef<NodeJS.Timeout | null>(null)
     const backspaceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -258,6 +268,52 @@ export function IOSKeyboard({
             {label}
         </button>
     )
+
+    // ─── Trackpad (Spacebar) Handlers ─────────────────────────────
+    const handleSpaceTouchStart = (e: React.TouchEvent) => {
+        const touch = e.touches[0]
+        trackpadStartX.current = touch.clientX
+        trackpadStartCursor.current = cursorPosition
+
+        spaceLongPressTimeout.current = setTimeout(() => {
+            setIsTrackpadMode(true)
+            triggerHaptic()
+        }, 250)
+    }
+
+    const handleSpaceTouchMove = (e: React.TouchEvent) => {
+        if (!isTrackpadMode) {
+            const touch = e.touches[0]
+            if (Math.abs(touch.clientX - trackpadStartX.current) > 10) {
+                if (spaceLongPressTimeout.current) clearTimeout(spaceLongPressTimeout.current)
+            }
+            return
+        }
+        
+        const touch = e.touches[0]
+        const diffX = touch.clientX - trackpadStartX.current
+        
+        // Every 8 pixels of movement shifts cursor by 1 character
+        const shift = Math.floor(diffX / 8)
+        let newPos = trackpadStartCursor.current + shift
+        if (newPos < 0) newPos = 0
+        if (newPos > inputValue.length) newPos = inputValue.length
+        
+        if (newPos !== cursorPosition) {
+            onCursorMove?.(newPos)
+            triggerHaptic()
+        }
+    }
+
+    const handleSpaceTouchEnd = (e: React.TouchEvent) => {
+        if (spaceLongPressTimeout.current) clearTimeout(spaceLongPressTimeout.current)
+        if (isTrackpadMode) {
+            setIsTrackpadMode(false)
+        } else {
+            // Normal tap
+            handleKeyTap(' ')
+        }
+    }
 
     return (
         <div
@@ -443,11 +499,19 @@ export function IOSKeyboard({
                     {/* Space */}
                     <button
                         type="button"
-                        onClick={() => handleKeyTap(' ')}
+                        onTouchStart={handleSpaceTouchStart}
+                        onTouchMove={handleSpaceTouchMove}
+                        onTouchEnd={handleSpaceTouchEnd}
+                        onMouseDown={() => {
+                            // Desktop fallback just does tap
+                            handleKeyTap(' ')
+                        }}
                         className="flex-1 h-[44px] rounded-[8px] flex items-center justify-center transition-transform duration-75 active:scale-[0.98]"
                         style={kbStyles.key}
                     >
-                        <span className="text-[15px] font-normal text-[#8e8e93] select-none">space</span>
+                        <span className="text-[15px] font-normal text-[#8e8e93] select-none">
+                            {isTrackpadMode ? '' : 'space'}
+                        </span>
                     </button>
 
                     {/* . key */}

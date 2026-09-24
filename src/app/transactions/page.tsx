@@ -598,6 +598,7 @@ export default function TransactionsPage() {
     const [sending, setSending] = useState(false)
     const [loading, setLoading] = useState(true)
     const [isCustomKeyboardOpen, setIsCustomKeyboardOpen] = useState(false)
+    const [cursorPosition, setCursorPosition] = useState(0)
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const inputScrollRef = useRef<HTMLDivElement>(null)
 
@@ -605,7 +606,7 @@ export default function TransactionsPage() {
         if (inputScrollRef.current) {
             inputScrollRef.current.scrollLeft = inputScrollRef.current.scrollWidth
         }
-    }, [input])
+    }, [input, cursorPosition])
 
     const handleCustomKeyPress = (char: string) => {
         // Prevent typing after person tag
@@ -621,13 +622,19 @@ export default function TransactionsPage() {
             return
         }
 
-        const nextVal = (input + char).toUpperCase()
+        const before = input.slice(0, cursorPosition)
+        const after = input.slice(cursorPosition)
+        const nextVal = (before + char + after).toUpperCase()
+        setCursorPosition(prev => prev + 1)
         handleInputChange(nextVal)
     }
 
     const handleCustomBackspace = () => {
-        if (input.length > 0) {
-            const nextVal = input.slice(0, -1)
+        if (cursorPosition > 0) {
+            const before = input.slice(0, cursorPosition - 1)
+            const after = input.slice(cursorPosition)
+            const nextVal = before + after
+            setCursorPosition(prev => prev - 1)
             handleInputChange(nextVal)
         }
     }
@@ -861,6 +868,7 @@ export default function TransactionsPage() {
         // Clearing text field -> reset all selections
         if (!upperVal.trim()) {
             setInput('')
+            setCursorPosition(0)
             setSelectedCompany(null)
             setSelectedPackage(null)
             setSelectedEmployee(null)
@@ -1057,7 +1065,9 @@ export default function TransactionsPage() {
         const currentPerson = selectedPerson || detectPersonFromText(input)
         const personTag = currentPerson ? ` @ ${currentPerson.display.toUpperCase()}` : ''
         
-        setInput(`${currentSign}${currentAmount} ${cleanName}${personTag}`.trimStart())
+        const finalText = `${currentSign}${currentAmount} ${cleanName}${personTag}`.trimStart()
+        setInput(finalText)
+        setCursorPosition(finalText.length)
         setSelectedCompany(comp)
         setSelectedPackage(null)
         setSelectedEmployee(null)
@@ -1206,6 +1216,7 @@ export default function TransactionsPage() {
 
             // Reset form on success
             setInput('')
+            setCursorPosition(0)
             setSelectedCompany(null)
             setSelectedPackage(null)
             setSelectedEmployee(null)
@@ -2035,15 +2046,55 @@ export default function TransactionsPage() {
                     }}
                     className="flex-1 min-w-0 bg-white rounded-full border border-gray-300/80 px-4 py-2 flex items-center gap-2 shadow-xs cursor-text"
                 >
-                    <div ref={inputScrollRef} className="w-full text-[15px] font-normal text-gray-900 font-sans tracking-normal uppercase min-h-[22px] flex items-center overflow-x-auto whitespace-nowrap scroll-smooth">
-                        {input ? (
-                            <span className="font-medium tracking-wide whitespace-pre">{input}</span>
+                    <div 
+                        ref={inputScrollRef} 
+                        className="w-full text-[15px] font-normal text-gray-900 font-sans tracking-normal uppercase min-h-[22px] flex items-center overflow-x-auto whitespace-nowrap scroll-smooth relative"
+                        onClick={(e) => {
+                            if (e.target === e.currentTarget) {
+                                setCursorPosition(input.length)
+                                setIsCustomKeyboardOpen(true)
+                            }
+                        }}
+                    >
+                        {input === '' && !isCustomKeyboardOpen ? (
+                            <span className="text-gray-400 select-none pointer-events-none">Tap to type transaction...</span>
                         ) : (
-                            <span className="text-gray-400 select-none">Tap to type transaction...</span>
-                        )}
-                        {/* Blinking iOS Blue Cursor */}
-                        {isCustomKeyboardOpen && (
-                            <span className="inline-block w-[2px] h-[19px] bg-[#007AFF] ml-0.5 animate-pulse shrink-0 rounded-full" />
+                            <div className="flex items-center">
+                                {input.split('').map((char, i) => (
+                                    <span 
+                                        key={i} 
+                                        className="relative flex items-center h-full cursor-text"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+                                            const clickX = e.clientX - rect.left
+                                            if (clickX > rect.width / 2) {
+                                                setCursorPosition(i + 1)
+                                            } else {
+                                                setCursorPosition(i)
+                                            }
+                                            setIsCustomKeyboardOpen(true)
+                                        }}
+                                    >
+                                        {cursorPosition === i && isCustomKeyboardOpen && (
+                                            <span className="absolute left-0 top-1/2 -translate-y-1/2 -ml-[1px] w-[2px] h-[19px] bg-[#007AFF] animate-pulse z-10 rounded-full" />
+                                        )}
+                                        <span className="whitespace-pre">{char === ' ' ? '\u00A0' : char}</span>
+                                    </span>
+                                ))}
+                                <span 
+                                    className="relative flex items-center h-[22px] min-w-[12px] cursor-text"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        setCursorPosition(input.length)
+                                        setIsCustomKeyboardOpen(true)
+                                    }}
+                                >
+                                    {cursorPosition === input.length && isCustomKeyboardOpen && (
+                                        <span className="absolute left-0 top-1/2 -translate-y-1/2 -ml-[1px] w-[2px] h-[19px] bg-[#007AFF] animate-pulse z-10 rounded-full" />
+                                    )}
+                                </span>
+                            </div>
                         )}
                     </div>
                     {input && (
@@ -2052,6 +2103,7 @@ export default function TransactionsPage() {
                             onClick={(e) => {
                                 e.stopPropagation()
                                 handleInputChange('')
+                                setCursorPosition(0)
                             }}
                             className="p-1 text-gray-400 hover:text-gray-600 rounded-full shrink-0"
                         >
@@ -2179,6 +2231,8 @@ export default function TransactionsPage() {
                 onSelectEmployee={handleSelectEmployee}
                 onSelectPackage={handleSelectPackage}
                 onSelectPerson={handleSelectPerson}
+                cursorPosition={cursorPosition}
+                onCursorMove={setCursorPosition}
             />
             </div>
 
