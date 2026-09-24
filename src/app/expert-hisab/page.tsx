@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import Link from 'next/link'
 import { 
     TrendingUp, TrendingDown, IndianRupee, 
@@ -48,7 +48,12 @@ interface HistoricalSummary {
 }
 
 function formatCurrency(n: number) {
-    return Math.abs(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    const abs = Math.abs(n)
+    const hasDecimals = abs % 1 !== 0
+    return abs.toLocaleString('en-IN', { 
+        minimumFractionDigits: hasDecimals ? 2 : 0, 
+        maximumFractionDigits: 2 
+    })
 }
 
 function getMonthKey(date: Date) {
@@ -132,6 +137,12 @@ export default function ExpertDashboardPage() {
             existing.net = existing.income - existing.expense
             map.set(k, existing)
         })
+
+        // Ensure current month is always present
+        const cur = getMonthKey(new Date())
+        if (!map.has(cur)) {
+            map.set(cur, { month: cur, income: 0, expense: 0, net: 0, count: 0 })
+        }
 
         return Array.from(map.values()).sort((a, b) => a.month.localeCompare(b.month))
     }, [historicalSummaries, messages])
@@ -272,6 +283,34 @@ export default function ExpertDashboardPage() {
         return { message, isSettled, amount, payer, payee, ssmExpected, pankajExpected, ssmActual, pankajActual, ssmDiff, pankajDiff }
     }, [totals, ssmStats, pankajStats, selectedMonth])
 
+    const chartScrollRef = useRef<HTMLDivElement>(null)
+
+    // Automatically scroll financial trends bar to current month (or selected month) by default
+    useEffect(() => {
+        if (!loading && chartScrollRef.current && allMonthlyBreakdown.length > 0) {
+            const curMonth = selectedMonth || getMonthKey(new Date())
+            const targetIndex = allMonthlyBreakdown.findIndex(m => m.month === curMonth)
+            const indexToScroll = targetIndex >= 0 ? targetIndex : allMonthlyBreakdown.length - 1
+            
+            const colWidth = 68
+            const padLeft = 24
+            const targetX = padLeft + indexToScroll * colWidth
+            const containerWidth = chartScrollRef.current.clientWidth || 360
+            
+            const scrollTo = Math.max(0, targetX - containerWidth / 2)
+            
+            const t = setTimeout(() => {
+                if (chartScrollRef.current) {
+                    chartScrollRef.current.scrollTo({
+                        left: scrollTo,
+                        behavior: 'smooth'
+                    })
+                }
+            }, 60)
+            return () => clearTimeout(t)
+        }
+    }, [loading, selectedMonth, allMonthlyBreakdown])
+
     return (
         <div className="flex-1 flex flex-col h-full overflow-y-auto ios-scroll pb-44" style={{ backgroundColor: '#F2F2F7' }}>
             {loading ? (
@@ -279,17 +318,19 @@ export default function ExpertDashboardPage() {
                     <div className="text-gray-500 text-[14px] bg-white px-5 py-3 rounded-full shadow-sm border border-black/5 font-medium animate-pulse">Loading...</div>
                 </div>
             ) : (
-                <div className="px-4 space-y-3 pt-3.5 ios-fade-in">
+                <div className="px-4 space-y-3 pt-3 ios-fade-in">
                     {/* Monthly Metrics: Net on Top with Integrated Month Selector, Income & Expense side-by-side (2 columns) */}
-                    <div className="space-y-3">
+                    <div className="space-y-2.5">
                         {/* 1. Net Card with Integrated Month Selector */}
                         <div 
-                            className="bg-white rounded-[20px] p-4 flex items-center justify-between shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-black/5 transition-transform active:scale-[0.98]"
+                            className="bg-white rounded-2xl p-4 flex items-center justify-between shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-black/5"
                         >
-                            <div className="min-w-0 pr-2">
-                                <p className="text-[12px] sm:text-[13px] font-medium text-gray-500">Net ({monthLabel(selectedMonth)})</p>
-                                <p className="text-[22px] sm:text-[24px] font-bold text-gray-950 tracking-tight mt-0.5 tabular-nums break-words">
-                                    ₹{formatCurrency(totals.net)}
+                            <div className="min-w-0 pr-3 flex-1">
+                                <p className="text-[12px] font-medium text-gray-500">
+                                    Net Balance • {shortMonthLabel(selectedMonth)}
+                                </p>
+                                <p className={`text-[22px] sm:text-[24px] font-bold tracking-tight mt-0.5 tabular-nums ${totals.net >= 0 ? 'text-gray-950' : 'text-[#EF4444]'}`}>
+                                    {totals.net < 0 ? `- ₹${formatCurrency(totals.net)}` : `₹${formatCurrency(totals.net)}`}
                                 </p>
                             </div>
                             
@@ -298,7 +339,7 @@ export default function ExpertDashboardPage() {
                                 <select 
                                     value={selectedMonth}
                                     onChange={(e) => setSelectedMonth(e.target.value)}
-                                    className="appearance-none bg-[#F2F2F7] hover:bg-gray-200/70 border border-black/5 rounded-xl pl-3 pr-7 py-1.5 text-[12px] sm:text-[13px] font-semibold text-gray-800 shadow-2xs focus:outline-none cursor-pointer active:scale-95 transition-all"
+                                    className="appearance-none bg-[#F2F2F7] hover:bg-gray-200/80 border border-black/5 rounded-xl pl-3 pr-7 py-2 text-[13px] font-semibold text-gray-800 shadow-xs focus:outline-none cursor-pointer active:scale-95 transition-all"
                                 >
                                     {availableMonths.map((mKey) => (
                                         <option key={mKey} value={mKey}>
@@ -306,38 +347,38 @@ export default function ExpertDashboardPage() {
                                         </option>
                                     ))}
                                 </select>
-                                <ChevronDown className="w-3.5 h-3.5 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                <ChevronDown className="w-3.5 h-3.5 text-gray-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                             </div>
                         </div>
 
                         {/* 2 & 3. Income & Expenses side-by-side in 2 columns */}
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-2 gap-2.5">
                             {/* Income Card */}
                             <div 
-                                className="bg-white rounded-[20px] p-4 flex flex-col justify-between shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-black/5 transition-transform active:scale-[0.98]"
+                                className="bg-white rounded-2xl p-3.5 flex flex-col justify-between shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-black/5"
                             >
                                 <div className="flex items-center justify-between mb-2">
-                                    <span className="text-[12px] font-medium text-gray-500 truncate">Income</span>
-                                    <div className="w-8 h-8 rounded-[10px] bg-[#E8F8EE] flex items-center justify-center shrink-0">
+                                    <span className="text-[12px] font-medium text-gray-500">Income</span>
+                                    <div className="w-7 h-7 rounded-lg bg-[#E8F8EE] flex items-center justify-center shrink-0">
                                         <TrendingUp className="w-4 h-4 text-[#16A34A] stroke-[2.2]" />
                                     </div>
                                 </div>
-                                <p className="text-[20px] sm:text-[22px] font-bold text-[#16A34A] tracking-tight tabular-nums break-words">
+                                <p className="text-[18px] sm:text-[20px] font-bold text-[#16A34A] tracking-tight tabular-nums">
                                     ₹{formatCurrency(totals.received)}
                                 </p>
                             </div>
 
                             {/* Expenses Card */}
                             <div 
-                                className="bg-white rounded-[20px] p-4 flex flex-col justify-between shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-black/5 transition-transform active:scale-[0.98]"
+                                className="bg-white rounded-2xl p-3.5 flex flex-col justify-between shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-black/5"
                             >
                                 <div className="flex items-center justify-between mb-2">
-                                    <span className="text-[12px] font-medium text-gray-500 truncate">Expenses</span>
-                                    <div className="w-8 h-8 rounded-[10px] bg-[#FDECEC] flex items-center justify-center shrink-0">
+                                    <span className="text-[12px] font-medium text-gray-500">Expenses</span>
+                                    <div className="w-7 h-7 rounded-lg bg-[#FDECEC] flex items-center justify-center shrink-0">
                                         <TrendingDown className="w-4 h-4 text-[#EF4444] stroke-[2.2]" />
                                     </div>
                                 </div>
-                                <p className="text-[20px] sm:text-[22px] font-bold text-[#EF4444] tracking-tight tabular-nums break-words">
+                                <p className="text-[18px] sm:text-[20px] font-bold text-[#EF4444] tracking-tight tabular-nums">
                                     ₹{formatCurrency(totals.spent)}
                                 </p>
                             </div>
@@ -346,10 +387,10 @@ export default function ExpertDashboardPage() {
 
                     {/* Monthly Share Distribution Card */}
                     <div 
-                        className="bg-white rounded-[20px] p-4 space-y-3 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-black/5"
+                        className="bg-white rounded-2xl p-4 space-y-3 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-black/5"
                     >
                         <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-[10px] bg-[#EBF3FE] flex items-center justify-center shrink-0">
+                            <div className="w-7 h-7 rounded-lg bg-[#EBF3FE] flex items-center justify-center shrink-0">
                                 <Users className="w-4 h-4 text-[#007AFF] stroke-[2.2]" />
                             </div>
                             <h2 className="text-[14px] sm:text-[15px] font-bold text-gray-900 tracking-tight">
@@ -360,88 +401,90 @@ export default function ExpertDashboardPage() {
                         {/* 2 Partner Share cards side-by-side */}
                         <div className="grid grid-cols-2 gap-2.5">
                             {/* Mr. Shyam Sunder Mishra */}
-                            <div className="bg-[#F8FAFC] border border-gray-100 rounded-xl p-3 sm:p-3.5 flex flex-col items-center text-center">
-                                <p className="text-[12px] sm:text-[13px] font-semibold text-gray-800 tracking-tight truncate max-w-full">
-                                    Mr. Shyam Sunder Mishra
+                            <div className="bg-[#F8FAFC] border border-gray-100 rounded-xl p-3 flex flex-col justify-between text-center min-h-[96px]">
+                                <p className="text-[12px] font-semibold text-gray-800 leading-snug">
+                                    Shyam Sunder Mishra
                                 </p>
-                                <p className="text-[18px] sm:text-[22px] font-bold text-[#007AFF] tracking-tight mt-1 tabular-nums break-words max-w-full">
+                                <p className="text-[17px] sm:text-[19px] font-bold text-[#007AFF] tracking-tight my-1 tabular-nums">
                                     ₹{formatCurrency(settlement.ssmExpected)}
                                 </p>
-                                <p className="text-[11px] text-gray-400 font-medium mt-0.5 truncate max-w-full">
-                                    {selectedMonth < '2025-11' ? '67%' : '75%'} of Monthly Net
+                                <p className="text-[11px] text-gray-500 font-medium leading-tight">
+                                    {selectedMonth < '2025-11' ? '67%' : '75%'} Share of Net
                                 </p>
                             </div>
 
                             {/* Mr. Pankaj Sharma */}
-                            <div className="bg-[#F8FAFC] border border-gray-100 rounded-xl p-3 sm:p-3.5 flex flex-col items-center text-center">
-                                <p className="text-[12px] sm:text-[13px] font-semibold text-gray-800 tracking-tight truncate max-w-full">
-                                    Mr. Pankaj Sharma
+                            <div className="bg-[#F8FAFC] border border-gray-100 rounded-xl p-3 flex flex-col justify-between text-center min-h-[96px]">
+                                <p className="text-[12px] font-semibold text-gray-800 leading-snug">
+                                    Pankaj Sharma
                                 </p>
-                                <p className="text-[18px] sm:text-[22px] font-bold text-[#007AFF] tracking-tight mt-1 tabular-nums break-words max-w-full">
+                                <p className="text-[17px] sm:text-[19px] font-bold text-[#007AFF] tracking-tight my-1 tabular-nums">
                                     ₹{formatCurrency(settlement.pankajExpected)}
                                 </p>
-                                <p className="text-[11px] text-gray-400 font-medium mt-0.5 truncate max-w-full">
-                                    {selectedMonth < '2025-11' ? '33%' : '25%'} of Monthly Net
+                                <p className="text-[11px] text-gray-500 font-medium leading-tight">
+                                    {selectedMonth < '2025-11' ? '33%' : '25%'} Share of Net
                                 </p>
                             </div>
                         </div>
 
                         {/* Monthly Settlement Status Alert Banner */}
-                        <div className="rounded-xl bg-[#F0F6FE] border border-[#D2E4FC] p-3.5 sm:p-4 flex items-center justify-between gap-3">
+                        <div className="rounded-xl bg-[#F0F6FE] border border-[#D2E4FC] p-3.5 flex items-center justify-between gap-3">
                             <div className="min-w-0 flex-1">
-                                <p className="text-[12px] sm:text-[13px] font-bold text-[#007AFF] tracking-tight">
-                                    Monthly Settlement Status:
+                                <p className="text-[11px] font-bold text-[#007AFF] uppercase tracking-wider">
+                                    Monthly Settlement Status
                                 </p>
-                                <p className="text-[22px] sm:text-[24px] font-bold text-[#007AFF] tracking-tight mt-0.5 tabular-nums break-words">
+                                <p className="text-[20px] sm:text-[22px] font-bold text-[#007AFF] tracking-tight mt-0.5 tabular-nums">
                                     ₹{formatCurrency(settlement.amount)}
                                 </p>
-                                <p className="text-[12px] sm:text-[13px] text-[#2563EB] font-normal mt-0.5 leading-snug">
+                                <p className="text-[12px] text-[#2563EB] font-medium mt-0.5 leading-snug">
                                     {settlement.isSettled 
                                         ? settlement.message 
                                         : `${settlement.payer} to give to ${settlement.payee}.`}
                                 </p>
                             </div>
-                            <div className="w-10 h-10 rounded-xl bg-white border border-[#D2E4FC] flex items-center justify-center shrink-0 shadow-2xs">
-                                <ArrowRightLeft className="w-5 h-5 text-[#007AFF] stroke-[2.2]" />
+                            <div className="w-9 h-9 rounded-xl bg-white border border-[#D2E4FC] flex items-center justify-center shrink-0 shadow-2xs">
+                                <ArrowRightLeft className="w-4.5 h-4.5 text-[#007AFF] stroke-[2.2]" />
                             </div>
                         </div>
                     </div>
 
                     {/* Cash in Hand Section */}
                     <div 
-                        className="bg-white rounded-[20px] p-4 space-y-3 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-black/5"
+                        className="bg-white rounded-2xl p-4 space-y-3 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-black/5"
                     >
                         <div className="flex items-center gap-2">
                             <div className="w-7 h-7 rounded-lg bg-[#EBF3FE] flex items-center justify-center shrink-0">
                                 <IndianRupee className="w-4 h-4 text-[#007AFF] stroke-[2.2]" />
                             </div>
                             <h2 className="text-[14px] sm:text-[15px] font-bold text-gray-900 tracking-tight">
-                                Cash in Hand - {monthLabel(selectedMonth)}
+                                Cash in Hand • {shortMonthLabel(selectedMonth)}
                             </h2>
                         </div>
 
                         <div className="grid grid-cols-2 gap-2.5">
                             {/* Mr. Shyam Sunder Mishra */}
-                            <div className="bg-[#F0F6FE] border border-[#D2E4FC] rounded-xl p-3 sm:p-3.5 flex flex-col items-center text-center">
-                                <p className="text-[12px] sm:text-[13px] font-semibold text-gray-900 tracking-tight truncate max-w-full">
-                                    Mr. Shyam Sunder Mishra
-                                </p>
-                                <p className="text-[18px] sm:text-[22px] font-bold text-[#1D68F2] tracking-tight mt-1 tabular-nums break-words max-w-full">
-                                    ₹{formatCurrency(ssmStats.net)}
-                                </p>
-                                <p className="text-[11px] text-gray-500 font-normal mt-0.5">
-                                    Cash in Hand
-                                </p>
-                                <div className="w-full space-y-1.5 mt-3 pt-2.5 border-t border-[#D2E4FC]/70">
-                                    <div className="flex flex-col items-start text-left">
-                                        <span className="text-[10px] sm:text-[11px] font-medium text-[#16A34A]">Income</span>
-                                        <span className="text-[12px] sm:text-[13px] font-bold text-gray-900 tabular-nums break-words max-w-full">
+                            <div className="bg-[#F0F6FE] border border-[#D2E4FC] rounded-xl p-3 flex flex-col justify-between text-center">
+                                <div>
+                                    <p className="text-[12px] font-semibold text-gray-900 leading-snug">
+                                        Shyam Sunder Mishra
+                                    </p>
+                                    <p className="text-[17px] sm:text-[19px] font-bold text-[#1D68F2] tracking-tight mt-1 tabular-nums">
+                                        ₹{formatCurrency(ssmStats.net)}
+                                    </p>
+                                    <p className="text-[10.5px] text-gray-500 font-medium">
+                                        Net Cash in Hand
+                                    </p>
+                                </div>
+                                <div className="w-full space-y-1.5 mt-2.5 pt-2 border-t border-[#D2E4FC]/80 text-[11.5px]">
+                                    <div className="flex items-center justify-between">
+                                        <span className="font-medium text-[#16A34A]">Income</span>
+                                        <span className="font-bold text-gray-900 tabular-nums">
                                             ₹{formatCurrency(ssmStats.received)}
                                         </span>
                                     </div>
-                                    <div className="flex flex-col items-start text-left">
-                                        <span className="text-[10px] sm:text-[11px] font-medium text-[#EF4444]">Expenses</span>
-                                        <span className="text-[12px] sm:text-[13px] font-bold text-gray-900 tabular-nums break-words max-w-full">
+                                    <div className="flex items-center justify-between">
+                                        <span className="font-medium text-[#EF4444]">Expense</span>
+                                        <span className="font-bold text-gray-900 tabular-nums">
                                             ₹{formatCurrency(ssmStats.spent)}
                                         </span>
                                     </div>
@@ -449,26 +492,28 @@ export default function ExpertDashboardPage() {
                             </div>
 
                             {/* Mr. Pankaj Sharma */}
-                            <div className="bg-[#F0FDF4] border border-[#DCFCE7] rounded-xl p-3 sm:p-3.5 flex flex-col items-center text-center">
-                                <p className="text-[12px] sm:text-[13px] font-semibold text-gray-900 tracking-tight truncate max-w-full">
-                                    Mr. Pankaj Sharma
-                                </p>
-                                <p className="text-[18px] sm:text-[22px] font-bold text-[#16A34A] tracking-tight mt-1 tabular-nums break-words max-w-full">
-                                    ₹{formatCurrency(pankajStats.net)}
-                                </p>
-                                <p className="text-[11px] text-gray-500 font-normal mt-0.5">
-                                    Cash in Hand
-                                </p>
-                                <div className="w-full space-y-1.5 mt-3 pt-2.5 border-t border-[#DCFCE7]/90">
-                                    <div className="flex flex-col items-start text-left">
-                                        <span className="text-[10px] sm:text-[11px] font-medium text-[#16A34A]">Income</span>
-                                        <span className="text-[12px] sm:text-[13px] font-bold text-gray-900 tabular-nums break-words max-w-full">
+                            <div className="bg-[#F0FDF4] border border-[#DCFCE7] rounded-xl p-3 flex flex-col justify-between text-center">
+                                <div>
+                                    <p className="text-[12px] font-semibold text-gray-900 leading-snug">
+                                        Pankaj Sharma
+                                    </p>
+                                    <p className="text-[17px] sm:text-[19px] font-bold text-[#16A34A] tracking-tight mt-1 tabular-nums">
+                                        ₹{formatCurrency(pankajStats.net)}
+                                    </p>
+                                    <p className="text-[10.5px] text-gray-500 font-medium">
+                                        Net Cash in Hand
+                                    </p>
+                                </div>
+                                <div className="w-full space-y-1.5 mt-2.5 pt-2 border-t border-[#DCFCE7]/90 text-[11.5px]">
+                                    <div className="flex items-center justify-between">
+                                        <span className="font-medium text-[#16A34A]">Income</span>
+                                        <span className="font-bold text-gray-900 tabular-nums">
                                             ₹{formatCurrency(pankajStats.received)}
                                         </span>
                                     </div>
-                                    <div className="flex flex-col items-start text-left">
-                                        <span className="text-[10px] sm:text-[11px] font-medium text-[#EF4444]">Expenses</span>
-                                        <span className="text-[12px] sm:text-[13px] font-bold text-gray-900 tabular-nums break-words max-w-full">
+                                    <div className="flex items-center justify-between">
+                                        <span className="font-medium text-[#EF4444]">Expense</span>
+                                        <span className="font-bold text-gray-900 tabular-nums">
                                             ₹{formatCurrency(pankajStats.spent)}
                                         </span>
                                     </div>
@@ -477,11 +522,9 @@ export default function ExpertDashboardPage() {
                         </div>
                     </div>
 
-
-
                     {/* 5. Financial Year Summary Card */}
                     <div 
-                        className="bg-white rounded-[20px] p-4 space-y-3 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-black/5"
+                        className="bg-white rounded-2xl p-4 space-y-3 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-black/5"
                     >
                         {/* Header */}
                         <div className="flex items-center gap-2">
@@ -489,61 +532,61 @@ export default function ExpertDashboardPage() {
                                 <TrendingUp className="w-4 h-4 text-[#2563EB] stroke-[2.2]" />
                             </div>
                             <h2 className="text-[14px] sm:text-[15px] font-bold text-gray-900 tracking-tight">
-                                Financial Year Summary ({financialYearStats.label})
+                                Financial Year ({financialYearStats.label})
                             </h2>
                         </div>
 
                         {/* Top: FY Net (Full Width) */}
-                        <div className="bg-[#EBF3FE] border border-[#DBEAFE] rounded-xl p-3 sm:p-3.5 flex items-center justify-between">
+                        <div className="bg-[#EBF3FE] border border-[#DBEAFE] rounded-xl p-3.5 flex items-center justify-between">
                             <div>
-                                <p className="text-[11px] sm:text-[12px] font-medium text-gray-500">FY Net ({financialYearStats.label})</p>
-                                <p className="text-[18px] sm:text-[22px] font-bold text-[#2563EB] tracking-tight mt-0.5 tabular-nums break-words leading-tight">
+                                <p className="text-[11.5px] font-medium text-gray-500">FY Total Net ({financialYearStats.label})</p>
+                                <p className="text-[20px] sm:text-[22px] font-bold text-[#2563EB] tracking-tight mt-0.5 tabular-nums">
                                     ₹{formatCurrency(financialYearStats.net)}
                                 </p>
                             </div>
-                            <div className="w-9 h-9 rounded-lg bg-white border border-[#DBEAFE] flex items-center justify-center shrink-0 shadow-2xs">
-                                <IndianRupee className="w-4.5 h-4.5 text-[#2563EB] stroke-[2.2]" />
+                            <div className="w-8 h-8 rounded-lg bg-white border border-[#DBEAFE] flex items-center justify-center shrink-0 shadow-2xs">
+                                <IndianRupee className="w-4 h-4 text-[#2563EB] stroke-[2.2]" />
                             </div>
                         </div>
 
                         {/* Below: FY Income | FY Expenses (2 columns side-by-side) */}
                         <div className="grid grid-cols-2 gap-2.5">
                             {/* FY Income */}
-                            <div className="bg-[#EDFAEF] border border-[#DCFCE7] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between">
-                                <p className="text-[11px] sm:text-[12px] font-medium text-gray-500">FY Income</p>
-                                <p className="text-[15px] sm:text-[18px] font-bold text-[#16A34A] tracking-tight mt-1 tabular-nums break-words leading-tight">
+                            <div className="bg-[#EDFAEF] border border-[#DCFCE7] rounded-xl p-3 flex flex-col justify-between">
+                                <p className="text-[11.5px] font-medium text-gray-500">FY Income</p>
+                                <p className="text-[16px] sm:text-[18px] font-bold text-[#16A34A] tracking-tight mt-1 tabular-nums">
                                     ₹{formatCurrency(financialYearStats.income)}
                                 </p>
                             </div>
 
                             {/* FY Expenses */}
-                            <div className="bg-[#FDECEC] border border-[#FEE2E2] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between">
-                                <p className="text-[11px] sm:text-[12px] font-medium text-gray-500">FY Expenses</p>
-                                <p className="text-[15px] sm:text-[18px] font-bold text-[#EF4444] tracking-tight mt-1 tabular-nums break-words leading-tight">
+                            <div className="bg-[#FDECEC] border border-[#FEE2E2] rounded-xl p-3 flex flex-col justify-between">
+                                <p className="text-[11.5px] font-medium text-gray-500">FY Expenses</p>
+                                <p className="text-[16px] sm:text-[18px] font-bold text-[#EF4444] tracking-tight mt-1 tabular-nums">
                                     ₹{formatCurrency(financialYearStats.expense)}
                                 </p>
                             </div>
                         </div>
 
                         {/* Monthly Averages Sub-Box */}
-                        <div className="border border-gray-100 rounded-xl p-3 sm:p-3.5 bg-[#F9FAFB]/80">
-                            <p className="text-[12px] sm:text-[13px] font-bold text-gray-900 mb-2">Monthly Averages</p>
+                        <div className="border border-gray-100 rounded-xl p-3 bg-[#F9FAFB]/90 space-y-2">
+                            <p className="text-[12px] font-bold text-gray-900">Monthly Averages</p>
                             <div className="grid grid-cols-3 gap-2">
-                                <div>
-                                    <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Avg Income</p>
-                                    <p className="text-[12px] sm:text-[14px] font-bold text-[#16A34A] tracking-tight mt-0.5 tabular-nums break-words leading-tight">
+                                <div className="bg-white rounded-lg p-2 border border-gray-100/90 text-center">
+                                    <p className="text-[10px] text-gray-500 font-medium">Avg Income</p>
+                                    <p className="text-[13px] font-bold text-[#16A34A] tracking-tight mt-0.5 tabular-nums">
                                         ₹{formatCurrency(financialYearStats.avgIncome)}
                                     </p>
                                 </div>
-                                <div>
-                                    <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Avg Expenses</p>
-                                    <p className="text-[12px] sm:text-[14px] font-bold text-[#EF4444] tracking-tight mt-0.5 tabular-nums break-words leading-tight">
+                                <div className="bg-white rounded-lg p-2 border border-gray-100/90 text-center">
+                                    <p className="text-[10px] text-gray-500 font-medium">Avg Expense</p>
+                                    <p className="text-[13px] font-bold text-[#EF4444] tracking-tight mt-0.5 tabular-nums">
                                         ₹{formatCurrency(financialYearStats.avgExpense)}
                                     </p>
                                 </div>
-                                <div>
-                                    <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium">Avg Net</p>
-                                    <p className="text-[12px] sm:text-[14px] font-bold text-[#2563EB] tracking-tight mt-0.5 tabular-nums break-words leading-tight">
+                                <div className="bg-white rounded-lg p-2 border border-gray-100/90 text-center">
+                                    <p className="text-[10px] text-gray-500 font-medium">Avg Net</p>
+                                    <p className="text-[13px] font-bold text-[#2563EB] tracking-tight mt-0.5 tabular-nums">
                                         ₹{formatCurrency(financialYearStats.avgNet)}
                                     </p>
                                 </div>
@@ -553,7 +596,7 @@ export default function ExpertDashboardPage() {
 
                     {/* 6. Monthly Income vs Expense Line Graph Card */}
                     <div 
-                        className="bg-white rounded-[20px] p-4 space-y-3.5 shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-black/5"
+                        className="bg-white rounded-2xl p-4 space-y-3.5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-black/5"
                     >
                         {/* Header */}
                         <div className="space-y-2">
@@ -650,7 +693,7 @@ export default function ExpertDashboardPage() {
 
                             return (
                                 <div className="space-y-3">
-                                    <div className="relative overflow-x-auto ios-scroll pb-1">
+                                    <div ref={chartScrollRef} className="relative overflow-x-auto ios-scroll pb-1">
                                         <div style={{ minWidth: `${svgWidth}px` }} className="relative h-[210px] select-none">
                                             <svg 
                                                 width={svgWidth} 
