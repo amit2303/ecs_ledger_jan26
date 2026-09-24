@@ -597,7 +597,28 @@ export default function TransactionsPage() {
     const [sending, setSending] = useState(false)
     const [loading, setLoading] = useState(true)
     const messagesEndRef = useRef<HTMLDivElement>(null)
-    const inputRef = useRef<HTMLInputElement>(null)
+    const inputRef = useRef<HTMLDivElement>(null)
+
+    // Sync contentEditable div with input state when modified programmatically
+    useEffect(() => {
+        if (inputRef.current) {
+            const currentUpper = (inputRef.current.textContent || '').toUpperCase()
+            if (currentUpper !== input) {
+                inputRef.current.textContent = input
+                // Move cursor to the end
+                try {
+                    const range = document.createRange()
+                    const sel = window.getSelection()
+                    range.selectNodeContents(inputRef.current)
+                    range.collapse(false)
+                    if (sel) {
+                        sel.removeAllRanges()
+                        sel.addRange(range)
+                    }
+                } catch (e) {}
+            }
+        }
+    }, [input])
 
     
 
@@ -1192,8 +1213,8 @@ export default function TransactionsPage() {
         }
     }
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement | HTMLInputElement>) => {
+        if (e.key === 'Enter') {
             e.preventDefault()
             if (isFormValid) {
                 handleSend()
@@ -1208,8 +1229,9 @@ export default function TransactionsPage() {
         const personEndMatch = input.match(/@\s*(AMIT|SUMIT|SSM|PAPA|MAMAJI|PANKAJ|BHAIYA)$/i)
         if (personEndMatch && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
             const personStartIndex = input.lastIndexOf('@')
-            const inputEl = e.currentTarget
-            if (inputEl.selectionStart !== null && inputEl.selectionStart > personStartIndex) {
+            const sel = typeof window !== 'undefined' ? window.getSelection() : null
+            const cursorPos = sel && sel.rangeCount > 0 ? sel.getRangeAt(0).startOffset : input.length
+            if (cursorPos > personStartIndex) {
                 e.preventDefault()
                 setWarningMsg('Cannot write anything after selecting person tag')
                 return
@@ -2087,31 +2109,31 @@ export default function TransactionsPage() {
                 className="border-t border-gray-300/60 px-3 py-2 flex items-center gap-2"
             >
                 {/* Rounded Input Field */}
-                <div className="flex-1 min-w-0 bg-white rounded-full border border-gray-300/80 px-4 py-2 flex items-center gap-2 shadow-xs">
-                    <input
+                <div 
+                    onClick={() => inputRef.current?.focus()}
+                    className="flex-1 min-w-0 bg-white rounded-full border border-gray-300/80 px-4 py-2 flex items-center gap-2 shadow-xs cursor-text"
+                >
+                    <div
                         ref={inputRef}
-                        type="text"
+                        contentEditable={!sending}
+                        suppressContentEditableWarning
                         inputMode="email"
                         enterKeyHint="send"
-                        value={input}
-                        onChange={(e) => handleInputChange(e.target.value)}
+                        role="textbox"
+                        aria-multiline="false"
+                        onInput={(e) => handleInputChange(e.currentTarget.textContent || '')}
                         onKeyDown={handleKeyDown}
-                        onFocus={() => {
-                            setTimeout(() => {
-                                inputRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-                            }, 300)
-                        }}
-                        className="w-full text-[15px] font-normal text-gray-900 placeholder:text-gray-400 placeholder:font-normal outline-none font-sans bg-transparent tracking-normal uppercase"
-                        disabled={sending}
-                        autoComplete="off"
-                        autoCorrect="off"
-                        spellCheck={false}
-                        autoCapitalize="characters"
+                        className="w-full text-[15px] font-normal text-gray-900 outline-none font-sans bg-transparent tracking-normal uppercase min-h-[22px] whitespace-pre-wrap break-all cursor-text empty:before:content-[''] before:text-gray-400 select-text"
+                        style={{ WebkitUserModify: 'read-write-plaintext-only', userSelect: 'text', WebkitUserSelect: 'text' }}
                     />
                     {input && (
                         <button
                             type="button"
-                            onClick={() => handleInputChange('')}
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                handleInputChange('')
+                                if (inputRef.current) inputRef.current.textContent = ''
+                            }}
                             className="p-1 text-gray-400 hover:text-gray-600 rounded-full shrink-0"
                         >
                             <X className="w-4 h-4" />
