@@ -343,39 +343,11 @@ export function IOSKeyboard({
                 </div>
             )}
 
-            {/* ─── Quick Action Bar (+ / − / Done) ─── */}
+            {/* ─── Quick Action Bar (Done) ─── */}
             <div
-                className="flex items-center justify-between px-3 py-[5px]"
+                className="flex items-center justify-end px-3 py-[5px]"
                 style={{ borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}
             >
-                <div className="flex items-center gap-1.5">
-                    <button
-                        type="button"
-                        onClick={() => handleKeyTap('+')}
-                        className="px-3 py-[4px] rounded-full text-[13px] font-semibold transition-all active:scale-[0.94]"
-                        style={{
-                            background: 'rgba(52,199,89,0.15)',
-                            color: '#30D158',
-                            border: '0.5px solid rgba(52,199,89,0.25)',
-                            WebkitTapHighlightColor: 'transparent',
-                        }}
-                    >
-                        + Payment
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => handleKeyTap('-')}
-                        className="px-3 py-[4px] rounded-full text-[13px] font-semibold transition-all active:scale-[0.94]"
-                        style={{
-                            background: 'rgba(255,69,58,0.12)',
-                            color: '#FF453A',
-                            border: '0.5px solid rgba(255,69,58,0.2)',
-                            WebkitTapHighlightColor: 'transparent',
-                        }}
-                    >
-                        − Expense
-                    </button>
-                </div>
                 <button
                     type="button"
                     onClick={onClose}

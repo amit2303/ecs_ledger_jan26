@@ -1015,13 +1015,13 @@ export default function TransactionsPage() {
 
         const personTag = `@ ${p.display.toUpperCase()}`
 
-        // Insert or replace @person at the end of input without trailing space
+        // Insert or replace @person at the end of input, ensuring space before @
         if (input.includes('@')) {
-            const replacedTrailing = input.replace(/@\s*[A-Z0-9_]*$/i, personTag)
+            const replacedTrailing = input.replace(/\s*@\s*[A-Z0-9_]*$/i, ` ${personTag}`)
             if (replacedTrailing !== input) {
-                setInput(replacedTrailing)
+                setInput(replacedTrailing.trimStart())
             } else {
-                setInput(input.replace(/@\s*[A-Z0-9_]*/i, personTag))
+                setInput(input.replace(/\s*@\s*[A-Z0-9_]*/i, ` ${personTag}`).trimStart())
             }
         } else {
             const trimmed = input.trimEnd()
