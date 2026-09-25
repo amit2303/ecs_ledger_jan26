@@ -1073,8 +1073,6 @@ export default function TransactionsPage() {
         setSelectedEmployee(null)
         if (currentPerson) {
             setSelectedPerson(currentPerson)
-        } else {
-            setIsPersonPickerOpen(true)
         }
         setWarningMsg(null)
         setIsCustomKeyboardOpen(true)
@@ -1085,9 +1083,6 @@ export default function TransactionsPage() {
             setSelectedPackage(null)
         } else {
             setSelectedPackage(pkg)
-            if (!selectedPerson && !detectPersonFromText(input)) {
-                setIsPersonPickerOpen(true)
-            }
         }
         setWarningMsg(null)
         setIsCustomKeyboardOpen(true)
@@ -2059,7 +2054,7 @@ export default function TransactionsPage() {
                             // Compute inline ghost suggestion
                             const getGhost = (): string => {
                                 const raw = input || ''
-                                if (!raw) return '+ (Payment) or - (Expense)'
+                                if (!raw) return '+ or -'
                                 if (raw === '+' || raw === '+ ') return raw.endsWith(' ') ? 'Amount' : ' Amount'
                                 if (raw === '-' || raw === '- ') return raw.endsWith(' ') ? 'Amount' : ' Amount'
 

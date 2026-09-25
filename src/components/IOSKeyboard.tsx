@@ -205,18 +205,10 @@ export function IOSKeyboard({
 
     // Determine which contextual suggestions to show inside the keyboard
     const safeInput = inputValue || ''
-    const hasPerson = /@\s*(AMIT|SUMIT|SSM|PAPA|MAMAJI|PANKAJ|BHAIYA)/i.test(safeInput)
     const showCompanySuggestions = companySuggestions.length > 0 && !selectedCompany && safeInput.startsWith('+')
     const showEmployeeSuggestions = employeeSuggestions.length > 0 && !selectedEmployee && !selectedCompany && safeInput.startsWith('-')
-    const showPackageSuggestions = !!selectedCompany && companyPackages.length > 0 && !selectedPackage
-    const showPersonPicker = (
-        !!isPersonPickerOpen || 
-        safeInput.includes('@') || 
-        (!hasPerson && (
-            (!!selectedCompany && (companyPackages.length === 0 || !!selectedPackage)) ||
-            (safeInput.startsWith('-') && (!!selectedEmployee || safeInput.length > 3))
-        ))
-    ) && persons.length > 0
+    const showPackageSuggestions = !!selectedCompany && companyPackages.length > 0
+    const showPersonPicker = (!!isPersonPickerOpen || safeInput.includes('@')) && persons.length > 0
     const hasSuggestions = showCompanySuggestions || showEmployeeSuggestions || showPackageSuggestions || showPersonPicker
 
     if (!isOpen) return null
@@ -400,11 +392,20 @@ export function IOSKeyboard({
                             <span className="text-[11px] font-semibold text-[#8e8e93] shrink-0 flex items-center gap-0.5">
                                 <PackageIcon className="w-3 h-3" />
                             </span>
-                            {companyPackages.map(pkg =>
+                            {selectedPackage ? (
                                 renderSuggestionPill(
-                                    pkg.id,
-                                    pkg.description,
-                                    () => onSelectPackage?.(pkg)
+                                    selectedPackage.id,
+                                    selectedPackage.description,
+                                    () => onSelectPackage?.(selectedPackage),
+                                    true
+                                )
+                            ) : (
+                                companyPackages.map(pkg =>
+                                    renderSuggestionPill(
+                                        pkg.id,
+                                        pkg.description,
+                                        () => onSelectPackage?.(pkg)
+                                    )
                                 )
                             )}
                         </>
