@@ -631,7 +631,7 @@ export default function TransactionsPage() {
 
         // 3. Enforce Amount first: If no digits entered yet after +/- , only allow digits or .
         const rawAfterSign = input.substring(1).trimStart()
-        const amountMatch = rawAfterSign.match(/^(\d+(?:\.\d+)?)/)
+        const amountMatch = rawAfterSign.match(/^(\d*\.?\d+)/)
         if (!amountMatch) {
             if (!/[\d.]/.test(char)) {
                 setWarningMsg('Please enter amount first after ' + sign)
@@ -981,14 +981,19 @@ export default function TransactionsPage() {
                     setSelectedEmployee(null)
                 }
             } else {
+                // If ECS MISC was selected but text no longer contains it, reset company
+                if (selectedCompany?.id === -1) {
+                    setSelectedCompany(null)
+                }
+
                 // Check if selectedEmployee is still in text; if not, reset so suggestions appear
                 if (selectedEmployee) {
                     const empName = selectedEmployee.name.toUpperCase().trim()
                     if (!textWithoutPerson.includes(empName)) {
                         setSelectedEmployee(null)
                     }
-                } else if (textWithoutPerson && employees.length > 0 && selectedCompany?.id !== -1) {
-                    // Auto-detect employee if typed in text (only if ECS MISC is not active)
+                } else if (textWithoutPerson && employees.length > 0) {
+                    // Auto-detect employee if typed in text
                     const matchedEmp = employees.find(e => {
                         const empName = e.name.toUpperCase().trim()
                         return textWithoutPerson === empName ||
@@ -1220,6 +1225,15 @@ export default function TransactionsPage() {
 
         // Expense Flow (starts with -)
         if (sign === '-') {
+            // Expense must have at least an employee/head selected OR some description text
+            const afterSign = raw.substring(1).trim()
+            const amountMatchVal = afterSign.match(/^(\d*\.?\d+)/)
+            const restAfterAmt = amountMatchVal ? afterSign.substring(amountMatchVal[0].length).trim() : afterSign
+            const textWithoutPerson = restAfterAmt.replace(/@\s*(?:AMIT|SUMIT|SSM|PAPA|MAMAJI|PANKAJ|BHAIYA)[A-Z\s]*/gi, '').trim()
+
+            if (!selectedEmployee && selectedCompany?.id !== -1 && !textWithoutPerson) {
+                return 'Please select ECS Head / Employee or enter a description'
+            }
             return null // Valid Expense!
         }
 
