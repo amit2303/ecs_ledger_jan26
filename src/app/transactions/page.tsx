@@ -78,7 +78,17 @@ function renderFormattedText(textStr: string) {
  * Description -> Standard Black (#111827)
  * @Person     -> Color-coded mention badge
  */
-function ColorCodedMessageText({ text, companyName }: { text: string; companyName?: string | null }) {
+function ColorCodedMessageText({ 
+    text, 
+    companyName, 
+    employeeId,
+    employees 
+}: { 
+    text: string; 
+    companyName?: string | null;
+    employeeId?: number | null;
+    employees?: EmployeeItem[];
+}) {
     const raw = text.trim()
     if (!raw) return <span>{text}</span>
 
@@ -108,11 +118,18 @@ function ColorCodedMessageText({ text, companyName }: { text: string; companyNam
         ? 'font-medium text-[#00875A]' 
         : 'font-medium text-[#D9383A]'
 
-    // Isolate Company Name and Description
+    const isMiscCompany = companyName === 'ECS MISC' || 
+                          companyName?.toUpperCase().includes('MISC') || 
+                          companyName?.toUpperCase().includes('MSC') ||
+                          restAfterAmount.toUpperCase().includes('ECS MISC') ||
+                          restAfterAmount.toUpperCase().includes('ECS MSC')
+
+    // Isolate Company Name, Employee Name, and Description
     let compPart = ''
+    let empPart = ''
     let descPart = restAfterAmount
 
-    if (companyName) {
+    if (companyName && !isMiscCompany) {
         const cleanCompName = companyName.replace(/^\d+\.?\s*/, '').trim().toUpperCase()
         const rawCompName = companyName.trim().toUpperCase()
         const uppercaseRest = restAfterAmount.toUpperCase()
@@ -126,9 +143,7 @@ function ColorCodedMessageText({ text, companyName }: { text: string; companyNam
         }
     }
 
-    const isMiscCompany = companyName === 'ECS MISC' || companyName?.toUpperCase().includes('MISC') || companyName?.toUpperCase().includes('MSC')
-
-    if (!compPart && restAfterAmount.trim() && !isMinus && !isMiscCompany) {
+    if (!compPart && restAfterAmount.trim() && isPlus && !isMiscCompany) {
         const trimmedRest = restAfterAmount.trim()
         const spaceIndex = trimmedRest.indexOf(' ')
         if (spaceIndex !== -1) {
@@ -140,7 +155,45 @@ function ColorCodedMessageText({ text, companyName }: { text: string; companyNam
         }
     }
 
+    // Isolate Employee Name for expenses (-)
+    if (isMinus && !isMiscCompany) {
+        let matchedEmpName = ''
+        if (employeeId && employees?.length) {
+            const emp = employees.find(e => e.id === employeeId)
+            if (emp) matchedEmpName = emp.name
+        }
+
+        const uppercaseRest = restAfterAmount.toUpperCase().trim()
+        if (!matchedEmpName && employees?.length) {
+            const sortedEmps = [...employees].sort((a, b) => b.name.length - a.name.length)
+            const found = sortedEmps.find(e => {
+                const eName = e.name.toUpperCase().trim()
+                return uppercaseRest === eName || uppercaseRest.startsWith(eName + ' ') || uppercaseRest.includes(eName)
+            })
+            if (found) matchedEmpName = found.name
+        }
+
+        if (matchedEmpName) {
+            const cleanEmp = matchedEmpName.toUpperCase().trim()
+            const matchIndex = uppercaseRest.indexOf(cleanEmp)
+            if (matchIndex !== -1) {
+                empPart = restAfterAmount.trim().substring(matchIndex, matchIndex + cleanEmp.length)
+                descPart = restAfterAmount.trim().substring(matchIndex + cleanEmp.length)
+            }
+        }
+    }
+
+    // If it's ECS MISC, strip out any "ECS MISC" or "ECS MSC" text from description so it is never displayed
+    if (isMiscCompany) {
+        descPart = descPart
+            .replace(/ECS\s*MISC/gi, '')
+            .replace(/ECS\s*MSC/gi, '')
+            .replace(/^MISC\b/gi, '')
+            .trim()
+    }
+
     const cleanComp = compPart.trim()
+    const cleanEmp = empPart.trim()
     const cleanDesc = descPart.trim()
 
     return (
@@ -150,15 +203,22 @@ function ColorCodedMessageText({ text, companyName }: { text: string; companyNam
                 {sign} ₹{formattedAmount}/-
             </span>
 
-            {/* GUARANTEED SPACE + COMPANY NAME */}
-            {cleanComp && (
+            {/* GUARANTEED SPACE + COMPANY NAME (blueish, never shown for ECS MISC) */}
+            {cleanComp && !isMiscCompany && (
                 <>
                     {' '}
-                    <span className={cleanComp.toUpperCase().includes('MISC') || cleanComp.toUpperCase().includes('MSC')
-                        ? "font-semibold text-amber-800 bg-amber-100/90 px-1.5 py-0.5 rounded border border-amber-300/80 uppercase text-[13px]"
-                        : "font-medium text-[#007AFF] uppercase"
-                    }>
+                    <span className="font-medium text-[#007AFF] uppercase">
                         {cleanComp}
+                    </span>
+                </>
+            )}
+
+            {/* GUARANTEED SPACE + EMPLOYEE NAME (blueish, same as company) */}
+            {cleanEmp && (
+                <>
+                    {' '}
+                    <span className="font-medium text-[#007AFF] uppercase">
+                        {cleanEmp}
                     </span>
                 </>
             )}
@@ -178,6 +238,7 @@ function ColorCodedMessageText({ text, companyName }: { text: string; companyNam
 
 const TransactionMessageItem = memo(({ 
     msg, 
+    employees,
     activeMsgMenuId,
     handleTouchStart,
     handleTouchEnd,
@@ -187,6 +248,7 @@ const TransactionMessageItem = memo(({
     formatTime
 }: {
     msg: ChatMessage,
+    employees?: EmployeeItem[],
     activeMsgMenuId: number | undefined,
     handleTouchStart: (msg: ChatMessage, e: any) => void,
     handleTouchEnd: () => void,
@@ -238,7 +300,12 @@ const TransactionMessageItem = memo(({
                 title="Long press or tap for options (View, Edit, Delete)"
             >
                 <div className="text-[15px] font-sans leading-snug break-words whitespace-pre-wrap font-normal">
-                    <ColorCodedMessageText text={msg.rawText} companyName={msg.companyName} />
+                    <ColorCodedMessageText 
+                        text={msg.rawText} 
+                        companyName={msg.companyName} 
+                        employeeId={msg.employeeId}
+                        employees={employees}
+                    />
                     
                     {/* @Person tag for legacy messages where person wasn't inside rawText */}
                     {msg.person && !msg.rawText.includes('@') && (() => {
@@ -326,6 +393,7 @@ export default function TransactionsPage() {
         id: number
         rawText: string
         companyName?: string | null
+        employeeId?: number | null
     } | null>(null)
     const notificationTimerRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -534,7 +602,8 @@ export default function TransactionsPage() {
         setActiveNotification({
             id: Date.now(),
             rawText: msg.rawText,
-            companyName: msg.companyName
+            companyName: msg.companyName,
+            employeeId: msg.employeeId
         })
         notificationTimerRef.current = setTimeout(() => {
             setActiveNotification(null)
@@ -2126,6 +2195,7 @@ export default function TransactionsPage() {
                                 <TransactionMessageItem
                                     key={msg.id}
                                     msg={msg}
+                                    employees={employees}
                                     activeMsgMenuId={activeMsgMenu?.msg.id}
                                     handleTouchStart={handleTouchStart}
                                     handleTouchEnd={handleTouchEnd}
@@ -2554,6 +2624,8 @@ export default function TransactionsPage() {
                             <ColorCodedMessageText 
                                 text={activeNotification.rawText} 
                                 companyName={activeNotification.companyName} 
+                                employeeId={activeNotification.employeeId}
+                                employees={employees}
                             />
                         </div>
 
