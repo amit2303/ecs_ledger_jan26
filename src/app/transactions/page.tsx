@@ -678,11 +678,14 @@ export default function TransactionsPage() {
     }, [input, cursorPosition])
 
     const handleCustomKeyPress = (char: string) => {
-        // 1. Prevent typing after person tag is selected/typed
-        const personEndMatch = input.match(/@\s*(AMIT|SUMIT|SSM|PAPA|MAMAJI|PANKAJ|BHAIYA)$/i)
-        if (personEndMatch) {
-            setWarningMsg('Cannot write anything after selecting person tag')
-            return
+        // 1. Prevent typing ONLY if cursor is at or after the selected person tag
+        const personMatch = input.match(/@\s*(?:AMIT|SUMIT|SSM|PAPA|MAMAJI|PANKAJ|BHAIYA)/i)
+        if (personMatch && personMatch.index !== undefined) {
+            const personEndIndex = personMatch.index + personMatch[0].length
+            if (cursorPosition >= personEndIndex) {
+                setWarningMsg('Cannot write anything after selecting person tag')
+                return
+            }
         }
 
         // 2. Prevent typing any non (+/-) key as first character when input is empty
@@ -1446,7 +1449,7 @@ export default function TransactionsPage() {
         if (personEndMatch && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
             const personStartIndex = input.lastIndexOf('@')
             const sel = typeof window !== 'undefined' ? window.getSelection() : null
-            const cursorPos = sel && sel.rangeCount > 0 ? sel.getRangeAt(0).startOffset : input.length
+            const cursorPos = cursorPosition > 0 ? cursorPosition : (sel && sel.rangeCount > 0 ? sel.getRangeAt(0).startOffset : input.length)
             if (cursorPos > personStartIndex) {
                 e.preventDefault()
                 setWarningMsg('Cannot write anything after selecting person tag')
