@@ -2094,8 +2094,8 @@ export default function TransactionsPage() {
 
                                 const rest = afterSign.substring(amountMatch[0].length).trimStart()
                                 const hasSpace = afterSign.substring(amountMatch[0].length).startsWith(' ') || rest.length > 0
-                                if (!hasSpace && !selectedCompany && !rest) {
-                                    return ' ' + (sign === '+' ? 'Company' : 'Description')
+                                if (!hasSpace && !selectedCompany && !selectedEmployee && !rest) {
+                                    return ' ' + (sign === '+' ? 'Company' : 'ECS Head / Employee')
                                 }
 
                                 const hasPerson = /@\s*(AMIT|SUMIT|SSM|PAPA|MAMAJI|PANKAJ|BHAIYA)/i.test(raw) || !!selectedPerson
@@ -2116,7 +2116,12 @@ export default function TransactionsPage() {
                                     }
                                     return raw.endsWith(' ') ? '@' : ' @'
                                 } else {
-                                    if (!rest && !selectedEmployee) {
+                                    if (!selectedEmployee && !rest) {
+                                        return raw.endsWith(' ') ? 'ECS Head / Employee' : ' ECS Head / Employee'
+                                    }
+                                    const cleanEmpName = selectedEmployee ? selectedEmployee.name.toUpperCase().trim() : ''
+                                    const textAfterEmp = selectedEmployee ? rest.replace(cleanEmpName, '').trim() : rest.split(/\s+/).slice(1).join(' ')
+                                    if (!textAfterEmp) {
                                         return raw.endsWith(' ') ? 'Description' : ' Description'
                                     }
                                     return raw.endsWith(' ') ? '@' : ' @'
