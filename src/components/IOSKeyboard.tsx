@@ -203,13 +203,13 @@ export function IOSKeyboard({
         }
     }, [])
 
-    // Determine which contextual suggestions to show inside the keyboard
+    // Determine which contextual suggestions to show inside the keyboard (strictly mutually exclusive)
     const safeInput = inputValue || ''
-    const showCompanySuggestions = companySuggestions.length > 0 && !selectedCompany && safeInput.startsWith('+')
-    const showEmployeeSuggestions = employeeSuggestions.length > 0 && !selectedEmployee && !selectedCompany && safeInput.startsWith('-')
-    const showPackageSuggestions = !!selectedCompany && companyPackages.length > 0
     const showPersonPicker = (!!isPersonPickerOpen || safeInput.includes('@')) && persons.length > 0
-    const hasSuggestions = showCompanySuggestions || showEmployeeSuggestions || showPackageSuggestions || showPersonPicker
+    const showCompanySuggestions = !showPersonPicker && companySuggestions.length > 0 && !selectedCompany && safeInput.startsWith('+')
+    const showEmployeeSuggestions = !showPersonPicker && employeeSuggestions.length > 0 && !selectedEmployee && !selectedCompany && safeInput.startsWith('-')
+    const showPackageSuggestions = !showPersonPicker && !!selectedCompany && companyPackages.length > 0
+    const hasSuggestions = showPersonPicker || showCompanySuggestions || showEmployeeSuggestions || showPackageSuggestions
 
     if (!isOpen) return null
 

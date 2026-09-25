@@ -609,25 +609,74 @@ export default function TransactionsPage() {
     }, [input, cursorPosition])
 
     const handleCustomKeyPress = (char: string) => {
-        // Prevent typing after person tag
+        // 1. Prevent typing after person tag is selected/typed
         const personEndMatch = input.match(/@\s*(AMIT|SUMIT|SSM|PAPA|MAMAJI|PANKAJ|BHAIYA)$/i)
         if (personEndMatch) {
             setWarningMsg('Cannot write anything after selecting person tag')
             return
         }
 
-        // Prevent typing any non (+/-) key as first character when input is empty
-        if (!input && char !== '+' && char !== '-') {
-            setWarningMsg('Chat message MUST start with + or - symbol')
+        // 2. Prevent typing any non (+/-) key as first character when input is empty
+        if (!input) {
+            if (char !== '+' && char !== '-') {
+                setWarningMsg('Chat message MUST start with + or - symbol')
+                return
+            }
+            setInput(char)
+            setCursorPosition(1)
             return
         }
 
-        // Enforce Amount first: If no digits entered yet after +/- , disallow typing letters
-        const rawAfterSign = (input.startsWith('+') || input.startsWith('-')) ? input.substring(1).trimStart() : input
-        const hasAmountEntered = /^\d+(?:\.\d+)?/.test(rawAfterSign)
-        if (!hasAmountEntered && /[A-Za-z]/.test(char)) {
-            setWarningMsg('Please enter amount first after ' + (input[0] || '+ / -'))
-            return
+        const sign = input[0]
+
+        // 3. Enforce Amount first: If no digits entered yet after +/- , only allow digits or .
+        const rawAfterSign = input.substring(1).trimStart()
+        const amountMatch = rawAfterSign.match(/^(\d+(?:\.\d+)?)/)
+        if (!amountMatch) {
+            if (!/[\d.]/.test(char)) {
+                setWarningMsg('Please enter amount first after ' + sign)
+                return
+            }
+        } else {
+            // Amount exists
+            const afterAmount = rawAfterSign.substring(amountMatch[0].length)
+            const hasSpaceAfterAmount = afterAmount.startsWith(' ') || afterAmount.length > 0
+
+            // If user hasn't pressed space after amount yet, only allow more digits, ., or space
+            if (!hasSpaceAfterAmount) {
+                if (!/[\d. ]/.test(char)) {
+                    setWarningMsg('Please press space after amount before entering ' + (sign === '+' ? 'Company' : 'ECS Head / Employee'))
+                    return
+                }
+            } else if (char === '@') {
+                // Strict check when typing '@':
+                // For +, must have Company + Description
+                // For -, must have Employee/ECS MISC + Description
+                const restTrimmed = afterAmount.trim()
+                if (sign === '+') {
+                    if (!selectedCompany && !restTrimmed) {
+                        setWarningMsg('Please enter Company name before @person')
+                        return
+                    }
+                    const cleanComp = selectedCompany ? selectedCompany.name.replace(/^\d+\.?\s*/, '').toUpperCase().trim() : ''
+                    const textAfterComp = cleanComp ? restTrimmed.replace(cleanComp, '').trim() : restTrimmed.split(/\s+/).slice(1).join(' ')
+                    if (!textAfterComp && !selectedPackage) {
+                        setWarningMsg('Please enter Description before @person')
+                        return
+                    }
+                } else {
+                    if (!selectedEmployee && selectedCompany?.id !== -1 && !restTrimmed) {
+                        setWarningMsg('Please enter ECS Head / Employee before @person')
+                        return
+                    }
+                    const cleanEmp = selectedEmployee ? selectedEmployee.name.toUpperCase().trim() : (selectedCompany?.id === -1 ? 'ECS MISC' : '')
+                    const textAfterEmp = cleanEmp ? restTrimmed.replace(cleanEmp, '').trim() : restTrimmed.split(/\s+/).slice(1).join(' ')
+                    if (!textAfterEmp) {
+                        setWarningMsg('Please enter Description before @person')
+                        return
+                    }
+                }
+            }
         }
 
         const before = input.slice(0, cursorPosition)
@@ -807,6 +856,7 @@ export default function TransactionsPage() {
     // Filter company suggestions as user types (ONLY after entering amount and giving a space!)
     const getCompanySuggestions = () => {
         if (!input.startsWith('+')) return []
+        if (input.includes('@')) return []
         if (selectedCompany) return []
 
         const afterSign = input.substring(1).trimStart()
@@ -840,7 +890,8 @@ export default function TransactionsPage() {
     // Filter employee suggestions as user types (ONLY after entering amount and giving a space for '-')
     const getEmployeeSuggestions = () => {
         if (!input.startsWith('-')) return []
-        if (selectedEmployee || !employees.length) return []
+        if (input.includes('@')) return []
+        if (selectedEmployee || selectedCompany?.id === -1 || !employees.length) return []
 
         const afterSign = input.substring(1).trimStart()
         const amountMatch = afterSign.match(/^(\d+(?:\.\d+)?)/)
@@ -1043,7 +1094,10 @@ export default function TransactionsPage() {
         const currentPerson = selectedPerson || detectPersonFromText(input)
         const personTag = currentPerson ? ` @ ${currentPerson.display.toUpperCase()}` : ''
         
-        setInput(`${currentSign}${currentAmount} ${cleanName}${personTag}`.trimStart())
+        const base = `${currentSign}${currentAmount} ${cleanName}`
+        const finalText = (personTag ? `${base}${personTag}` : `${base} `).trimStart()
+        setInput(finalText)
+        setCursorPosition(finalText.length)
         setSelectedEmployee(emp)
         setSelectedCompany(null)
         if (currentPerson) setSelectedPerson(currentPerson)
@@ -1061,13 +1115,19 @@ export default function TransactionsPage() {
         if (input.includes('@')) {
             const replacedTrailing = input.replace(/\s*@\s*[A-Z0-9_]*$/i, ` ${personTag}`)
             if (replacedTrailing !== input) {
-                setInput(replacedTrailing.trimStart())
+                const nextVal = replacedTrailing.trimStart()
+                setInput(nextVal)
+                setCursorPosition(nextVal.length)
             } else {
-                setInput(input.replace(/\s*@\s*[A-Z0-9_]*/i, ` ${personTag}`).trimStart())
+                const nextVal = input.replace(/\s*@\s*[A-Z0-9_]*/i, ` ${personTag}`).trimStart()
+                setInput(nextVal)
+                setCursorPosition(nextVal.length)
             }
         } else {
             const trimmed = input.trimEnd()
-            setInput(trimmed ? `${trimmed} ${personTag}` : personTag)
+            const nextVal = trimmed ? `${trimmed} ${personTag}` : personTag
+            setInput(nextVal)
+            setCursorPosition(nextVal.length)
         }
 
         setWarningMsg(null)
@@ -1076,11 +1136,19 @@ export default function TransactionsPage() {
 
     const handleSelectCompany = (comp: CompanyItem) => {
         if (comp.id === -1) {
-            // ECS MISC head option selected: DO NOT write "ECS MISC" into text input!
+            // ECS MISC head option selected
             setSelectedCompany(comp)
             setSelectedPackage(null)
             setSelectedEmployee(null)
             setCompanyPackages([])
+            const currentSign = sign || (input.startsWith('-') ? '-' : '+')
+            const currentAmount = amount ? amount.toString() : ''
+            const currentPerson = selectedPerson || detectPersonFromText(input)
+            const personTag = currentPerson ? ` @ ${currentPerson.display.toUpperCase()}` : ''
+            const base = `${currentSign}${currentAmount} ECS MISC`
+            const finalText = (personTag ? `${base}${personTag}` : `${base} `).trimStart()
+            setInput(finalText)
+            setCursorPosition(finalText.length)
             setWarningMsg(null)
             setIsCustomKeyboardOpen(true)
             return
@@ -1092,7 +1160,8 @@ export default function TransactionsPage() {
         const currentPerson = selectedPerson || detectPersonFromText(input)
         const personTag = currentPerson ? ` @ ${currentPerson.display.toUpperCase()}` : ''
         
-        const finalText = `${currentSign}${currentAmount} ${cleanName}${personTag}`.trimStart()
+        const base = `${currentSign}${currentAmount} ${cleanName}`
+        const finalText = (personTag ? `${base}${personTag}` : `${base} `).trimStart()
         setInput(finalText)
         setCursorPosition(finalText.length)
         setSelectedCompany(comp)
@@ -1110,6 +1179,15 @@ export default function TransactionsPage() {
             setSelectedPackage(null)
         } else {
             setSelectedPackage(pkg)
+            const currentSign = sign || '+'
+            const currentAmount = amount ? amount.toString() : ''
+            const cleanCompName = selectedCompany ? selectedCompany.name.replace(/^\d+\.?\s*/, '').trim().toUpperCase() : ''
+            const currentPerson = selectedPerson || detectPersonFromText(input)
+            const personTag = currentPerson ? ` @ ${currentPerson.display.toUpperCase()}` : ''
+            const base = `${currentSign}${currentAmount} ${cleanCompName} ${pkg.description.toUpperCase()}`
+            const finalText = (personTag ? `${base}${personTag}` : `${base} `).trimStart()
+            setInput(finalText)
+            setCursorPosition(finalText.length)
         }
         setWarningMsg(null)
         setIsCustomKeyboardOpen(true)
@@ -2116,11 +2194,11 @@ export default function TransactionsPage() {
                                     }
                                     return raw.endsWith(' ') ? '@' : ' @'
                                 } else {
-                                    if (!selectedEmployee && !rest) {
+                                    if (!selectedEmployee && selectedCompany?.id !== -1 && !rest) {
                                         return raw.endsWith(' ') ? 'ECS Head / Employee' : ' ECS Head / Employee'
                                     }
-                                    const cleanEmpName = selectedEmployee ? selectedEmployee.name.toUpperCase().trim() : ''
-                                    const textAfterEmp = selectedEmployee ? rest.replace(cleanEmpName, '').trim() : rest.split(/\s+/).slice(1).join(' ')
+                                    const cleanEmpName = selectedEmployee ? selectedEmployee.name.toUpperCase().trim() : (selectedCompany?.id === -1 ? 'ECS MISC' : '')
+                                    const textAfterEmp = cleanEmpName ? rest.replace(cleanEmpName, '').trim() : rest.split(/\s+/).slice(1).join(' ')
                                     if (!textAfterEmp) {
                                         return raw.endsWith(' ') ? 'Description' : ' Description'
                                     }
