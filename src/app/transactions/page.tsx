@@ -1179,15 +1179,6 @@ export default function TransactionsPage() {
             setSelectedPackage(null)
         } else {
             setSelectedPackage(pkg)
-            const currentSign = sign || '+'
-            const currentAmount = amount ? amount.toString() : ''
-            const cleanCompName = selectedCompany ? selectedCompany.name.replace(/^\d+\.?\s*/, '').trim().toUpperCase() : ''
-            const currentPerson = selectedPerson || detectPersonFromText(input)
-            const personTag = currentPerson ? ` @ ${currentPerson.display.toUpperCase()}` : ''
-            const base = `${currentSign}${currentAmount} ${cleanCompName} ${pkg.description.toUpperCase()}`
-            const finalText = (personTag ? `${base}${personTag}` : `${base} `).trimStart()
-            setInput(finalText)
-            setCursorPosition(finalText.length)
         }
         setWarningMsg(null)
         setIsCustomKeyboardOpen(true)
