@@ -140,14 +140,20 @@ export function IOSKeyboard({
     selectedCompany = null,
     selectedEmployee = null,
     selectedPackage = null,
+    selectedPerson = null,
     isPersonPickerOpen = false,
     onSelectCompany,
     onSelectEmployee,
     onSelectPackage,
     onSelectPerson,
     cursorPosition = 0,
-    onCursorMove
-}: IOSKeyboardProps) {
+    onCursorMove,
+    onSelectIncome,
+    onSelectExpense,
+}: IOSKeyboardProps & {
+    onSelectIncome?: () => void
+    onSelectExpense?: () => void
+}) {
     const [mode, setMode] = useState<KeyboardMode>('letters')
     
     // Trackpad mode for spacebar long press
@@ -203,10 +209,35 @@ export function IOSKeyboard({
         }
     }, [])
 
+    const handleIncomeClick = () => {
+        triggerHaptic()
+        if (onSelectIncome) {
+            onSelectIncome()
+        } else {
+            onKeyPress('+')
+        }
+        setMode('numbers')
+    }
+
+    const handleExpenseClick = () => {
+        triggerHaptic()
+        if (onSelectExpense) {
+            onSelectExpense()
+        } else {
+            onKeyPress('-')
+        }
+        setMode('numbers')
+    }
+
     // Determine which contextual suggestions to show inside the keyboard (strictly mutually exclusive)
     const safeInput = inputValue || ''
-    const hasDetectedPerson = /@\s*(?:AMIT|SUMIT|SSM|PAPA|MAMAJI|PANKAJ|BHAIYA)\b/i.test(safeInput)
-    const isActivelyPickingPerson = (!!isPersonPickerOpen || (safeInput.includes('@') && !hasDetectedPerson)) && persons.length > 0
+    const hasDetectedPerson = /@\s*(?:AMIT|SUMIT|SSM|PAPA|MAMAJI|PANKAJ|BHAIYA)\b/i.test(safeInput) || !!selectedPerson
+
+    const sign = safeInput[0]
+    const afterSign = (sign === '+' || sign === '-') ? safeInput.substring(1).trimStart() : ''
+    const amountMatch = afterSign.match(/^(\d+(?:\.\d+)?)/)
+    const hasAmount = Boolean(amountMatch)
+    const restAfterAmount = hasAmount ? afterSign.substring(amountMatch![0].length).trim() : ''
 
     // Priority 1: Company suggestions (payment flow, amount typed, company not selected or deleted in edit)
     const showCompanySuggestions = !selectedCompany && safeInput.startsWith('+') && companySuggestions.length > 0
@@ -214,12 +245,57 @@ export function IOSKeyboard({
     // Priority 2: Employee suggestions (expense flow, amount typed, employee not selected or deleted in edit)
     const showEmployeeSuggestions = !showCompanySuggestions && !selectedEmployee && !selectedCompany && safeInput.startsWith('-') && employeeSuggestions.length > 0
 
+    // Calculate if description or package is ready
+    let hasDescriptionOrPackage = false
+    let textAfterComp = ''
+    if (hasAmount) {
+        if (sign === '+') {
+            const cleanCompName = selectedCompany ? selectedCompany.name.replace(/^\d+\.?\s*/, '').trim().toUpperCase() : ''
+            textAfterComp = cleanCompName 
+                ? restAfterAmount.replace(cleanCompName, '').trim() 
+                : (selectedCompany ? restAfterAmount : restAfterAmount.split(/\s+/).slice(1).join(' '))
+            
+            // For income: either package is selected, OR description is typed after company
+            if (selectedPackage || textAfterComp.length > 0) {
+                hasDescriptionOrPackage = true
+            }
+        } else if (sign === '-') {
+            const isMisc = selectedCompany?.id === -1 || restAfterAmount.toUpperCase().includes('ECS MISC')
+            if (isMisc) {
+                const textAfterMisc = restAfterAmount.replace(/ECS\s*M[I|S]SC/i, '').trim()
+                if (textAfterMisc.length > 0) {
+                    hasDescriptionOrPackage = true
+                }
+            } else if (selectedEmployee) {
+                // Employee payment: description is optional, so as soon as employee is selected, person can be chosen!
+                hasDescriptionOrPackage = true
+            } else if (restAfterAmount.length > 0 && employeeSuggestions.length === 0) {
+                hasDescriptionOrPackage = true
+            }
+        }
+    }
+
     // Priority 3: Package suggestions (payment flow, company selected with packages)
-    // Shown when no package is selected (!selectedPackage), or when user is not actively picking person
-    const showPackageSuggestions = !showCompanySuggestions && !showEmployeeSuggestions && !!selectedCompany && companyPackages.length > 0 && (!selectedPackage || !isActivelyPickingPerson)
+    // Shown when no package is selected AND no description typed yet
+    const showPackageSuggestions = !showCompanySuggestions && 
+        !showEmployeeSuggestions && 
+        !!selectedCompany && 
+        selectedCompany.id !== -1 &&
+        companyPackages.length > 0 && 
+        !selectedPackage && 
+        !textAfterComp && 
+        !safeInput.includes('@')
 
     // Priority 4: Person picker
-    const showPersonPicker = !showCompanySuggestions && !showEmployeeSuggestions && !showPackageSuggestions && (isActivelyPickingPerson || safeInput.includes('@')) && persons.length > 0
+    // Shown automatically when description/package is ready and person is not yet selected,
+    // OR if user typed '@' or actively picking person
+    const showPersonPicker = !showCompanySuggestions && 
+        !showEmployeeSuggestions && 
+        !showPackageSuggestions && 
+        !hasDetectedPerson && 
+        (hasDescriptionOrPackage || !!isPersonPickerOpen || safeInput.includes('@')) && 
+        persons.length > 0
+
     const hasSuggestions = showCompanySuggestions || showEmployeeSuggestions || showPackageSuggestions || showPersonPicker
 
     if (!isOpen) return null
@@ -307,7 +383,6 @@ export function IOSKeyboard({
         const touch = e.touches[0]
         trackpadStartX.current = touch.clientX
         trackpadStartCursor.current = cursorPosition
-
         spaceLongPressTimeout.current = setTimeout(() => {
             setIsTrackpadMode(true)
             triggerHaptic()
@@ -353,6 +428,60 @@ export function IOSKeyboard({
             className="w-full select-none touch-manipulation z-30"
             style={kbStyles.wrapper}
         >
+            {/* ─── Quick Action Bar (+ Income, - Expense, Done) ─── */}
+            <div
+                className="flex items-center justify-between px-3 py-[6px]"
+                style={{ borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}
+            >
+                <div className="flex items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={handleIncomeClick}
+                        className="px-3 py-1 rounded-full text-[12.5px] font-bold flex items-center gap-1.5 transition-all active:scale-95 shrink-0"
+                        style={{
+                            background: safeInput.startsWith('+')
+                                ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)'
+                                : 'rgba(255,255,255,0.85)',
+                            color: safeInput.startsWith('+') ? '#ffffff' : '#047857',
+                            border: `1px solid ${safeInput.startsWith('+') ? 'rgba(5,150,105,0.6)' : 'rgba(16,185,129,0.35)'}`,
+                            boxShadow: safeInput.startsWith('+') ? '0 1px 4px rgba(16,185,129,0.35)' : 'none',
+                            WebkitTapHighlightColor: 'transparent',
+                        }}
+                    >
+                        <span className="text-[15px] font-extrabold leading-none">+</span>
+                        <span>Income</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={handleExpenseClick}
+                        className="px-3 py-1 rounded-full text-[12.5px] font-bold flex items-center gap-1.5 transition-all active:scale-95 shrink-0"
+                        style={{
+                            background: safeInput.startsWith('-')
+                                ? 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)'
+                                : 'rgba(255,255,255,0.85)',
+                            color: safeInput.startsWith('-') ? '#ffffff' : '#B91C1C',
+                            border: `1px solid ${safeInput.startsWith('-') ? 'rgba(220,38,38,0.6)' : 'rgba(239,68,68,0.35)'}`,
+                            boxShadow: safeInput.startsWith('-') ? '0 1px 4px rgba(239,68,68,0.35)' : 'none',
+                            WebkitTapHighlightColor: 'transparent',
+                        }}
+                    >
+                        <span className="text-[15px] font-extrabold leading-none">−</span>
+                        <span>Expense</span>
+                    </button>
+                </div>
+
+                <button
+                    type="button"
+                    onClick={onClose}
+                    className="px-3 py-[4px] rounded-full text-[13px] font-semibold transition-all active:scale-[0.94] flex items-center gap-1 shrink-0"
+                    style={{ color: '#007AFF', WebkitTapHighlightColor: 'transparent' }}
+                >
+                    Done
+                    <ChevronDown className="w-3.5 h-3.5" />
+                </button>
+            </div>
+
             {/* ─── Contextual Smart Suggestion Bar ─── */}
             {hasSuggestions && (
                 <div
@@ -408,7 +537,7 @@ export function IOSKeyboard({
                                     pkg.id,
                                     pkg.description,
                                     () => onSelectPackage?.(pkg),
-                                    pkg.id === selectedPackage?.id
+                                    pkg.id === (selectedPackage as PackageItem | null)?.id
                                 )
                             )}
                         </>
@@ -417,34 +546,28 @@ export function IOSKeyboard({
                     {/* @Person Picker */}
                     {showPersonPicker && (
                         <>
-                            <span className="text-[11px] font-bold text-[#8e8e93] shrink-0">@</span>
+                            <span className="text-[11px] font-bold text-[#8e8e93] shrink-0 flex items-center gap-0.5">
+                                <UserCircle2 className="w-3 h-3 text-[#8e8e93]" />
+                                <span>Person</span>
+                            </span>
                             {persons.map((p: any) =>
                                 renderSuggestionPill(
                                     p.canonical,
                                     p.display,
-                                    () => onSelectPerson?.(p)
+                                    () => onSelectPerson?.(p),
+                                    false,
+                                    {
+                                        color: p.color || '#007AFF',
+                                        background: p.bg || 'rgba(255,255,255,0.85)',
+                                        border: `0.5px solid ${p.border || 'rgba(0,122,255,0.25)'}`,
+                                        fontWeight: 600,
+                                    }
                                 )
                             )}
                         </>
                     )}
                 </div>
             )}
-
-            {/* ─── Quick Action Bar (Done) ─── */}
-            <div
-                className="flex items-center justify-end px-3 py-[5px]"
-                style={{ borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}
-            >
-                <button
-                    type="button"
-                    onClick={onClose}
-                    className="px-3 py-[4px] rounded-full text-[13px] font-semibold transition-all active:scale-[0.94] flex items-center gap-1"
-                    style={{ color: '#007AFF', WebkitTapHighlightColor: 'transparent' }}
-                >
-                    Done
-                    <ChevronDown className="w-3.5 h-3.5" />
-                </button>
-            </div>
 
             {/* ─── KEYBOARD ROWS ─── */}
             <div className="flex flex-col gap-[6px] px-[3px] pt-[4px] pb-[3px] max-w-lg mx-auto">

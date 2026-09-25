@@ -529,6 +529,10 @@ export default function TransactionsPage() {
                     console.error('Failed to load packages during edit:', err)
                 }
             }
+        } else if (msg.companyName === 'ECS MISC' || msg.rawText.includes('ECS MISC') || msg.rawText.includes('ECS MSC')) {
+            setSelectedCompany({ id: -1, name: 'ECS MISC' })
+            setSelectedPackage(null)
+            setCompanyPackages([])
         } else {
             setSelectedCompany(null)
             setSelectedPackage(null)
@@ -542,6 +546,16 @@ export default function TransactionsPage() {
         }
         const detected = detectPersonFromText(msg.rawText)
         if (detected) setSelectedPerson(detected)
+
+        // Position cursor right after the amount so backspace immediately edits the amount!
+        const rawAfterSign = msg.rawText.slice(1).trimStart()
+        const amtMatch = rawAfterSign.match(/^(\d+(?:\.\d+)?)/)
+        if (amtMatch) {
+            const amtEndPos = 1 + amtMatch[0].length
+            setCursorPosition(amtEndPos)
+        } else {
+            setCursorPosition(msg.rawText.length)
+        }
 
         setTimeout(() => {
             setIsCustomKeyboardOpen(true)
@@ -688,95 +702,93 @@ export default function TransactionsPage() {
             }
         }
 
-        // 2. Prevent typing any non (+/-) key as first character when input is empty
-        if (!input) {
-            if (char !== '+' && char !== '-') {
-                setWarningMsg('Chat message MUST start with + or - symbol')
+        // 2. Special handling for '+' and '-' keys (always set/switch the transaction sign):
+        if (char === '+' || char === '-') {
+            if (!input) {
+                setInput(char)
+                setCursorPosition(1)
+                setWarningMsg(null)
                 return
             }
-            setInput(char)
-            setCursorPosition(1)
+            if (input.startsWith(char)) {
+                setWarningMsg(null)
+                return
+            }
+            // Switch sign between '+' and '-'
+            const rest = (input.startsWith('+') || input.startsWith('-')) ? input.slice(1) : input
+            const nextVal = char + rest
+            handleInputChange(nextVal)
+            setWarningMsg(null)
             return
         }
 
-        const sign = input[0]
+        // 3. When input is empty, only '+' or '-' can start it
+        if (!input) {
+            setWarningMsg('Chat message MUST start with + or - symbol')
+            return
+        }
 
-        // 3. Enforce Amount first: If no digits entered yet after +/- , only allow digits or .
-        const rawAfterSign = input.substring(1).trimStart()
-        const amountMatch = rawAfterSign.match(/^(\d*\.?\d+)/)
-        if (!amountMatch) {
-            if (!/[\d.]/.test(char)) {
-                setWarningMsg('Please enter amount first after ' + sign)
-                return
-            }
-        } else {
-            // Amount exists
-            const afterAmount = rawAfterSign.substring(amountMatch[0].length)
-            const hasSpaceAfterAmount = afterAmount.startsWith(' ') || afterAmount.length > 0
+        // 4. Special handling if cursor is in the amount area and user types a digit over single '0'
+        // e.g. input is "+0 ANJALI..." and cursor is at index 1 (+|0) or index 2 (+0|)
+        let insertChar = char
+        let sliceStart = cursorPosition
+        let sliceEnd = cursorPosition
 
-            // If user hasn't pressed space after amount yet, only allow more digits, ., or space
-            if (!hasSpaceAfterAmount) {
-                if (!/[\d. ]/.test(char)) {
-                    setWarningMsg('Please press space after amount before entering ' + (sign === '+' ? 'Company' : 'ECS Head / Employee'))
-                    return
-                }
-            } else if (char === '@') {
-                if (input.includes('@')) {
-                    setIsPersonPickerOpen(true)
-                    return
-                }
-
-                // Strict check when typing '@':
-                // For +, must have Company + (Description or Package)
-                // For -, must have Employee / ECS Head (Description ONLY mandatory for ECS MISC)
-                const restTrimmed = afterAmount.trim()
-                if (sign === '+') {
-                    if (!selectedCompany && !restTrimmed) {
-                        setWarningMsg('Please enter Company name before @person')
-                        return
-                    }
-                    const cleanComp = selectedCompany ? selectedCompany.name.replace(/^\d+\.?\s*/, '').toUpperCase().trim() : ''
-                    const textAfterComp = cleanComp ? restTrimmed.replace(cleanComp, '').trim() : restTrimmed.split(/\s+/).slice(1).join(' ')
-                    if (!textAfterComp && !selectedPackage) {
-                        setWarningMsg('Please enter Description before @person')
-                        return
-                    }
-                } else {
-                    const isMisc = selectedCompany?.id === -1 || restTrimmed.toUpperCase().includes('ECS MISC')
-                    if (!selectedEmployee && !isMisc && !restTrimmed) {
-                        setWarningMsg('Please enter ECS Head / Employee before @person')
-                        return
-                    }
-                    if (isMisc) {
-                        const cleanMisc = 'ECS MISC'
-                        const textAfterMisc = restTrimmed.replace(cleanMisc, '').trim()
-                        if (!textAfterMisc) {
-                            setWarningMsg('Please enter Description before @person')
-                            return
-                        }
-                    }
-                    // For employee payment, description is NOT mandatory
-                }
-
-                const before = input.slice(0, cursorPosition)
-                const after = input.slice(cursorPosition)
-                const needsSpace = before.length > 0 && !before.endsWith(' ')
-                const toInsert = needsSpace ? ' @' : '@'
-                const nextVal = (before + toInsert + after).toUpperCase()
-                setCursorPosition(prev => prev + toInsert.length)
-                handleInputChange(nextVal)
-                return
+        if (/^[1-9]$/.test(char)) {
+            // Check if cursor is right before '0 ' or '0@' or single '0' (e.g. index 1: +|0 ...)
+            if (cursorPosition === 1 && (input.slice(1).startsWith('0 ') || input.slice(1).startsWith('0@') || input.slice(1) === '0')) {
+                sliceEnd = cursorPosition + 1 // Replace the '0'
+            } else if (cursorPosition === 2 && input[1] === '0' && (input.length === 2 || input[2] === ' ' || input[2] === '@')) {
+                sliceStart = 1 // Replace the '0'
+                sliceEnd = 2
             }
         }
 
-        const before = input.slice(0, cursorPosition)
-        const after = input.slice(cursorPosition)
-        const nextVal = (before + char + after).toUpperCase()
-        setCursorPosition(prev => prev + 1)
+        // 5. Special handling for '@'
+        if (char === '@') {
+            if (input.includes('@')) {
+                setIsPersonPickerOpen(true)
+                return
+            }
+            const before = input.slice(0, cursorPosition)
+            const after = input.slice(cursorPosition)
+            const needsSpace = before.length > 0 && !before.endsWith(' ')
+            const toInsert = needsSpace ? ' @' : '@'
+            const nextVal = (before + toInsert + after).toUpperCase()
+            setCursorPosition(prev => prev + toInsert.length)
+            handleInputChange(nextVal)
+            return
+        }
+
+        // 6. Normal insertion
+        const before = input.slice(0, sliceStart)
+        const after = input.slice(sliceEnd)
+        const nextVal = (before + insertChar + after).toUpperCase()
+        
+        // Advance cursor
+        const newCursorPos = before.length + insertChar.length
+        setCursorPosition(newCursorPos)
         handleInputChange(nextVal)
     }
 
     const handleCustomBackspace = () => {
+        if (cursorPosition === 1 && (input.startsWith('+') || input.startsWith('-'))) {
+            // User is at index 1 (right after the '+' or '-')
+            if (input.length === 1) {
+                // Single sign: clear input completely
+                handleInputChange('')
+                setCursorPosition(0)
+                return
+            }
+            // If there is content after '+' or '-', pressing backspace at index 1 toggles sign!
+            const currentSign = input[0]
+            const toggledSign = currentSign === '+' ? '-' : '+'
+            const nextVal = toggledSign + input.slice(1)
+            handleInputChange(nextVal)
+            setCursorPosition(1)
+            return
+        }
+
         if (cursorPosition > 0) {
             const before = input.slice(0, cursorPosition - 1)
             const after = input.slice(cursorPosition)
@@ -1043,29 +1055,23 @@ export default function TransactionsPage() {
             return
         }
 
-        // Must start with + or -
-        if (upperVal.length > 0 && upperVal[0] !== '+' && upperVal[0] !== '-') {
-            setWarningMsg('Input MUST start with + (Payment) or - (Expense)')
-            return
+        // Ensure starts with + or -
+        let normalizedVal = upperVal
+        if (normalizedVal.length > 0 && normalizedVal[0] !== '+' && normalizedVal[0] !== '-') {
+            const currentSign = sign || '+'
+            normalizedVal = currentSign + normalizedVal
         }
 
-        // Amount must precede company or words
-        const rawAfterSign = upperVal.substring(1).trimStart()
-        const hasAmount = /^\d+(?:\.\d+)?/.test(rawAfterSign)
-        if (!hasAmount && /[A-Z]/.test(rawAfterSign)) {
-            setWarningMsg('Please enter amount first after ' + upperVal[0])
-            return
-        }
-
-        // For expenses (-), clear any selected package and sync employee / ECS MISC head
-        if (upperVal.startsWith('-')) {
+        // For expenses (-), clear client company & package, and sync employee / ECS MISC head
+        if (normalizedVal.startsWith('-')) {
             if (selectedPackage) setSelectedPackage(null)
             if (companyPackages.length > 0) setCompanyPackages([])
+            if (selectedCompany && selectedCompany.id !== -1) setSelectedCompany(null)
 
-            const afterSign = upperVal.substring(1).trim()
+            const afterSign = normalizedVal.substring(1).trim()
             const amountMatch = afterSign.match(/^(\d*\.?\d+)/)
             const rest = amountMatch ? afterSign.substring(amountMatch[0].length).trim() : afterSign
-            const textWithoutPerson = rest.replace(/@[A-Z0-9_]+/gi, '').trim()
+            const textWithoutPerson = rest.replace(/@\s*[A-Z0-9_]+/gi, '').trim()
 
             // Check if user typed ECS MISC / ECS MSC / MISC for expense
             const isMiscTyped = textWithoutPerson.includes('ECS MISC') || textWithoutPerson.includes('ECS MSC') || textWithoutPerson === 'MISC'
@@ -1100,13 +1106,13 @@ export default function TransactionsPage() {
                     }
                 }
             }
-        } else if (upperVal.startsWith('+')) {
+        } else if (normalizedVal.startsWith('+')) {
             if (selectedEmployee) setSelectedEmployee(null)
 
-            const afterSign = upperVal.substring(1).trim()
+            const afterSign = normalizedVal.substring(1).trim()
             const amountMatch = afterSign.match(/^(\d*\.?\d+)/)
             const rest = amountMatch ? afterSign.substring(amountMatch[0].length).trim() : afterSign
-            const textWithoutPerson = rest.replace(/@[A-Z0-9_]+/gi, '').trim()
+            const textWithoutPerson = rest.replace(/@\s*[A-Z0-9_]+/gi, '').trim()
 
             // If selectedCompany is set to real company, verify it is still in the typed text
             let currentComp = selectedCompany
@@ -1119,6 +1125,8 @@ export default function TransactionsPage() {
                     setSelectedCompany(null)
                     setSelectedPackage(null)
                     setCompanyPackages([])
+                } else if (companyPackages.length === 0) {
+                    fetchCompanyPackages(currentComp.id)
                 }
             }
 
@@ -1161,15 +1169,15 @@ export default function TransactionsPage() {
         }
 
         // Disallow writing anything after the person tag
-        const personTagMatch = upperVal.match(/^(.*(@\s*(?:AMIT(?:\s*MISHRA)?|SUMIT(?:\s*MISHRA)?|SSM|PAPA(?:\s*JI)?|MAMAJI|SHYAM(?:\s*SUNDER)?(?:\s*MISHRA)?|PANKAJ(?:\s*(?:SHARMA|BHAIYA))?|BHAIYA)))\s*(\S+.*)$/i)
+        const personTagMatch = normalizedVal.match(/^(.*(@\s*(?:AMIT(?:\s*MISHRA)?|SUMIT(?:\s*MISHRA)?|SSM|PAPA(?:\s*JI)?|MAMAJI|SHYAM(?:\s*SUNDER)?(?:\s*MISHRA)?|PANKAJ(?:\s*(?:SHARMA|BHAIYA))?|BHAIYA)))\s*(\S+.*)$/i)
         if (personTagMatch) {
             setWarningMsg('Cannot write anything after selecting person tag')
             setInput(personTagMatch[1])
             return
         }
 
-        const hasAt = upperVal.includes('@')
-        const detected = detectPersonFromText(upperVal)
+        const hasAt = normalizedVal.includes('@')
+        const detected = detectPersonFromText(normalizedVal)
 
         if (detected) {
             setSelectedPerson(detected)
@@ -1182,7 +1190,7 @@ export default function TransactionsPage() {
             setSelectedPerson(null)
         }
 
-        setInput(upperVal)
+        setInput(normalizedVal)
         setWarningMsg(null)
     }
 
@@ -1202,6 +1210,36 @@ export default function TransactionsPage() {
         if (currentPerson) setSelectedPerson(currentPerson)
         setWarningMsg(null)
         setIsCustomKeyboardOpen(true)
+    }
+
+    const handleSelectIncome = () => {
+        if (!input) {
+            setInput('+')
+            setCursorPosition(1)
+        } else if (input.startsWith('-')) {
+            const next = '+' + input.slice(1)
+            handleInputChange(next)
+        } else if (!input.startsWith('+')) {
+            const next = '+' + input
+            handleInputChange(next)
+            setCursorPosition(input.length + 1)
+        }
+        setWarningMsg(null)
+    }
+
+    const handleSelectExpense = () => {
+        if (!input) {
+            setInput('-')
+            setCursorPosition(1)
+        } else if (input.startsWith('+')) {
+            const next = '-' + input.slice(1)
+            handleInputChange(next)
+        } else if (!input.startsWith('-')) {
+            const next = '-' + input
+            handleInputChange(next)
+            setCursorPosition(input.length + 1)
+        }
+        setWarningMsg(null)
     }
 
     const handleSelectPerson = (p: typeof PERSONS[number]) => {
@@ -2502,6 +2540,8 @@ export default function TransactionsPage() {
                 onSelectPerson={handleSelectPerson}
                 cursorPosition={cursorPosition}
                 onCursorMove={setCursorPosition}
+                onSelectIncome={handleSelectIncome}
+                onSelectExpense={handleSelectExpense}
             />
             </div>
 
