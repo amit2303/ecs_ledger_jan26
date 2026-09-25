@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { parseTransactionMessage, isParseError, findBestCompanyMatch, stripPersonMention, extractMiscDescription, stripCompanyName, isPartOfCompanyName } from '@/lib/transactionParser'
+import { parseTransactionMessage, isParseError, findBestCompanyMatch, stripPersonMention, extractMiscDescription, stripCompanyName, isPartOfCompanyName, stripEmployeeName, isPartOfEmployeeName } from '@/lib/transactionParser'
 
 export const dynamic = 'force-dynamic'
 
@@ -131,10 +131,14 @@ export async function POST(request: Request) {
             
             // Check if an employee is specified (only if NOT an explicit ECS MISC head entry)
             let matchedEmployeeId: number | null = null
+            let matchedEmployeeName: string | null = null
             if (!isMiscExpense) {
                 if (body.employeeId && typeof body.employeeId === 'number') {
                     const emp = await prisma.employee.findUnique({ where: { id: body.employeeId } })
-                    if (emp) matchedEmployeeId = emp.id
+                    if (emp) {
+                        matchedEmployeeId = emp.id
+                        matchedEmployeeName = emp.name
+                    }
                 }
 
                 if (!matchedEmployeeId && cleanDesc) {
@@ -145,10 +149,16 @@ export async function POST(request: Request) {
                         const empNameUpper = emp.name.toUpperCase().trim()
                         if (descUpper.startsWith(empNameUpper) || descUpper.includes(empNameUpper)) {
                             matchedEmployeeId = emp.id
+                            matchedEmployeeName = emp.name
                             break
                         }
                     }
                 }
+            }
+
+            // Strip employee name from description so only custom description is saved to payment card!
+            if (matchedEmployeeName) {
+                cleanDesc = stripEmployeeName(cleanDesc, matchedEmployeeName).trim()
             }
 
             let salaryPaymentId: number | null = null

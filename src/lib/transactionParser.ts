@@ -241,6 +241,77 @@ export function stripCompanyName(text: string, companyName: string): string {
 }
 
 /**
+ * Checks whether a given description string is merely part of the employee name.
+ * e.g. "NEELAM" for employee "NEELAM" -> TRUE
+ *      "DDDDD" for employee "NEELAM" -> FALSE
+ */
+export function isPartOfEmployeeName(
+    desc: string | null | undefined,
+    employeeName: string | null | undefined
+): boolean {
+    if (!desc || !employeeName) return false
+    const d = desc.trim().toUpperCase()
+    if (!d) return false
+
+    const emp = employeeName.trim().toUpperCase()
+    if (d === emp) return true
+
+    const normalize = (s: string) => s.replace(/[^A-Z0-9\s]/g, ' ').trim()
+    const normD = normalize(d)
+    const normE = normalize(emp)
+
+    if (normD === normE) return true
+    if (normE.includes(normD) && normD.length > 2) return true
+
+    return false
+}
+
+/**
+ * Strips the employee name and any leading punctuation from the start of text.
+ * e.g. "NEELAM DDDDD" with employee "NEELAM" -> "DDDDD"
+ *      "NEELAM / ADVANCE" -> "ADVANCE"
+ *      "NEELAM" -> ""
+ */
+export function stripEmployeeName(text: string, employeeName: string): string {
+    if (!text || !employeeName) return text || ''
+    let t = text.trim()
+    const rawEmp = employeeName.trim()
+
+    // 1. Try case-insensitive prefix match
+    if (t.toUpperCase().startsWith(rawEmp.toUpperCase())) {
+        t = t.substring(rawEmp.length).trim()
+    } else {
+        // 2. Try matching by words of employee name from start
+        const empTokens = rawEmp.split(/\s+/).filter(Boolean)
+        const textTokens = t.split(/\s+/)
+        let matchedCount = 0
+        for (let i = 0; i < textTokens.length && i < empTokens.length; i++) {
+            const tokenClean = textTokens[i].replace(/[^A-Za-z0-9]/g, '').toUpperCase()
+            const empClean = empTokens[i].replace(/[^A-Za-z0-9]/g, '').toUpperCase()
+            if (tokenClean && empClean && tokenClean === empClean) {
+                matchedCount++
+            } else {
+                break
+            }
+        }
+        if (matchedCount > 0) {
+            t = textTokens.slice(matchedCount).join(' ').trim()
+        }
+    }
+
+    // Strip leading punctuation like '-', '/', ':', ',' if any
+    t = t.replace(/^[-/:,]\s*/, '').trim()
+
+    // If remaining text is part of employee name, return empty string
+    if (isPartOfEmployeeName(t, employeeName)) {
+        return ''
+    }
+
+    return t
+}
+
+
+/**
  * Finds the best matching company from a list of companies.
  * Uses case-insensitive partial matching on the company name.
  * 
