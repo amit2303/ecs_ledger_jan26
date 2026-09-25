@@ -205,11 +205,22 @@ export function IOSKeyboard({
 
     // Determine which contextual suggestions to show inside the keyboard (strictly mutually exclusive)
     const safeInput = inputValue || ''
-    const showPersonPicker = (!!isPersonPickerOpen || safeInput.includes('@')) && persons.length > 0
-    const showCompanySuggestions = !showPersonPicker && companySuggestions.length > 0 && !selectedCompany && safeInput.startsWith('+')
-    const showEmployeeSuggestions = !showPersonPicker && employeeSuggestions.length > 0 && !selectedEmployee && !selectedCompany && safeInput.startsWith('-')
-    const showPackageSuggestions = !showPersonPicker && !!selectedCompany && companyPackages.length > 0
-    const hasSuggestions = showPersonPicker || showCompanySuggestions || showEmployeeSuggestions || showPackageSuggestions
+    const hasDetectedPerson = /@\s*(?:AMIT|SUMIT|SSM|PAPA|MAMAJI|PANKAJ|BHAIYA)\b/i.test(safeInput)
+    const isActivelyPickingPerson = (!!isPersonPickerOpen || (safeInput.includes('@') && !hasDetectedPerson)) && persons.length > 0
+
+    // Priority 1: Company suggestions (payment flow, amount typed, company not selected or deleted in edit)
+    const showCompanySuggestions = !selectedCompany && safeInput.startsWith('+') && companySuggestions.length > 0
+
+    // Priority 2: Employee suggestions (expense flow, amount typed, employee not selected or deleted in edit)
+    const showEmployeeSuggestions = !showCompanySuggestions && !selectedEmployee && !selectedCompany && safeInput.startsWith('-') && employeeSuggestions.length > 0
+
+    // Priority 3: Package suggestions (payment flow, company selected with packages)
+    // Shown when no package is selected (!selectedPackage), or when user is not actively picking person
+    const showPackageSuggestions = !showCompanySuggestions && !showEmployeeSuggestions && !!selectedCompany && companyPackages.length > 0 && (!selectedPackage || !isActivelyPickingPerson)
+
+    // Priority 4: Person picker
+    const showPersonPicker = !showCompanySuggestions && !showEmployeeSuggestions && !showPackageSuggestions && (isActivelyPickingPerson || safeInput.includes('@')) && persons.length > 0
+    const hasSuggestions = showCompanySuggestions || showEmployeeSuggestions || showPackageSuggestions || showPersonPicker
 
     if (!isOpen) return null
 
@@ -392,20 +403,12 @@ export function IOSKeyboard({
                             <span className="text-[11px] font-semibold text-[#8e8e93] shrink-0 flex items-center gap-0.5">
                                 <PackageIcon className="w-3 h-3" />
                             </span>
-                            {selectedPackage ? (
+                            {companyPackages.map(pkg =>
                                 renderSuggestionPill(
-                                    selectedPackage.id,
-                                    selectedPackage.description,
-                                    () => onSelectPackage?.(selectedPackage),
-                                    true
-                                )
-                            ) : (
-                                companyPackages.map(pkg =>
-                                    renderSuggestionPill(
-                                        pkg.id,
-                                        pkg.description,
-                                        () => onSelectPackage?.(pkg)
-                                    )
+                                    pkg.id,
+                                    pkg.description,
+                                    () => onSelectPackage?.(pkg),
+                                    pkg.id === selectedPackage?.id
                                 )
                             )}
                         </>

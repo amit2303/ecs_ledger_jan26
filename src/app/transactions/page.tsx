@@ -649,9 +649,14 @@ export default function TransactionsPage() {
                     return
                 }
             } else if (char === '@') {
+                if (input.includes('@')) {
+                    setIsPersonPickerOpen(true)
+                    return
+                }
+
                 // Strict check when typing '@':
-                // For +, must have Company + Description
-                // For -, must have Employee/ECS MISC + Description
+                // For +, must have Company + (Description or Package)
+                // For -, must have Employee / ECS Head (Description ONLY mandatory for ECS MISC)
                 const restTrimmed = afterAmount.trim()
                 if (sign === '+') {
                     if (!selectedCompany && !restTrimmed) {
@@ -665,17 +670,30 @@ export default function TransactionsPage() {
                         return
                     }
                 } else {
-                    if (!selectedEmployee && selectedCompany?.id !== -1 && !restTrimmed) {
+                    const isMisc = selectedCompany?.id === -1 || restTrimmed.toUpperCase().includes('ECS MISC')
+                    if (!selectedEmployee && !isMisc && !restTrimmed) {
                         setWarningMsg('Please enter ECS Head / Employee before @person')
                         return
                     }
-                    const cleanEmp = selectedEmployee ? selectedEmployee.name.toUpperCase().trim() : (selectedCompany?.id === -1 ? 'ECS MISC' : '')
-                    const textAfterEmp = cleanEmp ? restTrimmed.replace(cleanEmp, '').trim() : restTrimmed.split(/\s+/).slice(1).join(' ')
-                    if (!textAfterEmp) {
-                        setWarningMsg('Please enter Description before @person')
-                        return
+                    if (isMisc) {
+                        const cleanMisc = 'ECS MISC'
+                        const textAfterMisc = restTrimmed.replace(cleanMisc, '').trim()
+                        if (!textAfterMisc) {
+                            setWarningMsg('Please enter Description before @person')
+                            return
+                        }
                     }
+                    // For employee payment, description is NOT mandatory
                 }
+
+                const before = input.slice(0, cursorPosition)
+                const after = input.slice(cursorPosition)
+                const needsSpace = before.length > 0 && !before.endsWith(' ')
+                const toInsert = needsSpace ? ' @' : '@'
+                const nextVal = (before + toInsert + after).toUpperCase()
+                setCursorPosition(prev => prev + toInsert.length)
+                handleInputChange(nextVal)
+                return
             }
         }
 
@@ -856,10 +874,12 @@ export default function TransactionsPage() {
     // Filter company suggestions as user types (ONLY after entering amount and giving a space!)
     const getCompanySuggestions = () => {
         if (!input.startsWith('+')) return []
-        if (input.includes('@')) return []
         if (selectedCompany) return []
 
-        const afterSign = input.substring(1).trimStart()
+        const atIndex = input.indexOf('@')
+        const textBeforeAt = atIndex !== -1 ? input.slice(0, atIndex) : input
+
+        const afterSign = textBeforeAt.substring(1).trimStart()
         const amountMatch = afterSign.match(/^(\d+(?:\.\d+)?)/)
         if (!amountMatch) return [] // No amount entered yet
 
@@ -890,10 +910,12 @@ export default function TransactionsPage() {
     // Filter employee suggestions as user types (ONLY after entering amount and giving a space for '-')
     const getEmployeeSuggestions = () => {
         if (!input.startsWith('-')) return []
-        if (input.includes('@')) return []
         if (selectedEmployee || selectedCompany?.id === -1 || !employees.length) return []
 
-        const afterSign = input.substring(1).trimStart()
+        const atIndex = input.indexOf('@')
+        const textBeforeAt = atIndex !== -1 ? input.slice(0, atIndex) : input
+
+        const afterSign = textBeforeAt.substring(1).trimStart()
         const amountMatch = afterSign.match(/^(\d+(?:\.\d+)?)/)
         if (!amountMatch) return [] // No amount entered yet
 
@@ -2185,7 +2207,7 @@ export default function TransactionsPage() {
                                 if (hasPerson) return ''
 
                                 if (raw.includes('@')) {
-                                    return ' @Amit / @Sumit / @SSM / @Pankaj'
+                                    return raw.endsWith('@') ? ' person' : (raw.endsWith(' ') ? 'person' : '')
                                 }
 
                                 if (sign === '+') {
@@ -2194,20 +2216,23 @@ export default function TransactionsPage() {
                                     }
                                     const cleanCompName = selectedCompany ? selectedCompany.name.replace(/^\d+\.?\s*/, '').trim().toUpperCase() : ''
                                     const textAfterComp = selectedCompany ? rest.replace(cleanCompName, '').trim() : rest.split(/\s+/).slice(1).join(' ')
-                                    if (!textAfterComp) {
+                                    if (!textAfterComp && !selectedPackage) {
                                         return raw.endsWith(' ') ? 'Description' : ' Description'
                                     }
-                                    return raw.endsWith(' ') ? '@' : ' @'
+                                    return raw.endsWith(' ') ? '@ person' : ' @ person'
                                 } else {
                                     if (!selectedEmployee && selectedCompany?.id !== -1 && !rest) {
                                         return raw.endsWith(' ') ? 'ECS Head / Employee' : ' ECS Head / Employee'
                                     }
-                                    const cleanEmpName = selectedEmployee ? selectedEmployee.name.toUpperCase().trim() : (selectedCompany?.id === -1 ? 'ECS MISC' : '')
-                                    const textAfterEmp = cleanEmpName ? rest.replace(cleanEmpName, '').trim() : rest.split(/\s+/).slice(1).join(' ')
-                                    if (!textAfterEmp) {
-                                        return raw.endsWith(' ') ? 'Description' : ' Description'
+                                    const isMisc = selectedCompany?.id === -1 || rest.toUpperCase().includes('ECS MISC')
+                                    if (isMisc) {
+                                        const cleanMiscName = 'ECS MISC'
+                                        const textAfterMisc = rest.replace(cleanMiscName, '').trim()
+                                        if (!textAfterMisc) {
+                                            return raw.endsWith(' ') ? 'Description' : ' Description'
+                                        }
                                     }
-                                    return raw.endsWith(' ') ? '@' : ' @'
+                                    return raw.endsWith(' ') ? '@ person' : ' @ person'
                                 }
                             }
 
