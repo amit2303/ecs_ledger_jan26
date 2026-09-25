@@ -154,7 +154,14 @@ export function IOSKeyboard({
     onSelectIncome?: () => void
     onSelectExpense?: () => void
 }) {
-    const [mode, setMode] = useState<KeyboardMode>('letters')
+    const [mode, setMode] = useState<KeyboardMode>('numbers')
+    
+    // Reset to numbers mode when keyboard opens
+    useEffect(() => {
+        if (isOpen) {
+            setMode('numbers')
+        }
+    }, [isOpen])
     
     // Trackpad mode for spacebar long press
     const [isTrackpadMode, setIsTrackpadMode] = useState(false)
@@ -180,8 +187,17 @@ export function IOSKeyboard({
         setActiveKey(char)
         if (activeKeyTimerRef.current) clearTimeout(activeKeyTimerRef.current)
         activeKeyTimerRef.current = setTimeout(() => setActiveKey(null), 120)
+
+        // Auto switch from numbers to letters (QWERTY) when Space is pressed after entering amount
+        if (char === ' ' && mode === 'numbers') {
+            const hasAmountPattern = /^[+-]?\d+/
+            if (hasAmountPattern.test(inputValue.trim())) {
+                setMode('letters')
+            }
+        }
+
         onKeyPress(char)
-    }, [triggerHaptic, onKeyPress])
+    }, [triggerHaptic, onKeyPress, mode, inputValue])
 
     const handleBackspaceStart = useCallback(() => {
         triggerHaptic()
@@ -437,36 +453,38 @@ export function IOSKeyboard({
                     <button
                         type="button"
                         onClick={handleIncomeClick}
-                        className="px-3 py-1 rounded-full text-[12.5px] font-bold flex items-center gap-1.5 transition-all active:scale-95 shrink-0"
+                        className="px-3.5 py-1 rounded-full text-[13px] flex items-center gap-1.5 transition-all active:scale-95 shrink-0"
                         style={{
                             background: safeInput.startsWith('+')
-                                ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)'
-                                : 'rgba(255,255,255,0.85)',
-                            color: safeInput.startsWith('+') ? '#ffffff' : '#047857',
-                            border: `1px solid ${safeInput.startsWith('+') ? 'rgba(5,150,105,0.6)' : 'rgba(16,185,129,0.35)'}`,
-                            boxShadow: safeInput.startsWith('+') ? '0 1px 4px rgba(16,185,129,0.35)' : 'none',
+                                ? '#ffffff'
+                                : 'rgba(120,120,128,0.14)',
+                            color: '#1c1c1e',
+                            border: `0.5px solid ${safeInput.startsWith('+') ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.08)'}`,
+                            boxShadow: safeInput.startsWith('+') ? '0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.8)' : 'none',
+                            fontWeight: safeInput.startsWith('+') ? 600 : 500,
                             WebkitTapHighlightColor: 'transparent',
                         }}
                     >
-                        <span className="text-[15px] font-extrabold leading-none">+</span>
+                        <span className="text-[15px] font-semibold leading-none">+</span>
                         <span>Income</span>
                     </button>
 
                     <button
                         type="button"
                         onClick={handleExpenseClick}
-                        className="px-3 py-1 rounded-full text-[12.5px] font-bold flex items-center gap-1.5 transition-all active:scale-95 shrink-0"
+                        className="px-3.5 py-1 rounded-full text-[13px] flex items-center gap-1.5 transition-all active:scale-95 shrink-0"
                         style={{
                             background: safeInput.startsWith('-')
-                                ? 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)'
-                                : 'rgba(255,255,255,0.85)',
-                            color: safeInput.startsWith('-') ? '#ffffff' : '#B91C1C',
-                            border: `1px solid ${safeInput.startsWith('-') ? 'rgba(220,38,38,0.6)' : 'rgba(239,68,68,0.35)'}`,
-                            boxShadow: safeInput.startsWith('-') ? '0 1px 4px rgba(239,68,68,0.35)' : 'none',
+                                ? '#ffffff'
+                                : 'rgba(120,120,128,0.14)',
+                            color: '#1c1c1e',
+                            border: `0.5px solid ${safeInput.startsWith('-') ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.08)'}`,
+                            boxShadow: safeInput.startsWith('-') ? '0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.8)' : 'none',
+                            fontWeight: safeInput.startsWith('-') ? 600 : 500,
                             WebkitTapHighlightColor: 'transparent',
                         }}
                     >
-                        <span className="text-[15px] font-extrabold leading-none">−</span>
+                        <span className="text-[15px] font-semibold leading-none">−</span>
                         <span>Expense</span>
                     </button>
                 </div>
