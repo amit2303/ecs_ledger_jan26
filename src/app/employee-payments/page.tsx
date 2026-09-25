@@ -159,18 +159,20 @@ export default function EmployeePaymentsPage() {
             {/* Content — Employee List */}
             <div className="flex-1 flex flex-col min-h-0 mt-1">
                 {/* List Header */}
-                <div className="flex justify-between items-center px-8 pb-2 text-[12px] font-semibold text-ios-gray uppercase tracking-wider select-none">
-                    <span>NAME</span>
-                    <span className="pr-6">BALANCE</span>
+                <div className="px-4 pb-1">
+                    <div className="flex justify-between items-center px-3.5 text-[11px] font-semibold text-ios-gray uppercase tracking-wider select-none">
+                        <span>NAME</span>
+                        <span className="pr-5">BALANCE</span>
+                    </div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto ios-scroll px-4 pb-44">
                     {employees.length === 0 ? (
-                        <div className="ios-card p-8 text-center text-ios-gray text-[15px] rounded-2xl">
+                        <div className="ios-card p-6 text-center text-ios-gray text-[14px] rounded-xl">
                             No employees added yet.
                         </div>
                     ) : (
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-1.5">
                             {employees.map((emp) => (
                                 <EmployeeCard
                                     key={emp.id}
@@ -339,30 +341,28 @@ function EmployeeCard({
     return (
         <div
             {...bind}
-            className="relative overflow-hidden rounded-2xl ios-press select-none cursor-pointer"
+            className="relative overflow-hidden rounded-xl ios-press select-none cursor-pointer"
             style={{
                 backgroundColor: '#FFFFFF',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
             }}
         >
-            <div className="flex items-center justify-between px-4 py-3.5">
-                <div className="flex-1 pr-3 min-w-0">
-                    <div className="flex items-center gap-2">
-                        <h3 className="text-[16px] font-semibold text-gray-900 leading-snug truncate">
-                            {employee.name}
-                        </h3>
-                    </div>
-                    <p className="text-[13px] text-ios-gray mt-1">
+            <div className="flex items-center justify-between px-3.5 py-2.5">
+                <div className="flex-1 pr-2.5 min-w-0">
+                    <h3 className="text-[15.5px] font-semibold text-gray-900 leading-tight truncate">
+                        {employee.name}
+                    </h3>
+                    <p className="text-[12px] text-ios-gray mt-0.5 leading-tight">
                         {employee.designation || 'No designation'} · ₹{employee.salary.toLocaleString('en-IN')}/mo
                     </p>
                 </div>
-                <div className="flex items-center gap-2.5 shrink-0">
+                <div className="flex items-center gap-2 shrink-0">
                     <div className="text-right">
-                        <span className="text-[14px] text-ios-gray block">
+                        <span className="text-[11.5px] text-ios-gray block leading-tight">
                             ₹{employee.totalSalary.toLocaleString('en-IN')}
                         </span>
                         <span
-                            className={`text-[18px] font-semibold tabular-nums block ${
+                            className={`text-[15.5px] font-semibold tabular-nums block leading-tight ${
                                 employee.balance > 0
                                     ? 'text-ios-red'
                                     : employee.balance < 0
@@ -375,7 +375,7 @@ function EmployeeCard({
                                 : `₹${employee.balance.toLocaleString('en-IN')}`}
                         </span>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-ios-gray3" />
+                    <ChevronRight className="w-4 h-4 text-ios-gray3" />
                 </div>
             </div>
         </div>

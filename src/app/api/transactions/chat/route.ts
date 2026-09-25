@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { parseTransactionMessage, isParseError, findBestCompanyMatch, stripPersonMention, extractMiscDescription } from '@/lib/transactionParser'
+import { parseTransactionMessage, isParseError, findBestCompanyMatch, stripPersonMention, extractMiscDescription, stripCompanyName, isPartOfCompanyName } from '@/lib/transactionParser'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,7 +28,7 @@ export async function GET(request: Request) {
 
 /**
  * POST /api/transactions/chat
- * Body: { text: "+ 50000 BOOSTER Bis fee" }
+ * Body: { text: "+ 50000 BOOSTER Bis fee @ Amit" }
  * 
  * Parses the message, matches the company, creates payment/charge,
  * and saves the chat message record.
@@ -45,6 +45,14 @@ export async function POST(request: Request) {
         // 1. Parse the message
         const parsed = parseTransactionMessage(text)
         const person = body.person || (!isParseError(parsed) ? parsed.person : null) || null
+        
+        // Mandatory person tag (@Amit, @Sumit, @SSM, or @Pankaj) for all transactions
+        if (!person) {
+            return NextResponse.json({ 
+                error: 'Please tag a person (@Amit, @Sumit, @SSM, or @Pankaj)' 
+            }, { status: 400 })
+        }
+
         const targetDate = body.customDate 
             ? (body.customDate.includes('T') ? new Date(body.customDate) : new Date(`${body.customDate}T12:00:00Z`)) 
             : new Date()
@@ -214,7 +222,22 @@ export async function POST(request: Request) {
 
         // 3. Find target package or "Quick Entry" package for this company
         let targetPackage: { id: number; description: string } | null = null
-        let finalDescription = parsed.description
+
+        // Extract custom description by stripping the company name and person tag from text
+        // NEVER include company name or any part of it as the description!
+        const afterSignAndAmount = text.replace(/^[+-]\s*\d*\.?\d+\s*/, '').trim()
+        const textWithoutPerson = stripPersonMention(afterSignAndAmount).trim()
+        let candidateDesc = stripCompanyName(textWithoutPerson, matchedCompany.name).trim()
+
+        if (parsed.targetPackageQuery) {
+            candidateDesc = candidateDesc.replace(/@\s*[A-Za-z0-9_ -]+$/, '').trim()
+        }
+
+        if (isPartOfCompanyName(candidateDesc, matchedCompany.name)) {
+            candidateDesc = ''
+        }
+
+        let finalDescription = candidateDesc
 
         // Fetch all packages for this company
         const companyPackages = await prisma.package.findMany({
@@ -248,8 +271,8 @@ export async function POST(request: Request) {
 
         // Check if any package title matches the beginning of description
         // (e.g. "+ 15000 BOOSTER BIS Inclusion sample payment" -> matches package "BIS Inclusion")
-        if (!targetPackage && parsed.description && companyPackages.length > 0) {
-            const descLower = parsed.description.toLowerCase().trim()
+        if (!targetPackage && finalDescription && companyPackages.length > 0) {
+            const descLower = finalDescription.toLowerCase().trim()
             // Sort packages by longest description length first to match most specific package
             const sortedPackages = [...companyPackages].sort((a, b) => b.description.length - a.description.length)
             
@@ -260,11 +283,12 @@ export async function POST(request: Request) {
                 if (descLower.startsWith(pkgTitleLower)) {
                     targetPackage = pkg
                     // Extract remaining text as description
-                    const remainder = parsed.description.substring(pkg.description.length).trim()
-                    finalDescription = remainder || pkg.description
+                    const remainder = finalDescription.substring(pkg.description.length).trim()
+                    finalDescription = remainder
                     break
-                } else if (descLower.includes(pkgTitleLower)) {
+                } else if (descLower === pkgTitleLower) {
                     targetPackage = pkg
+                    finalDescription = ''
                     break
                 }
             }
@@ -288,8 +312,11 @@ export async function POST(request: Request) {
         }
 
         // 4. Create the payment or charge
-        // Only the description has to show in the added entry, not @ and person
-        const cleanEntryDescription = stripPersonMention(finalDescription)
+        // Only the custom description has to show in the added entry. NEVER company name or @person!
+        let cleanEntryDescription = stripPersonMention(finalDescription).trim()
+        if (isPartOfCompanyName(cleanEntryDescription, matchedCompany.name)) {
+            cleanEntryDescription = ''
+        }
         const entryDescToSave = cleanEntryDescription || targetPackage.description
 
         let paymentId: number | null = null

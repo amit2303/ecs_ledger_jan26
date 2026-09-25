@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "tunnel": "ssh -N -L 3306:127.0.0.1:3306 -i ~/.ssh/amit_macbook root@82.25.110.175",
+    "dev:all": "npm run tunnel & npm run dev",
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",

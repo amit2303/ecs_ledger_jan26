@@ -6,7 +6,7 @@ export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl
 
     // Public paths that don't require auth
-    const publicPaths = ['/login', '/api/auth/login', '/api/auth/signup', '/logo.jpg']
+    const publicPaths = ['/login', '/api/auth/login', '/api/auth/signup', '/logo.jpg', '/manifest.json', '/favicon.ico']
     if (publicPaths.some(path => pathname.startsWith(path)) ||
         pathname.startsWith('/_next') ||
         pathname.startsWith('/static')) {
@@ -18,6 +18,9 @@ export async function middleware(request: NextRequest) {
     const session = await decrypt(cookie?.value || '')
 
     if (!session) {
+        if (pathname.startsWith('/api/')) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
         return NextResponse.redirect(new URL('/login', request.url))
     }
 

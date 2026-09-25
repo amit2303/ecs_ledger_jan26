@@ -14,6 +14,7 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     "src/generated/**",
     "reset_pass.js",
+    "scripts/**",
   ]),
   {
     rules: {

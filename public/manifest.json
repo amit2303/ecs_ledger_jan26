@@ -2,7 +2,7 @@
   "name": "ECS",
   "short_name": "ECS",
   "description": "ECS Transactions & Ledger",
-  "start_url": "/transactions",
+  "start_url": "/expert-hisab",
   "display": "standalone",
   "background_color": "#F2F2F7",
   "theme_color": "#F2F2F7",

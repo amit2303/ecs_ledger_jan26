@@ -584,12 +584,17 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                 </div>
 
                 {/* Stats Row */}
-                <div className="px-4 pb-3">
-                    <div className="ios-card p-3.5">
+                <div className="px-4 pb-2.5">
+                    <div 
+                        className="bg-white rounded-xl p-3.5"
+                        style={{
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
+                        }}
+                    >
                         {/* Top: TOTAL PACKAGE */}
-                        <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-gray-100">
-                            <span className="text-[12px] font-semibold text-ios-gray uppercase tracking-wider">TOTAL PACKAGE</span>
-                            <span className="text-[17px] font-semibold text-gray-900 tabular-nums">
+                        <div className="flex items-center justify-between pb-2 mb-2 border-b border-gray-100">
+                            <span className="text-[11.5px] font-semibold text-ios-gray uppercase tracking-wider">TOTAL PACKAGE</span>
+                            <span className="text-[16px] font-semibold text-gray-900 tabular-nums">
                                 ₹{pkgTotalAmount.toLocaleString('en-IN')}
                             </span>
                         </div>
@@ -597,14 +602,14 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                         {/* Bottom: NET DUE (left) & TOTAL PAID (right) */}
                         <div className="flex items-center justify-between">
                             <div>
-                                <span className="text-[12px] font-semibold text-ios-gray uppercase tracking-wider block mb-0.5">NET DUE</span>
-                                <span className={`text-[19px] font-bold tabular-nums ${pkgBalance > 0 ? 'text-ios-red' : pkgBalance < 0 ? 'text-ios-green' : 'text-ios-blue'}`}>
+                                <span className="text-[11.5px] font-semibold text-ios-gray uppercase tracking-wider block mb-0.5">NET DUE</span>
+                                <span className={`text-[18px] font-bold tabular-nums ${pkgBalance > 0 ? 'text-ios-red' : pkgBalance < 0 ? 'text-ios-green' : 'text-ios-blue'}`}>
                                     {pkgBalance < 0 ? `- ₹${Math.abs(pkgBalance).toLocaleString('en-IN')}` : `₹${pkgBalance.toLocaleString('en-IN')}`}
                                 </span>
                             </div>
                             <div className="text-right">
-                                <span className="text-[12px] font-semibold text-ios-gray uppercase tracking-wider block mb-0.5">TOTAL PAID</span>
-                                <span className="text-[19px] font-bold text-ios-green tabular-nums">
+                                <span className="text-[11.5px] font-semibold text-ios-gray uppercase tracking-wider block mb-0.5">TOTAL PAID</span>
+                                <span className="text-[18px] font-bold text-ios-green tabular-nums">
                                     ₹{pkgTotalPaid.toLocaleString('en-IN')}
                                 </span>
                             </div>
@@ -702,24 +707,27 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
 
                                 {/* Monthly Charges List */}
                                 {(pkg.monthlyCharges || []).length > 0 ? (
-                                    <div className="flex flex-col gap-2">
+                                    <div className="flex flex-col gap-1.5">
                                         {(pkg.monthlyCharges || []).map((mc: any) => (
                                             <div
                                                 key={mc.id}
-                                                className="ios-card px-4 py-3 flex items-center justify-between"
+                                                className="relative overflow-hidden rounded-xl bg-white px-3.5 py-2.5 flex items-center justify-between select-none"
+                                                style={{
+                                                    boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
+                                                }}
                                             >
-                                                <div className="flex-1 min-w-0 pr-3">
-                                                    <h4 className="text-[15px] font-semibold text-gray-900 truncate">{mc.description}</h4>
-                                                    <p className="text-[12px] text-ios-gray mt-0.5">Repeats on 1st of every month</p>
+                                                <div className="flex-1 min-w-0 pr-2.5">
+                                                    <h4 className="text-[15.5px] font-semibold text-gray-900 leading-tight truncate">{mc.description}</h4>
+                                                    <p className="text-[12px] text-ios-gray mt-0.5 leading-tight">Repeats on 1st of every month</p>
                                                 </div>
-                                                <div className="flex items-center gap-3 shrink-0">
-                                                    <span className="text-[16px] font-semibold text-gray-900 tabular-nums">
+                                                <div className="flex items-center gap-2.5 shrink-0">
+                                                    <span className="text-[15.5px] font-semibold text-gray-900 tabular-nums">
                                                         ₹{Number(mc.amount).toLocaleString('en-IN')}<span className="text-[11px] text-ios-gray font-normal">/mo</span>
                                                     </span>
                                                     <button
                                                         type="button"
                                                         onClick={() => handleDeleteMonthlyCharge(mc.id, mc.description)}
-                                                        className="p-1.5 text-ios-gray hover:text-ios-red active:opacity-60 transition-colors"
+                                                        className="p-1 text-ios-gray hover:text-ios-red active:opacity-60 transition-colors"
                                                         title="Delete Monthly Charge"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
@@ -796,17 +804,23 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
 
                             {/* Charges List */}
                             {(pkg.charges || []).length === 0 ? (
-                                <div className="ios-card p-8 text-center text-ios-gray text-[15px] rounded-2xl">No charges added yet.</div>
+                                <div className="ios-card p-6 text-center text-ios-gray text-[14px] rounded-xl">No charges added yet.</div>
                             ) : (
-                                <div className="flex flex-col gap-2">
-                                    {(pkg.charges || []).map((charge) => (
-                                        <ChargeItem
-                                            key={charge.id}
-                                            charge={charge}
-                                            isHighlighted={highlightedItem?.type === 'charge' && highlightedItem?.id === charge.id}
-                                            onLongPress={() => handleChargeLongPress(charge)}
-                                        />
-                                    ))}
+                                <div>
+                                    <div className="flex justify-between items-center px-3.5 pb-1 text-[11px] font-semibold text-ios-gray uppercase tracking-wider select-none">
+                                        <span>CHARGES</span>
+                                        <span>AMOUNT</span>
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        {(pkg.charges || []).map((charge) => (
+                                            <ChargeItem
+                                                key={charge.id}
+                                                charge={charge}
+                                                isHighlighted={highlightedItem?.type === 'charge' && highlightedItem?.id === charge.id}
+                                                onLongPress={() => handleChargeLongPress(charge)}
+                                            />
+                                        ))}
+                                    </div>
                                 </div>
                             )}
 
@@ -896,17 +910,23 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
 
                             {/* Payments List */}
                             {(pkg.payments || []).length === 0 ? (
-                                <div className="ios-card p-8 text-center text-ios-gray text-[15px] rounded-2xl">No payments added yet.</div>
+                                <div className="ios-card p-6 text-center text-ios-gray text-[14px] rounded-xl">No payments added yet.</div>
                             ) : (
-                                <div className="flex flex-col gap-2">
-                                    {(pkg.payments || []).map((payment: any) => (
-                                        <PaymentItem
-                                            key={payment.id}
-                                            payment={payment}
-                                            isHighlighted={highlightedItem?.type === 'payment' && highlightedItem?.id === payment.id}
-                                            onLongPress={() => handlePaymentLongPress(payment)}
-                                        />
-                                    ))}
+                                <div>
+                                    <div className="flex justify-between items-center px-3.5 pb-1 text-[11px] font-semibold text-ios-gray uppercase tracking-wider select-none">
+                                        <span>PAYMENTS</span>
+                                        <span>RECEIVED</span>
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        {(pkg.payments || []).map((payment: any) => (
+                                            <PaymentItem
+                                                key={payment.id}
+                                                payment={payment}
+                                                isHighlighted={highlightedItem?.type === 'payment' && highlightedItem?.id === payment.id}
+                                                onLongPress={() => handlePaymentLongPress(payment)}
+                                            />
+                                        ))}
+                                    </div>
                                 </div>
                             )}
 
@@ -1149,7 +1169,7 @@ function ChargeItem({ charge, isHighlighted, onLongPress }: { charge: Transactio
         <div
             id={`charge-${charge.id}`}
             {...bind}
-            className={`relative overflow-hidden rounded-2xl ios-press select-none cursor-pointer transition-all duration-500 ${
+            className={`relative overflow-hidden rounded-xl ios-press select-none cursor-pointer transition-all duration-500 ${
                 isHighlighted 
                     ? 'bg-amber-100 ring-2 ring-amber-500 scale-[1.02] shadow-lg' 
                     : 'bg-white'
@@ -1158,14 +1178,12 @@ function ChargeItem({ charge, isHighlighted, onLongPress }: { charge: Transactio
                 boxShadow: isHighlighted ? '0 4px 14px rgba(245,158,11,0.35)' : '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
             }}
         >
-            <div className="px-4 py-3 flex justify-between items-center">
-                <div className="flex-1 min-w-0 pr-3">
-                    <div className="flex items-center gap-2">
-                        <p className="text-[16px] font-semibold text-gray-900 leading-snug truncate">{charge.description}</p>
-                    </div>
-                    <p className="text-[13px] text-ios-gray mt-0.5">{new Date(charge.date).toLocaleDateString()}</p>
+            <div className="flex items-center justify-between px-3.5 py-2.5">
+                <div className="flex-1 min-w-0 pr-2.5">
+                    <p className="text-[15.5px] font-semibold text-gray-900 leading-tight truncate">{charge.description}</p>
+                    <p className="text-[12px] text-ios-gray mt-0.5 leading-tight">{new Date(charge.date).toLocaleDateString()}</p>
                 </div>
-                <span className={`text-[18px] font-semibold tabular-nums shrink-0 ${isDiscount ? 'text-ios-red' : 'text-gray-900'}`}>
+                <span className={`text-[15.5px] font-semibold tabular-nums shrink-0 ${isDiscount ? 'text-ios-red' : 'text-gray-900'}`}>
                     {isDiscount ? '-' : ''}₹{Math.abs(Number(charge.amount)).toLocaleString('en-IN')}
                 </span>
             </div>
@@ -1180,7 +1198,7 @@ function PaymentItem({ payment, isHighlighted, onLongPress }: { payment: Transac
         <div
             id={`payment-${payment.id}`}
             {...bind}
-            className={`relative overflow-hidden rounded-2xl ios-press select-none cursor-pointer transition-all duration-500 ${
+            className={`relative overflow-hidden rounded-xl ios-press select-none cursor-pointer transition-all duration-500 ${
                 isHighlighted 
                     ? 'bg-emerald-100 ring-2 ring-emerald-500 scale-[1.02] shadow-lg' 
                     : 'bg-white'
@@ -1189,14 +1207,12 @@ function PaymentItem({ payment, isHighlighted, onLongPress }: { payment: Transac
                 boxShadow: isHighlighted ? '0 4px 14px rgba(16,185,129,0.35)' : '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
             }}
         >
-            <div className="px-4 py-3 flex justify-between items-center">
-                <div className="flex-1 min-w-0 pr-3">
-                    <div className="flex items-center gap-2">
-                        <p className="text-[16px] font-semibold text-gray-900 leading-snug truncate">{payment.description}</p>
-                    </div>
-                    <p className="text-[13px] text-ios-gray mt-0.5">{new Date(payment.date).toLocaleDateString()}</p>
+            <div className="flex items-center justify-between px-3.5 py-2.5">
+                <div className="flex-1 min-w-0 pr-2.5">
+                    <p className="text-[15.5px] font-semibold text-gray-900 leading-tight truncate">{payment.description}</p>
+                    <p className="text-[12px] text-ios-gray mt-0.5 leading-tight">{new Date(payment.date).toLocaleDateString()}</p>
                 </div>
-                <span className="text-[18px] font-semibold text-ios-green tabular-nums shrink-0">+ ₹{Number(payment.amount).toLocaleString('en-IN')}</span>
+                <span className="text-[15.5px] font-semibold text-ios-green tabular-nums shrink-0">+ ₹{Number(payment.amount).toLocaleString('en-IN')}</span>
             </div>
         </div>
     )

@@ -134,13 +134,13 @@ export function parseTransactionMessage(text: string): ParseResult {
         return { error: 'Missing company name after amount', raw }
     }
 
-    const tokens = afterAmount.split(/\s+/)
+    const afterAmountWithoutPerson = stripPersonMention(afterAmount)
+    const tokens = afterAmountWithoutPerson.split(/\s+/).filter(Boolean)
     
-    // First token = company query (or multi-word if handles)
-    const companyQuery = tokens[0]
-    // Entry description should only have the actual description, not @ or person
+    // First token = single-word company query fallback
+    const companyQuery = tokens[0] || ''
     const rawDescription = tokens.slice(1).join(' ')
-    const description = stripPersonMention(rawDescription)
+    const description = rawDescription
 
     return {
         type,
@@ -154,10 +154,97 @@ export function parseTransactionMessage(text: string): ParseResult {
 }
 
 /**
+ * Checks whether a given description string is merely part of the company name.
+ * e.g. "INDIA PVT. LTD." for company "2.  CEEMULTI INDIA PVT. LTD." -> TRUE
+ *      "INDUSTRIES" for company "63. AKON INDUSTRIES" -> TRUE
+ *      "ADVANCE CASH" for company "63. AKON INDUSTRIES" -> FALSE
+ */
+export function isPartOfCompanyName(
+    desc: string | null | undefined,
+    companyName: string | null | undefined
+): boolean {
+    if (!desc || !companyName) return false
+    const d = desc.trim().toUpperCase()
+    if (!d) return false
+
+    const rawComp = companyName.trim().toUpperCase()
+    const cleanComp = companyName.replace(/^\d+\.?\s*/, '').trim().toUpperCase()
+
+    // Exact match to full name or clean name
+    if (d === rawComp || d === cleanComp) return true
+
+    // If description is a substring of the clean company name
+    if (cleanComp.includes(d)) return true
+
+    // Normalize punctuation for comparison
+    const normalize = (s: string) => s.replace(/[^A-Z0-9\s]/g, ' ').trim()
+    const normD = normalize(d)
+    const normC = normalize(cleanComp)
+    
+    if (normC.includes(normD)) return true
+
+    const descTokens = normD.split(/\s+/).filter(Boolean)
+    const compTokens = normC.split(/\s+/).filter(Boolean)
+
+    if (descTokens.length > 0 && descTokens.every(t => compTokens.includes(t))) {
+        return true
+    }
+
+    return false
+}
+
+/**
+ * Strips the company name from the start of text.
+ * e.g. "CEEMULTI INDIA PVT. LTD. BIS FEE" with company "2.  CEEMULTI INDIA PVT. LTD." -> "BIS FEE"
+ *      "CEEMULTI INDIA PVT. LTD." -> ""
+ *      "CEEMULTI BIS FEE" -> "BIS FEE"
+ */
+export function stripCompanyName(text: string, companyName: string): string {
+    if (!text || !companyName) return text || ''
+    let t = text.trim()
+    const cleanComp = companyName.replace(/^\d+\.?\s*/, '').trim()
+    const rawComp = companyName.trim()
+
+    // 1. Try stripping raw company name with number (e.g. "2.  CEEMULTI INDIA PVT. LTD.")
+    if (t.toUpperCase().startsWith(rawComp.toUpperCase())) {
+        t = t.substring(rawComp.length).trim()
+    }
+    // 2. Try stripping clean company name (e.g. "CEEMULTI INDIA PVT. LTD.")
+    else if (t.toUpperCase().startsWith(cleanComp.toUpperCase())) {
+        t = t.substring(cleanComp.length).trim()
+    }
+    // 3. Try matching by words of company name from start
+    else {
+        const cleanTokens = cleanComp.split(/\s+/).filter(Boolean)
+        const textTokens = t.split(/\s+/)
+        let matchedCount = 0
+        for (let i = 0; i < textTokens.length && i < cleanTokens.length; i++) {
+            const tokenClean = textTokens[i].replace(/[^A-Za-z0-9]/g, '').toUpperCase()
+            const compClean = cleanTokens[i].replace(/[^A-Za-z0-9]/g, '').toUpperCase()
+            if (tokenClean && compClean && tokenClean === compClean) {
+                matchedCount++
+            } else {
+                break
+            }
+        }
+        if (matchedCount > 0) {
+            t = textTokens.slice(matchedCount).join(' ').trim()
+        }
+    }
+
+    // If remaining text is part of company name, return empty string
+    if (isPartOfCompanyName(t, companyName)) {
+        return ''
+    }
+
+    return t
+}
+
+/**
  * Finds the best matching company from a list of companies.
  * Uses case-insensitive partial matching on the company name.
  * 
- * @param query - The company query string (e.g., "BOOSTER")
+ * @param query - The company query string (e.g., "BOOSTER" or full text "CEEMULTI INDIA PVT. LTD. BIS FEE")
  * @param companies - Array of companies with id and name
  * @returns The best matching company or null
  */
@@ -175,21 +262,33 @@ export function findBestCompanyMatch(
     })
     if (exactMatch) return exactMatch
 
-    // 2. Starts-with match
+    // 2. Query starts with company clean name (e.g. query is "CEEMULTI INDIA PVT. LTD. BIS FEE", company is "CEEMULTI INDIA PVT. LTD.")
+    const prefixMatches = companies.filter(c => {
+        const cleanName = c.name.replace(/^\d+\.?\s*/, '').trim().toLowerCase()
+        return cleanName && q.startsWith(cleanName)
+    })
+    if (prefixMatches.length > 0) {
+        return prefixMatches.sort((a, b) => b.name.length - a.name.length)[0]
+    }
+
+    // 3. Starts-with match (company starts with query, e.g. query is "CEEMULTI", company is "CEEMULTI INDIA PVT. LTD.")
     const startsWithMatches = companies.filter(c => {
         const cleanName = c.name.replace(/^\d+\.?\s*/, '').trim().toLowerCase()
         return cleanName.startsWith(q)
     })
     if (startsWithMatches.length === 1) return startsWithMatches[0]
+    if (startsWithMatches.length > 1) {
+        return startsWithMatches.sort((a, b) => a.name.length - b.name.length)[0]
+    }
 
-    // 3. Contains match
+    // 4. Contains match
     const containsMatches = companies.filter(c => {
         const cleanName = c.name.replace(/^\d+\.?\s*/, '').trim().toLowerCase()
         return cleanName.includes(q)
     })
     if (containsMatches.length === 1) return containsMatches[0]
 
-    // 4. If multiple matches, return the shortest name (most specific match)
+    // 5. If multiple matches, return the shortest name (most specific match)
     if (containsMatches.length > 1) {
         return containsMatches.sort((a, b) => a.name.length - b.name.length)[0]
     }

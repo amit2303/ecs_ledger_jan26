@@ -309,12 +309,17 @@ export default function CompanyDetail({ params }: { params: Promise<{ id: string
                 )}
 
                 {!isEditing && (
-                    <div className="px-4 pb-3">
-                        <div className="ios-card p-3.5">
+                    <div className="px-4 pb-2.5">
+                        <div 
+                            className="bg-white rounded-xl p-3.5"
+                            style={{
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
+                            }}
+                        >
                             {/* Top: TOTAL PACKAGE */}
-                            <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-gray-100">
-                                <span className="text-[12px] font-semibold text-ios-gray uppercase tracking-wider">TOTAL PACKAGE</span>
-                                <span className="text-[17px] font-semibold text-gray-900 tabular-nums">
+                            <div className="flex items-center justify-between pb-2 mb-2 border-b border-gray-100">
+                                <span className="text-[11.5px] font-semibold text-ios-gray uppercase tracking-wider">TOTAL PACKAGE</span>
+                                <span className="text-[16px] font-semibold text-gray-900 tabular-nums">
                                     ₹{company.totalPackageAmount.toLocaleString('en-IN')}
                                 </span>
                             </div>
@@ -322,14 +327,14 @@ export default function CompanyDetail({ params }: { params: Promise<{ id: string
                             {/* Bottom: NET DUE (left) & TOTAL PAID (right) */}
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <span className="text-[12px] font-semibold text-ios-gray uppercase tracking-wider block mb-0.5">NET DUE</span>
-                                    <span className={`text-[19px] font-bold tabular-nums ${company.netDue > 0 ? 'text-ios-red' : company.netDue < 0 ? 'text-ios-green' : 'text-ios-blue'}`}>
+                                    <span className="text-[11.5px] font-semibold text-ios-gray uppercase tracking-wider block mb-0.5">NET DUE</span>
+                                    <span className={`text-[18px] font-bold tabular-nums ${company.netDue > 0 ? 'text-ios-red' : company.netDue < 0 ? 'text-ios-green' : 'text-ios-blue'}`}>
                                         {company.netDue < 0 ? `- ₹${Math.abs(company.netDue).toLocaleString('en-IN')}` : `₹${company.netDue.toLocaleString('en-IN')}`}
                                     </span>
                                 </div>
                                 <div className="text-right">
-                                    <span className="text-[12px] font-semibold text-ios-gray uppercase tracking-wider block mb-0.5">TOTAL PAID</span>
-                                    <span className="text-[19px] font-bold text-ios-green tabular-nums">
+                                    <span className="text-[11.5px] font-semibold text-ios-gray uppercase tracking-wider block mb-0.5">TOTAL PAID</span>
+                                    <span className="text-[18px] font-bold text-ios-green tabular-nums">
                                         ₹{company.totalPaymentsReceived.toLocaleString('en-IN')}
                                     </span>
                                 </div>
@@ -340,18 +345,20 @@ export default function CompanyDetail({ params }: { params: Promise<{ id: string
             </header>
 
             {/* Content — Package List */}
-            <div className="flex-1 flex flex-col min-h-0 mt-3">
+            <div className="flex-1 flex flex-col min-h-0 mt-1">
                 {/* List Header */}
-                <div className="flex justify-between items-center px-8 pb-2 text-[12px] font-semibold text-ios-gray uppercase tracking-wider select-none">
-                    <span>PACKAGES</span>
-                    <span className="pr-6">AMOUNT</span>
+                <div className="px-4 pb-1">
+                    <div className="flex justify-between items-center px-3.5 text-[11px] font-semibold text-ios-gray uppercase tracking-wider select-none">
+                        <span>PACKAGES</span>
+                        <span className="pr-5">DUE</span>
+                    </div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto ios-scroll px-4 pb-44">
                     {company.packages.length === 0 ? (
-                        <div className="ios-card p-8 text-center text-ios-gray text-[15px] rounded-2xl">No packages added.</div>
+                        <div className="ios-card p-6 text-center text-ios-gray text-[14px] rounded-xl">No packages added.</div>
                     ) : (
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-1.5">
                             {company.packages.map((pkg: any) => (
                                 <PackageItem
                                     key={pkg.id}
@@ -526,27 +533,25 @@ function PackageItem({ pkg, companyId, onLongPress }: { pkg: any, companyId: num
     return (
         <div
             {...bind}
-            className="relative overflow-hidden rounded-2xl ios-press select-none cursor-pointer"
+            className="relative overflow-hidden rounded-xl ios-press select-none cursor-pointer"
             style={{
                 backgroundColor: '#FFFFFF',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
             }}
         >
-            <div className="flex items-center justify-between px-4 py-3.5">
-                <div className="flex-1 pr-3 min-w-0">
-                    <div className="flex items-center gap-2">
-                        <h3 className="text-[16px] font-semibold text-gray-900 leading-snug truncate">{pkg.description}</h3>
-                    </div>
-                    <p className="text-[13px] text-ios-gray mt-1">{new Date(pkg.date).toLocaleDateString()}</p>
+            <div className="flex items-center justify-between px-3.5 py-2.5">
+                <div className="flex-1 pr-2.5 min-w-0">
+                    <h3 className="text-[15.5px] font-semibold text-gray-900 leading-tight truncate">{pkg.description}</h3>
+                    <p className="text-[12px] text-ios-gray mt-0.5 leading-tight">{new Date(pkg.date).toLocaleDateString()}</p>
                 </div>
-                <div className="flex items-center gap-2.5 shrink-0">
+                <div className="flex items-center gap-2 shrink-0">
                     <div className="text-right">
-                        <span className="text-[14px] text-ios-gray block">₹{pkgAmount.toLocaleString('en-IN')}</span>
-                        <span className={`text-[18px] font-semibold tabular-nums block ${pkgBalance > 0 ? 'text-ios-red' : pkgBalance < 0 ? 'text-ios-green' : 'text-ios-blue'}`}>
+                        <span className="text-[11.5px] text-ios-gray block leading-tight">₹{pkgAmount.toLocaleString('en-IN')}</span>
+                        <span className={`text-[15.5px] font-semibold tabular-nums block leading-tight ${pkgBalance > 0 ? 'text-ios-red' : pkgBalance < 0 ? 'text-ios-green' : 'text-ios-blue'}`}>
                             {pkgBalance < 0 ? `- ₹${Math.abs(pkgBalance).toLocaleString('en-IN')}` : `₹${pkgBalance.toLocaleString('en-IN')}`}
                         </span>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-ios-gray3" />
+                    <ChevronRight className="w-4 h-4 text-ios-gray3" />
                 </div>
             </div>
         </div>

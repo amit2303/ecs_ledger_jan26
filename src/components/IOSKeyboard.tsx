@@ -90,6 +90,40 @@ const SYMBOL_ROW_1 = ['[', ']', '{', '}', '#', '%', '^', '*', '+', '=']
 const SYMBOL_ROW_2 = ['_', '\\', '|', '~', '<', '>', '$', '€', '£', '•']
 const SYMBOL_ROW_3 = ['.', ',', '?', '!', "'", '"', '`']
 
+function BackspaceButton({
+    onDown,
+    onUp,
+    onLeave,
+    onTouchStart,
+    onTouchEnd,
+    style,
+}: {
+    onDown?: () => void
+    onUp?: () => void
+    onLeave?: () => void
+    onTouchStart?: () => void
+    onTouchEnd?: () => void
+    style?: React.CSSProperties
+}) {
+    return (
+        <button
+            type="button"
+            onMouseDown={onDown}
+            onMouseUp={onUp}
+            onMouseLeave={onLeave}
+            onTouchStart={onTouchStart}
+            onTouchEnd={onTouchEnd}
+            className="h-[44px] rounded-[8px] flex items-center justify-center shrink-0 transition-transform duration-75 active:scale-[0.95]"
+            style={{
+                ...style,
+                width: '44px',
+            }}
+        >
+            <Delete className="w-[22px] h-[22px] stroke-[1.5] text-[#1c1c1e] pointer-events-none" />
+        </button>
+    )
+}
+
 export function IOSKeyboard({
     isOpen,
     onClose,
@@ -171,10 +205,18 @@ export function IOSKeyboard({
 
     // Determine which contextual suggestions to show inside the keyboard
     const safeInput = inputValue || ''
+    const hasPerson = /@\s*(AMIT|SUMIT|SSM|PAPA|MAMAJI|PANKAJ|BHAIYA)/i.test(safeInput)
     const showCompanySuggestions = companySuggestions.length > 0 && !selectedCompany && safeInput.startsWith('+')
     const showEmployeeSuggestions = employeeSuggestions.length > 0 && !selectedEmployee && !selectedCompany && safeInput.startsWith('-')
     const showPackageSuggestions = !!selectedCompany && companyPackages.length > 0 && !selectedPackage
-    const showPersonPicker = !!isPersonPickerOpen && persons.length > 0
+    const showPersonPicker = (
+        !!isPersonPickerOpen || 
+        safeInput.includes('@') || 
+        (!hasPerson && (
+            (!!selectedCompany && (companyPackages.length === 0 || !!selectedPackage)) ||
+            (safeInput.startsWith('-') && (!!selectedEmployee || safeInput.length > 3))
+        ))
+    ) && persons.length > 0
     const hasSuggestions = showCompanySuggestions || showEmployeeSuggestions || showPackageSuggestions || showPersonPicker
 
     if (!isOpen) return null
@@ -228,18 +270,6 @@ export function IOSKeyboard({
         >
             {content}
         </button>
-    )
-
-    const renderBackspace = () => renderSpecialKey(
-        <Delete className="w-[22px] h-[22px] stroke-[1.5] text-[#1c1c1e] pointer-events-none" />,
-        {
-            onDown: handleBackspaceStart,
-            onUp: handleBackspaceEnd,
-            onLeave: handleBackspaceEnd,
-            onTouchStart: handleBackspaceStart,
-            onTouchEnd: handleBackspaceEnd,
-            width: '44px',
-        }
     )
 
     // ─── Suggestion Pill ──────────────────────────────────────────
@@ -432,7 +462,14 @@ export function IOSKeyboard({
                                 { onTap: () => triggerHaptic() }
                             )}
                             {LETTER_ROW_3.map(k => renderKey(k))}
-                            {renderBackspace()}
+                            <BackspaceButton
+                                onDown={handleBackspaceStart}
+                                onUp={handleBackspaceEnd}
+                                onLeave={handleBackspaceEnd}
+                                onTouchStart={handleBackspaceStart}
+                                onTouchEnd={handleBackspaceEnd}
+                                style={kbStyles.specialKey}
+                            />
                         </div>
                     </>
                 )}
@@ -452,7 +489,14 @@ export function IOSKeyboard({
                                 { onTap: () => setMode('symbols'), width: '48px' }
                             )}
                             {NUMBER_ROW_3.map(k => renderKey(k, '19px'))}
-                            {renderBackspace()}
+                            <BackspaceButton
+                                onDown={handleBackspaceStart}
+                                onUp={handleBackspaceEnd}
+                                onLeave={handleBackspaceEnd}
+                                onTouchStart={handleBackspaceStart}
+                                onTouchEnd={handleBackspaceEnd}
+                                style={kbStyles.specialKey}
+                            />
                         </div>
                     </>
                 )}
@@ -472,7 +516,14 @@ export function IOSKeyboard({
                                 { onTap: () => setMode('numbers'), width: '48px' }
                             )}
                             {SYMBOL_ROW_3.map(k => renderKey(k, '19px'))}
-                            {renderBackspace()}
+                            <BackspaceButton
+                                onDown={handleBackspaceStart}
+                                onUp={handleBackspaceEnd}
+                                onLeave={handleBackspaceEnd}
+                                onTouchStart={handleBackspaceStart}
+                                onTouchEnd={handleBackspaceEnd}
+                                style={kbStyles.specialKey}
+                            />
                         </div>
                     </>
                 )}

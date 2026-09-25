@@ -984,7 +984,7 @@ export default function TransactionsPage() {
         }
 
         // Disallow writing anything after the person tag
-        const personTagMatch = upperVal.match(/^(.*(@\s*(?:AMIT|SUMIT|SSM|PAPA|MAMAJI|PANKAJ|BHAIYA)))(.+)$/i)
+        const personTagMatch = upperVal.match(/^(.*(@\s*(?:AMIT(?:\s*MISHRA)?|SUMIT(?:\s*MISHRA)?|SSM|PAPA(?:\s*JI)?|MAMAJI|SHYAM(?:\s*SUNDER)?(?:\s*MISHRA)?|PANKAJ(?:\s*(?:SHARMA|BHAIYA))?|BHAIYA)))\s*(\S+.*)$/i)
         if (personTagMatch) {
             setWarningMsg('Cannot write anything after selecting person tag')
             setInput(personTagMatch[1])
@@ -1071,7 +1071,11 @@ export default function TransactionsPage() {
         setSelectedCompany(comp)
         setSelectedPackage(null)
         setSelectedEmployee(null)
-        if (currentPerson) setSelectedPerson(currentPerson)
+        if (currentPerson) {
+            setSelectedPerson(currentPerson)
+        } else {
+            setIsPersonPickerOpen(true)
+        }
         setWarningMsg(null)
         setIsCustomKeyboardOpen(true)
     }
@@ -1081,24 +1085,19 @@ export default function TransactionsPage() {
             setSelectedPackage(null)
         } else {
             setSelectedPackage(pkg)
+            if (!selectedPerson && !detectPersonFromText(input)) {
+                setIsPersonPickerOpen(true)
+            }
         }
         setWarningMsg(null)
         setIsCustomKeyboardOpen(true)
     }
 
     // Validation Rules:
-    // For - (Expense):
-    // 1. Must start with -
+    // 1. Must start with + or -
     // 2. Must contain valid positive amount
-    // 3. Must tag a person (@Amit, @Sumit, @SSM, or @Pankaj)
-    // 4. Description / Employee is optional
-    // 5. NO company or package needed!
-    //
-    // For + (Payment):
-    // 1. Must start with +
-    // 2. Must contain valid positive amount
-    // 3. Must select a company
-    // 4. Must select a package (if company has packages)
+    // 3. Must tag a person (@Amit, @Sumit, @SSM, or @Pankaj) for BOTH payments and expenses!
+    // 4. For + (Payment): Must select a company & package (if packages exist)
     const validateTransactionInput = (): string | null => {
         const raw = input.trim()
         if (!raw) return 'Message MUST start with + or - symbol'
@@ -1113,8 +1112,6 @@ export default function TransactionsPage() {
             return 'Please enter amount after ' + raw[0]
         }
 
-
-
         const isMiscEntry = selectedCompany?.id === -1 || raw.toUpperCase().includes('ECS MISC') || raw.toUpperCase().includes('ECS MSC')
 
         if (isMiscEntry) {
@@ -1124,12 +1121,14 @@ export default function TransactionsPage() {
             }
         }
 
+        // Tagging a person (@Amit, @Sumit, @SSM, or @Pankaj) is mandatory for ALL transactions!
+        const personToUse = selectedPerson || detectPersonFromText(raw)
+        if (!personToUse) {
+            return 'Please tag a person (@Amit, @Sumit, @SSM, or @Pankaj)'
+        }
+
         // Expense Flow (starts with -)
         if (sign === '-') {
-            const personToUse = selectedPerson || detectPersonFromText(raw)
-            if (!personToUse) {
-                return 'Please tag a person (@Amit, @Sumit, @SSM, or @Pankaj)'
-            }
             return null // Valid Expense!
         }
 
