@@ -622,6 +622,14 @@ export default function TransactionsPage() {
             return
         }
 
+        // Enforce Amount first: If no digits entered yet after +/- , disallow typing letters
+        const rawAfterSign = (input.startsWith('+') || input.startsWith('-')) ? input.substring(1).trimStart() : input
+        const hasAmountEntered = /^\d+(?:\.\d+)?/.test(rawAfterSign)
+        if (!hasAmountEntered && /[A-Za-z]/.test(char)) {
+            setWarningMsg('Please enter amount first after ' + (input[0] || '+ / -'))
+            return
+        }
+
         const before = input.slice(0, cursorPosition)
         const after = input.slice(cursorPosition)
         const nextVal = (before + char + after).toUpperCase()
@@ -893,6 +901,14 @@ export default function TransactionsPage() {
         // Must start with + or -
         if (upperVal.length > 0 && upperVal[0] !== '+' && upperVal[0] !== '-') {
             setWarningMsg('Input MUST start with + (Payment) or - (Expense)')
+            return
+        }
+
+        // Amount must precede company or words
+        const rawAfterSign = upperVal.substring(1).trimStart()
+        const hasAmount = /^\d+(?:\.\d+)?/.test(rawAfterSign)
+        if (!hasAmount && /[A-Z]/.test(rawAfterSign)) {
+            setWarningMsg('Please enter amount first after ' + upperVal[0])
             return
         }
 
