@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, useMemo, memo } from 'react'
 import { ChevronLeft, AlertCircle, Package as PackageIcon, X, ChevronDown, Search, ListFilter, Check, Trash2, Ban, Calendar, MoreVertical, Pencil, Eye, UserCircle2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { extractMiscDescription } from '@/lib/transactionParser'
+import { extractMiscDescription, getTransactionStepInfo } from '@/lib/transactionParser'
 import { IOSKeyboard } from '@/components/IOSKeyboard'
 
 // ─── Person Config ────────────────────────────────────────────
@@ -2035,98 +2035,196 @@ export default function TransactionsPage() {
             )}
 
             <div className="shrink-0 bg-[#EFEAE2] safe-area-bottom z-20">
-            {/* iOS WhatsApp Bottom Input Bar */}
-            <div className="border-t border-gray-300/60 px-3 py-2 flex items-center gap-2">
-                {/* Rounded Input Field */}
-                <div 
-                    onClick={() => {
-                        setIsCustomKeyboardOpen(true)
-                        setTimeout(scrollToBottom, 50)
-                    }}
-                    className="flex-1 min-w-0 bg-white rounded-full border border-gray-300/80 px-4 py-2 flex items-center gap-2 shadow-xs cursor-text"
-                >
-                    <div 
-                        ref={inputScrollRef} 
-                        className="w-full text-[15px] font-normal text-gray-900 font-sans tracking-normal uppercase min-h-[22px] flex items-center overflow-x-auto whitespace-nowrap scroll-smooth relative"
-                        onClick={(e) => {
-                            if (e.target === e.currentTarget) {
-                                setCursorPosition(input.length)
-                                setIsCustomKeyboardOpen(true)
-                            }
-                        }}
-                    >
-                        {input === '' && !isCustomKeyboardOpen ? (
-                            <span className="text-gray-400 select-none pointer-events-none">Tap to type transaction...</span>
-                        ) : (
-                            <div className="flex items-center">
-                                {input.split('').map((char, i) => (
-                                    <span 
-                                        key={i} 
-                                        className="relative flex items-center h-full cursor-text"
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-                                            const clickX = e.clientX - rect.left
-                                            if (clickX > rect.width / 2) {
-                                                setCursorPosition(i + 1)
-                                            } else {
-                                                setCursorPosition(i)
-                                            }
-                                            setIsCustomKeyboardOpen(true)
-                                        }}
-                                    >
-                                        {cursorPosition === i && isCustomKeyboardOpen && (
-                                            <span className="absolute left-0 top-1/2 -translate-y-1/2 -ml-[1px] w-[2px] h-[19px] bg-[#007AFF] animate-pulse z-10 rounded-full" />
-                                        )}
-                                        <span className="whitespace-pre">{char === ' ' ? '\u00A0' : char}</span>
+            {/* ─── Guided Step Progress Pill Bar ─── */}
+            {(() => {
+                const stepInfo = getTransactionStepInfo({
+                    input,
+                    selectedCompany,
+                    selectedPackage,
+                    selectedEmployee,
+                    selectedPerson,
+                    hasCompanyPackages: companyPackages.length > 0,
+                })
+
+                return (
+                    <>
+                        {isCustomKeyboardOpen && (
+                            <div className="flex items-center justify-between gap-1 px-3 py-1 bg-[#F5F3EF] border-t border-b border-gray-300/70 text-[11px] font-semibold overflow-x-auto select-none" style={{ scrollbarWidth: 'none' }}>
+                                <div className="flex items-center gap-1 min-w-0">
+                                    {/* Step 1: Sign */}
+                                    <span className={`px-2 py-0.5 rounded-full flex items-center gap-0.5 shrink-0 transition-colors ${
+                                        input.startsWith('+') || input.startsWith('-')
+                                            ? 'bg-emerald-100 text-emerald-800 font-bold'
+                                            : stepInfo.stepNumber === 1
+                                                ? 'bg-blue-100 text-blue-800 font-bold ring-1 ring-blue-400'
+                                                : 'bg-gray-200/70 text-gray-500'
+                                    }`}>
+                                        {input.startsWith('+') || input.startsWith('-') ? '✓' : '1.'} Sign
                                     </span>
-                                ))}
-                                <span 
-                                    className="relative flex items-center h-[22px] min-w-[12px] cursor-text"
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        setCursorPosition(input.length)
-                                        setIsCustomKeyboardOpen(true)
-                                    }}
-                                >
-                                    {cursorPosition === input.length && isCustomKeyboardOpen && (
-                                        <span className="absolute left-0 top-1/2 -translate-y-1/2 -ml-[1px] w-[2px] h-[19px] bg-[#007AFF] animate-pulse z-10 rounded-full" />
-                                    )}
+
+                                    <span className="text-gray-300">›</span>
+
+                                    {/* Step 2: Amount */}
+                                    <span className={`px-2 py-0.5 rounded-full flex items-center gap-0.5 shrink-0 transition-colors ${
+                                        stepInfo.stepNumber > 2
+                                            ? 'bg-emerald-100 text-emerald-800 font-bold'
+                                            : stepInfo.stepNumber === 2
+                                                ? 'bg-blue-100 text-blue-800 font-bold ring-1 ring-blue-400'
+                                                : 'bg-gray-200/70 text-gray-500'
+                                    }`}>
+                                        {stepInfo.stepNumber > 2 ? '✓' : '2.'} Amount
+                                    </span>
+
+                                    <span className="text-gray-300">›</span>
+
+                                    {/* Step 3: Company / Head */}
+                                    <span className={`px-2 py-0.5 rounded-full flex items-center gap-0.5 shrink-0 transition-colors ${
+                                        stepInfo.stepNumber > 3
+                                            ? 'bg-emerald-100 text-emerald-800 font-bold'
+                                            : stepInfo.stepNumber === 3
+                                                ? 'bg-blue-100 text-blue-800 font-bold ring-1 ring-blue-400'
+                                                : 'bg-gray-200/70 text-gray-500'
+                                    }`}>
+                                        {stepInfo.stepNumber > 3 ? '✓' : '3.'} {input.startsWith('-') ? 'Head' : 'Company'}
+                                    </span>
+
+                                    <span className="text-gray-300">›</span>
+
+                                    {/* Step 4: Description / Package */}
+                                    <span className={`px-2 py-0.5 rounded-full flex items-center gap-0.5 shrink-0 transition-colors ${
+                                        stepInfo.stepNumber > 4
+                                            ? 'bg-emerald-100 text-emerald-800 font-bold'
+                                            : stepInfo.stepNumber === 4
+                                                ? 'bg-blue-100 text-blue-800 font-bold ring-1 ring-blue-400'
+                                                : 'bg-gray-200/70 text-gray-500'
+                                    }`}>
+                                        {stepInfo.stepNumber > 4 ? '✓' : '4.'} Desc
+                                    </span>
+
+                                    <span className="text-gray-300">›</span>
+
+                                    {/* Step 5: @Person */}
+                                    <span className={`px-2 py-0.5 rounded-full flex items-center gap-0.5 shrink-0 transition-colors ${
+                                        stepInfo.isComplete
+                                            ? 'bg-emerald-100 text-emerald-800 font-bold'
+                                            : stepInfo.stepNumber === 5
+                                                ? 'bg-blue-100 text-blue-800 font-bold ring-1 ring-blue-400'
+                                                : 'bg-gray-200/70 text-gray-500'
+                                    }`}>
+                                        {stepInfo.isComplete ? '✓' : '5.'} @Person
+                                    </span>
+                                </div>
+
+                                <span className="text-[11px] font-bold text-gray-700 truncate pl-2 shrink-0">
+                                    {stepInfo.hint}
                                 </span>
                             </div>
                         )}
-                    </div>
-                    {input && (
-                        <button
-                            type="button"
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                handleInputChange('')
-                                setCursorPosition(0)
-                            }}
-                            className="p-1 text-gray-400 hover:text-gray-600 rounded-full shrink-0"
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
-                    )}
-                </div>
 
-                {/* WhatsApp Green Round Send Button */}
-                <button
-                    type="button"
-                    onClick={handleSend}
-                    disabled={sending || !isFormValid}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all ${
-                        isFormValid 
-                            ? 'bg-[#00A884] text-white shadow-md active:scale-95 cursor-pointer' 
-                            : 'bg-gray-300 text-gray-500 opacity-60 cursor-not-allowed'
-                    }`}
-                >
-                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current ml-0.5">
-                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-                    </svg>
-                </button>
-            </div>
+                        {/* iOS WhatsApp Bottom Input Bar */}
+                        <div className="border-t border-gray-300/60 px-3 py-2 flex items-center gap-2">
+                            {/* Rounded Input Field */}
+                            <div 
+                                onClick={() => {
+                                    setIsCustomKeyboardOpen(true)
+                                    setTimeout(scrollToBottom, 50)
+                                }}
+                                className="flex-1 min-w-0 bg-white rounded-full border border-gray-300/80 px-4 py-2 flex items-center gap-2 shadow-xs cursor-text"
+                            >
+                                <div 
+                                    ref={inputScrollRef} 
+                                    className="w-full text-[15px] font-normal text-gray-900 font-sans tracking-normal uppercase min-h-[22px] flex items-center overflow-x-auto whitespace-nowrap scroll-smooth relative"
+                                    onClick={(e) => {
+                                        if (e.target === e.currentTarget) {
+                                            setCursorPosition(input.length)
+                                            setIsCustomKeyboardOpen(true)
+                                        }
+                                    }}
+                                >
+                                    {input === '' && !isCustomKeyboardOpen ? (
+                                        <span className="text-gray-400 select-none pointer-events-none">
+                                            {stepInfo.ghostPlaceholder || 'Tap to type transaction...'}
+                                        </span>
+                                    ) : (
+                                        <div className="flex items-center">
+                                            {input.split('').map((char, i) => (
+                                                <span 
+                                                    key={i} 
+                                                    className="relative flex items-center h-full cursor-text"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+                                                        const clickX = e.clientX - rect.left
+                                                        if (clickX > rect.width / 2) {
+                                                            setCursorPosition(i + 1)
+                                                        } else {
+                                                            setCursorPosition(i)
+                                                        }
+                                                        setIsCustomKeyboardOpen(true)
+                                                    }}
+                                                >
+                                                    {cursorPosition === i && isCustomKeyboardOpen && (
+                                                        <span className="absolute left-0 top-1/2 -translate-y-1/2 -ml-[1px] w-[2px] h-[19px] bg-[#007AFF] animate-pulse z-10 rounded-full" />
+                                                    )}
+                                                    <span className="whitespace-pre">{char === ' ' ? '\u00A0' : char}</span>
+                                                </span>
+                                            ))}
+                                            <span 
+                                                className="relative flex items-center h-[22px] min-w-[2px] cursor-text"
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    setCursorPosition(input.length)
+                                                    setIsCustomKeyboardOpen(true)
+                                                }}
+                                            >
+                                                {cursorPosition === input.length && isCustomKeyboardOpen && (
+                                                    <span className="w-[2px] h-[19px] bg-[#007AFF] animate-pulse rounded-full inline-block" />
+                                                )}
+                                            </span>
+
+                                            {/* Dynamic Ghost Placeholder Indication */}
+                                            {cursorPosition === input.length && stepInfo.ghostPlaceholder && (
+                                                <span className="text-gray-400/90 font-normal italic lowercase select-none pointer-events-none ml-1 tracking-tight text-[13px] sm:text-[14px]">
+                                                    {stepInfo.ghostPlaceholder}
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                                {input && (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            handleInputChange('')
+                                            setCursorPosition(0)
+                                        }}
+                                        className="p-1 text-gray-400 hover:text-gray-600 rounded-full shrink-0"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* WhatsApp Green Round Send Button */}
+                            <button
+                                type="button"
+                                onClick={handleSend}
+                                disabled={sending || !isFormValid}
+                                className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                                    isFormValid 
+                                        ? 'bg-[#00A884] text-white shadow-md active:scale-95 cursor-pointer' 
+                                        : 'bg-gray-300 text-gray-500 opacity-60 cursor-not-allowed'
+                                }`}
+                            >
+                                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current ml-0.5">
+                                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </>
+                )
+            })()}
 
             {/* ─── Selected State Badges (inside keyboard zone, below text bar) ─── */}
 

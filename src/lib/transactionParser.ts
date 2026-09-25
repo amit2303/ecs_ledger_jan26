@@ -295,3 +295,175 @@ export function findBestCompanyMatch(
 
     return null
 }
+
+export type TransactionStepId = 'SIGN' | 'AMOUNT' | 'COMPANY' | 'PACKAGE' | 'DESCRIPTION' | 'PERSON' | 'READY'
+
+export interface StepGuideInfo {
+    step: TransactionStepId
+    stepNumber: number // 1 to 5
+    title: string
+    hint: string
+    ghostPlaceholder: string
+    preferredKeyboardMode: 'letters' | 'numbers'
+    isComplete: boolean
+}
+
+export function getTransactionStepInfo(opts: {
+    input: string
+    selectedCompany?: { id: number; name: string } | null
+    selectedPackage?: { id: number; description: string } | null
+    selectedEmployee?: { id: number; name: string } | null
+    selectedPerson?: { canonical: string; display: string } | null
+    hasCompanyPackages?: boolean
+}): StepGuideInfo {
+    const rawNoTrim = opts.input || ''
+
+    // Step 1: Sign (+ or -)
+    if (!rawNoTrim || (!rawNoTrim.startsWith('+') && !rawNoTrim.startsWith('-'))) {
+        return {
+            step: 'SIGN',
+            stepNumber: 1,
+            title: 'Sign (+/-)',
+            hint: 'Tap + for Payment or - for Expense',
+            ghostPlaceholder: '+ (Payment) or - (Expense)',
+            preferredKeyboardMode: 'numbers',
+            isComplete: false
+        }
+    }
+
+    const sign = rawNoTrim[0]
+    const afterSign = rawNoTrim.substring(1).trimStart()
+    const amountMatch = afterSign.match(/^(\d+(?:\.\d+)?)/)
+
+    // Step 2: Amount
+    if (!amountMatch) {
+        return {
+            step: 'AMOUNT',
+            stepNumber: 2,
+            title: 'Amount',
+            hint: 'Enter Amount (e.g. 50000)',
+            ghostPlaceholder: rawNoTrim.endsWith(' ') ? '50000' : ' 50000',
+            preferredKeyboardMode: 'numbers',
+            isComplete: false
+        }
+    }
+
+    const restAfterAmount = afterSign.substring(amountMatch[0].length).trimStart()
+    const hasSpaceAfterAmount = afterSign.substring(amountMatch[0].length).startsWith(' ') || restAfterAmount.length > 0
+    const detectedPerson = extractPerson(rawNoTrim) || opts.selectedPerson
+    const isPlus = sign === '+'
+
+    // If just finished typing amount but no space yet and no company/employee selected:
+    if (!hasSpaceAfterAmount && !opts.selectedCompany && !opts.selectedEmployee && !restAfterAmount) {
+        return {
+            step: 'AMOUNT',
+            stepNumber: 2,
+            title: 'Amount',
+            hint: 'Amount entered (add space for company)',
+            ghostPlaceholder: ' (Space)',
+            preferredKeyboardMode: 'numbers',
+            isComplete: false
+        }
+    }
+
+    // Step 3: Company (for +) or Description/Employee (for -)
+    if (isPlus) {
+        const isMisc = opts.selectedCompany?.id === -1 || rawNoTrim.toUpperCase().includes('ECS MISC') || rawNoTrim.toUpperCase().includes('ECS MSC')
+        
+        if (!opts.selectedCompany && !restAfterAmount) {
+            return {
+                step: 'COMPANY',
+                stepNumber: 3,
+                title: 'Company',
+                hint: 'Select or type Company Name',
+                ghostPlaceholder: ' BOOSTER',
+                preferredKeyboardMode: 'letters',
+                isComplete: false
+            }
+        }
+
+        if (isMisc) {
+            const cleanMiscDesc = extractMiscDescription(rawNoTrim)
+            if (!cleanMiscDesc) {
+                return {
+                    step: 'DESCRIPTION',
+                    stepNumber: 4,
+                    title: 'Description',
+                    hint: 'Enter Description for ECS MISC',
+                    ghostPlaceholder: ' Description',
+                    preferredKeyboardMode: 'letters',
+                    isComplete: false
+                }
+            }
+        } else if (opts.hasCompanyPackages && !opts.selectedPackage) {
+            return {
+                step: 'PACKAGE',
+                stepNumber: 4,
+                title: 'Package',
+                hint: 'Select Package or type Description',
+                ghostPlaceholder: ' [Package]',
+                preferredKeyboardMode: 'letters',
+                isComplete: false
+            }
+        }
+
+        // Check Person tag
+        if (!detectedPerson) {
+            return {
+                step: 'PERSON',
+                stepNumber: 5,
+                title: '@Person',
+                hint: 'Tag @Person (@AMIT, @SUMIT, @SSM, @PANKAJ)',
+                ghostPlaceholder: ' @AMIT',
+                preferredKeyboardMode: 'letters',
+                isComplete: false
+            }
+        }
+
+        return {
+            step: 'READY',
+            stepNumber: 5,
+            title: 'Ready',
+            hint: 'Ready to Send ✓',
+            ghostPlaceholder: '',
+            preferredKeyboardMode: 'letters',
+            isComplete: true
+        }
+    } else {
+        // Minus (Expense)
+        if (!opts.selectedEmployee && !restAfterAmount && opts.selectedCompany?.id !== -1) {
+            return {
+                step: 'DESCRIPTION',
+                stepNumber: 3,
+                title: 'Description',
+                hint: 'Select Employee or type Description',
+                ghostPlaceholder: ' TEA / OFFICE EXPENSE',
+                preferredKeyboardMode: 'letters',
+                isComplete: false
+            }
+        }
+
+        if (!detectedPerson) {
+            return {
+                step: 'PERSON',
+                stepNumber: 5,
+                title: '@Person',
+                hint: 'Tag @Person (@AMIT, @SUMIT, @SSM, @PANKAJ)',
+                ghostPlaceholder: ' @AMIT',
+                preferredKeyboardMode: 'letters',
+                isComplete: false
+            }
+        }
+
+        return {
+            step: 'READY',
+            stepNumber: 5,
+            title: 'Ready',
+            hint: 'Ready to Send ✓',
+            ghostPlaceholder: '',
+            preferredKeyboardMode: 'letters',
+            isComplete: true
+        }
+    }
+}
+
