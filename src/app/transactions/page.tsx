@@ -796,15 +796,20 @@ export default function TransactionsPage() {
 
     const { sign, amount } = getParsedInput()
 
-    // Filter company suggestions as user types (includes ECS MISC head as first option)
+    // Filter company suggestions as user types (ONLY after entering amount and giving a space!)
     const getCompanySuggestions = () => {
-        const raw = input.trim()
-        if (raw.startsWith('-')) return [] // No company suggestions for Expenses!
-        if (selectedCompany || !raw) return []
-        const afterSign = raw.startsWith('+') ? raw.substring(1).trim() : raw
-        const amountMatch = afterSign.match(/^(\d*\.?\d+)/)
-        const rest = amountMatch ? afterSign.substring(amountMatch[0].length).trim() : afterSign
+        if (!input.startsWith('+')) return []
+        if (selectedCompany) return []
 
+        const afterSign = input.substring(1).trimStart()
+        const amountMatch = afterSign.match(/^(\d+(?:\.\d+)?)/)
+        if (!amountMatch) return [] // No amount entered yet
+
+        const restRaw = afterSign.substring(amountMatch[0].length)
+        // Must have entered a space after the amount before options appear!
+        if (!restRaw.startsWith(' ')) return []
+
+        const rest = restRaw.trim()
         const allHeads: CompanyItem[] = [
             { id: -1, name: 'ECS MISC' },
             ...companies
@@ -824,14 +829,20 @@ export default function TransactionsPage() {
 
     const companySuggestions = getCompanySuggestions()
 
-    // Filter employee suggestions as user types (ONLY for Expenses / '-')
+    // Filter employee suggestions as user types (ONLY after entering amount and giving a space for '-')
     const getEmployeeSuggestions = () => {
-        const raw = input.trim()
-        if (!raw.startsWith('-')) return [] // Only for Expenses
+        if (!input.startsWith('-')) return []
         if (selectedEmployee || !employees.length) return []
-        const afterSign = raw.substring(1).trim()
-        const amountMatch = afterSign.match(/^(\d*\.?\d+)/)
-        const rest = amountMatch ? afterSign.substring(amountMatch[0].length).trim() : afterSign
+
+        const afterSign = input.substring(1).trimStart()
+        const amountMatch = afterSign.match(/^(\d+(?:\.\d+)?)/)
+        if (!amountMatch) return [] // No amount entered yet
+
+        const restRaw = afterSign.substring(amountMatch[0].length)
+        // Must have entered a space after the amount before options appear!
+        if (!restRaw.startsWith(' ')) return []
+
+        const rest = restRaw.trim()
         if (!rest) return employees.slice(0, 8)
 
         // Strip @mention before matching employee name
