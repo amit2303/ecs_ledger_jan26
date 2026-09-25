@@ -1,8 +1,7 @@
 'use client'
 
-import React, { useState, useRef, useEffect, useCallback } from 'react'
-import { Delete, ChevronDown, Building2, UserCircle2, Package as PackageIcon, CheckCircle2, Sparkles, Hash } from 'lucide-react'
-import { getTransactionStepInfo } from '@/lib/transactionParser'
+import React, { useState, useRef, useEffect, useCallback, memo } from 'react'
+import { Delete, ChevronDown, Building2, UserCircle2, Package as PackageIcon } from 'lucide-react'
 
 // ─── Types ──────────────────────────────────────────────────────
 interface CompanyItem { id: number; name: string }
@@ -141,7 +140,6 @@ export function IOSKeyboard({
     selectedCompany = null,
     selectedEmployee = null,
     selectedPackage = null,
-    selectedPerson = null,
     isPersonPickerOpen = false,
     onSelectCompany,
     onSelectEmployee,
@@ -150,6 +148,8 @@ export function IOSKeyboard({
     cursorPosition = 0,
     onCursorMove
 }: IOSKeyboardProps) {
+    const [mode, setMode] = useState<KeyboardMode>('letters')
+    
     // Trackpad mode for spacebar long press
     const [isTrackpadMode, setIsTrackpadMode] = useState(false)
     const trackpadStartX = useRef(0)
@@ -203,27 +203,8 @@ export function IOSKeyboard({
         }
     }, [])
 
-    // ─── Dynamic Step Guidance & Smart Suggestions ───
+    // Determine which contextual suggestions to show inside the keyboard
     const safeInput = inputValue || ''
-    const stepInfo = getTransactionStepInfo({
-        input: safeInput,
-        selectedCompany,
-        selectedPackage,
-        selectedEmployee,
-        selectedPerson,
-        hasCompanyPackages: companyPackages.length > 0,
-    })
-
-    // Track user manual override for mode within the current step (Derived State, React 19 compliant)
-    const [manualOverride, setManualOverride] = useState<{ step: string; mode: KeyboardMode } | null>(null)
-    const mode: KeyboardMode = manualOverride && manualOverride.step === stepInfo.step
-        ? manualOverride.mode
-        : stepInfo.preferredKeyboardMode
-
-    const setMode = useCallback((newMode: KeyboardMode) => {
-        setManualOverride({ step: stepInfo.step, mode: newMode })
-    }, [stepInfo.step])
-
     const hasPerson = /@\s*(AMIT|SUMIT|SSM|PAPA|MAMAJI|PANKAJ|BHAIYA)/i.test(safeInput)
     const showCompanySuggestions = companySuggestions.length > 0 && !selectedCompany && safeInput.startsWith('+')
     const showEmployeeSuggestions = employeeSuggestions.length > 0 && !selectedEmployee && !selectedCompany && safeInput.startsWith('-')
@@ -231,17 +212,12 @@ export function IOSKeyboard({
     const showPersonPicker = (
         !!isPersonPickerOpen || 
         safeInput.includes('@') || 
-        stepInfo.step === 'PERSON' ||
         (!hasPerson && (
             (!!selectedCompany && (companyPackages.length === 0 || !!selectedPackage)) ||
             (safeInput.startsWith('-') && (!!selectedEmployee || safeInput.length > 3))
         ))
     ) && persons.length > 0
-
-    const showQuickAmounts = stepInfo.step === 'AMOUNT'
-    const showQuickSigns = stepInfo.step === 'SIGN'
-
-    const hasSuggestions = showCompanySuggestions || showEmployeeSuggestions || showPackageSuggestions || showPersonPicker || showQuickAmounts || showQuickSigns
+    const hasSuggestions = showCompanySuggestions || showEmployeeSuggestions || showPackageSuggestions || showPersonPicker
 
     if (!isOpen) return null
 
@@ -308,7 +284,7 @@ export function IOSKeyboard({
             key={key}
             type="button"
             onClick={() => { triggerHaptic(); onClick() }}
-            className="px-3 py-[5px] rounded-full text-[13px] shrink-0 transition-all active:scale-[0.95] flex items-center gap-1"
+            className="px-3 py-[5px] rounded-full text-[13px] shrink-0 transition-all active:scale-[0.95]"
             style={{
                 background: highlight ? 'rgba(0,122,255,0.14)' : 'rgba(255,255,255,0.75)',
                 color: highlight ? '#007AFF' : '#1c1c1e',
@@ -380,45 +356,11 @@ export function IOSKeyboard({
                     className="overflow-x-auto flex items-center gap-1.5 px-3 py-[6px]"
                     style={kbStyles.suggestionBar}
                 >
-                    {/* Quick Sign options (Step 1) */}
-                    {showQuickSigns && (
-                        <>
-                            <span className="text-[11px] font-semibold text-[#007AFF] shrink-0 flex items-center gap-1">
-                                <Sparkles className="w-3 h-3 text-[#007AFF]" /> Start:
-                            </span>
-                            {renderSuggestionPill('start-plus', '+ Payment', () => onKeyPress('+'), true, { color: '#00875A', background: 'rgba(0,135,90,0.12)', borderColor: 'rgba(0,135,90,0.3)' })}
-                            {renderSuggestionPill('start-minus', '- Expense', () => onKeyPress('-'), true, { color: '#D9383A', background: 'rgba(217,56,58,0.12)', borderColor: 'rgba(217,56,58,0.3)' })}
-                        </>
-                    )}
-
-                    {/* Quick Amount Pills (Step 2) */}
-                    {showQuickAmounts && (
-                        <>
-                            <span className="text-[11px] font-semibold text-[#8e8e93] shrink-0 flex items-center gap-0.5">
-                                <Hash className="w-3 h-3 text-[#007AFF]" /> Amount:
-                            </span>
-                            {[5000, 10000, 20000, 25000, 50000, 100000].map(amt => {
-                                const sign = safeInput.startsWith('-') ? '-' : '+'
-                                return renderSuggestionPill(
-                                    `amt-${amt}`,
-                                    `₹${amt.toLocaleString('en-IN')}`,
-                                    () => {
-                                        // Set exact amount with trailing space so next step is ready
-                                        const currentAfterSign = safeInput.substring(1).trimStart()
-                                        const restWithoutDigits = currentAfterSign.replace(/^\d+/, '').trimStart()
-                                        const nextText = `${sign} ${amt}${restWithoutDigits ? ' ' + restWithoutDigits : ' '}`
-                                        onKeyPress(nextText.substring(safeInput.length))
-                                    }
-                                )
-                            })}
-                        </>
-                    )}
-
                     {/* Company Suggestions (for +) */}
                     {showCompanySuggestions && (
                         <>
                             <span className="text-[11px] font-semibold text-[#8e8e93] shrink-0 flex items-center gap-0.5">
-                                <Building2 className="w-3 h-3 text-[#007AFF]" />
+                                <Building2 className="w-3 h-3" />
                             </span>
                             {companySuggestions.map(comp =>
                                 renderSuggestionPill(
@@ -435,7 +377,7 @@ export function IOSKeyboard({
                     {showEmployeeSuggestions && (
                         <>
                             <span className="text-[11px] font-semibold text-[#8e8e93] shrink-0 flex items-center gap-0.5">
-                                <UserCircle2 className="w-3 h-3 text-[#007AFF]" />
+                                <UserCircle2 className="w-3 h-3" />
                             </span>
                             {renderSuggestionPill(
                                 'ecs-misc',
@@ -456,7 +398,7 @@ export function IOSKeyboard({
                     {showPackageSuggestions && (
                         <>
                             <span className="text-[11px] font-semibold text-[#8e8e93] shrink-0 flex items-center gap-0.5">
-                                <PackageIcon className="w-3 h-3 text-[#007AFF]" />
+                                <PackageIcon className="w-3 h-3" />
                             </span>
                             {companyPackages.map(pkg =>
                                 renderSuggestionPill(
@@ -471,13 +413,12 @@ export function IOSKeyboard({
                     {/* @Person Picker */}
                     {showPersonPicker && (
                         <>
-                            <span className="text-[11px] font-bold text-[#007AFF] shrink-0">@</span>
+                            <span className="text-[11px] font-bold text-[#8e8e93] shrink-0">@</span>
                             {persons.map((p: any) =>
                                 renderSuggestionPill(
                                     p.canonical,
                                     p.display,
-                                    () => onSelectPerson?.(p),
-                                    true
+                                    () => onSelectPerson?.(p)
                                 )
                             )}
                         </>
@@ -485,31 +426,15 @@ export function IOSKeyboard({
                 </div>
             )}
 
-            {/* ─── Quick Action Bar (Step Badge & Done) ─── */}
+            {/* ─── Quick Action Bar (Done) ─── */}
             <div
-                className="flex items-center justify-between px-3 py-[5px]"
+                className="flex items-center justify-end px-3 py-[5px]"
                 style={{ borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}
             >
-                {/* Live Step Badge Indication */}
-                <div className="flex items-center gap-1.5 min-w-0">
-                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 truncate ${
-                        stepInfo.isComplete 
-                            ? 'bg-[#00875A]/15 text-[#00875A] border border-[#00875A]/30'
-                            : 'bg-[#007AFF]/12 text-[#007AFF] border border-[#007AFF]/25'
-                    }`}>
-                        {stepInfo.isComplete ? (
-                            <CheckCircle2 className="w-3 h-3 text-[#00875A]" />
-                        ) : (
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#007AFF] animate-pulse" />
-                        )}
-                        <span>{stepInfo.hint}</span>
-                    </span>
-                </div>
-
                 <button
                     type="button"
                     onClick={onClose}
-                    className="px-2.5 py-[3px] rounded-full text-[13px] font-semibold transition-all active:scale-[0.94] flex items-center gap-1 shrink-0"
+                    className="px-3 py-[4px] rounded-full text-[13px] font-semibold transition-all active:scale-[0.94] flex items-center gap-1"
                     style={{ color: '#007AFF', WebkitTapHighlightColor: 'transparent' }}
                 >
                     Done
