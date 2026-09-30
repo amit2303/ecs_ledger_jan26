@@ -406,7 +406,7 @@ export default function ExpertDashboardPage() {
             ) : (
                 <>
                     {/* Dashboard Cards Container (Blurred when locked) */}
-                    <div className={`px-4 space-y-3.5 pt-3 ios-fade-in transition-all duration-300 ${!isUnlocked ? 'blur-md filter select-none pointer-events-none opacity-50' : ''}`}>
+                    <div className={`px-4 space-y-3.5 pt-3 ios-fade-in transition-all duration-300 ${!isUnlocked ? 'blur-2xl opacity-20 select-none pointer-events-none filter' : ''}`}>
                     {/* 1. Monthly Overview Card (Single outer card for Net, Income & Expense) */}
                     <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-black/5 space-y-4">
                         {/* Net on Top with Integrated Month Selector & Lock Button */}
@@ -979,24 +979,15 @@ export default function ExpertDashboardPage() {
                     </p>
                 </div>
 
-                {/* Glassmorphic Password Overlay Modal (Only when locked) */}
+                {/* Fixed Simple Password Unlock Field (Only when locked) */}
                 {!isUnlocked && (
-                    <div className="absolute inset-0 z-30 flex items-center justify-center px-4 py-8 bg-black/10 backdrop-blur-xs">
-                        <div className={`w-full max-w-sm bg-white/95 backdrop-blur-xl rounded-3xl p-6 sm:p-7 shadow-[0_12px_40px_rgba(0,0,0,0.12)] border border-white/60 space-y-5 text-center ${isShaking ? 'animate-shake' : ''}`}>
-                            <div className="mx-auto w-14 h-14 rounded-2xl bg-[#EBF5FF] flex items-center justify-center text-[#007AFF] shadow-xs">
-                                <LockKeyhole className="w-7 h-7 stroke-[2.2]" />
-                            </div>
+                    <div className="fixed inset-0 z-30 flex items-center justify-center px-4 pointer-events-none">
+                        <div className={`w-full max-w-sm bg-white/95 backdrop-blur-2xl rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.15)] border border-black/10 space-y-4 text-center pointer-events-auto ${isShaking ? 'animate-shake' : ''}`}>
+                            <h2 className="text-[16px] font-bold text-gray-950 tracking-tight">
+                                Enter password to unlock dashboard
+                            </h2>
 
-                            <div className="space-y-1">
-                                <h2 className="text-[19px] font-bold text-gray-950 tracking-tight">
-                                    Hisab Kitab Locked
-                                </h2>
-                                <p className="text-[12.5px] text-gray-500 font-medium leading-snug">
-                                    Enter password to view Net Balance & Share Distribution.
-                                </p>
-                            </div>
-
-                            <form onSubmit={handleUnlock} className="space-y-3.5 pt-1">
+                            <form onSubmit={handleUnlock} className="space-y-3 pt-1">
                                 <div className="relative">
                                     <input
                                         type={showPasscode ? 'text' : 'password'}
@@ -1006,7 +997,7 @@ export default function ExpertDashboardPage() {
                                         value={passcode}
                                         onChange={(e) => handlePasscodeChange(e.target.value)}
                                         placeholder="Enter password"
-                                        className="w-full text-center tracking-[0.2em] text-[18px] font-bold py-3 px-9 bg-[#F2F2F7] border border-black/10 rounded-2xl text-gray-900 placeholder:tracking-normal placeholder:text-[13px] placeholder:font-medium focus:outline-none focus:ring-2 focus:ring-[#007AFF]/40 focus:border-[#007AFF] transition-all"
+                                        className="w-full text-center tracking-[0.2em] text-[18px] font-bold py-3 px-9 bg-[#F2F2F7] border border-black/10 rounded-2xl text-gray-900 placeholder:tracking-normal placeholder:text-[13px] placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#007AFF]/40 focus:border-[#007AFF] transition-all"
                                         autoFocus
                                     />
                                     <button
@@ -1027,17 +1018,11 @@ export default function ExpertDashboardPage() {
                                 <button
                                     type="submit"
                                     disabled={passcode.length < 1 || authLoading}
-                                    className="w-full py-3 bg-[#007AFF] hover:bg-[#0066CC] disabled:opacity-50 text-white font-semibold rounded-2xl text-[14.5px] shadow-[0_4px_14px_rgba(0,122,255,0.35)] active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                                    className="w-full py-3 bg-[#007AFF] hover:bg-[#0066CC] disabled:opacity-50 text-white font-semibold rounded-2xl text-[15px] shadow-[0_4px_14px_rgba(0,122,255,0.35)] active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
                                 >
-                                    <span>{authLoading ? 'Verifying...' : 'Unlock Dashboard'}</span>
-                                    <ArrowRightLeft className="w-4 h-4 opacity-70" />
+                                    <span>{authLoading ? 'Verifying...' : 'Unlock'}</span>
                                 </button>
                             </form>
-
-                            <div className="pt-1.5 border-t border-gray-100 flex items-center justify-center gap-1.5 text-[11.5px] text-gray-400 font-medium">
-                                <ShieldCheck className="w-3.5 h-3.5 text-[#34C759]" />
-                                <span>Protected Hisab Kitab Dashboard</span>
-                            </div>
                         </div>
                     </div>
                 )}
