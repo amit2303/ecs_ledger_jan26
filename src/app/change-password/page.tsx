@@ -10,6 +10,8 @@ export default function ChangePasswordPage() {
     const [newUsername, setNewUsername] = useState('')
     const [newPassword, setNewPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
+    const [newHisabPassword, setNewHisabPassword] = useState('')
+    const [confirmHisabPassword, setConfirmHisabPassword] = useState('')
     const [error, setError] = useState('')
     const [success, setSuccess] = useState('')
     const [loading, setLoading] = useState(false)
@@ -21,20 +23,32 @@ export default function ChangePasswordPage() {
         setError('')
         setSuccess('')
 
-        if (!newPassword && !newUsername) {
-            setError('Please enter a new username or password')
+        if (!newPassword && !newUsername && !newHisabPassword) {
+            setError('Please enter a new username, app password, or Hisab Kitab password')
             setLoading(false)
             return
         }
 
         if (newPassword && newPassword !== confirmPassword) {
-            setError('New passwords do not match')
+            setError('New app passwords do not match')
             setLoading(false)
             return
         }
 
         if (newPassword && newPassword.length < 6) {
-            setError('Password must be at least 6 characters')
+            setError('App password must be at least 6 characters')
+            setLoading(false)
+            return
+        }
+
+        if (newHisabPassword && newHisabPassword !== confirmHisabPassword) {
+            setError('Hisab Kitab passwords do not match')
+            setLoading(false)
+            return
+        }
+
+        if (newHisabPassword && newHisabPassword.length < 4) {
+            setError('Hisab Kitab password must be at least 4 characters')
             setLoading(false)
             return
         }
@@ -46,12 +60,13 @@ export default function ChangePasswordPage() {
                 body: JSON.stringify({
                     currentPassword,
                     newPassword: newPassword || undefined,
-                    newUsername: newUsername || undefined
+                    newUsername: newUsername || undefined,
+                    newHisabPassword: newHisabPassword || undefined
                 })
             })
 
             if (res.ok) {
-                setSuccess('Credentials updated successfully! Redirecting...')
+                setSuccess('Security settings updated successfully! Redirecting...')
                 setTimeout(() => router.push('/'), 2000)
             } else {
                 const data = await res.json()
@@ -74,7 +89,7 @@ export default function ChangePasswordPage() {
                         <span className="text-[17px]">Back</span>
                     </Link>
                     <div className="flex-1 text-center">
-                        <h1 className="text-[17px] font-semibold text-gray-900">Update Credentials</h1>
+                        <h1 className="text-[17px] font-semibold text-gray-900">Update Security</h1>
                     </div>
                     <div className="w-16" />
                 </div>
@@ -93,12 +108,12 @@ export default function ChangePasswordPage() {
                         </div>
                     )}
 
-                    {/* Current Password */}
+                    {/* Current Password Verification */}
                     <div>
                         <p className="ios-section-label px-0 mb-2">Verification</p>
                         <div className="ios-card overflow-hidden">
                             <div className="px-4 py-3">
-                                <label className="text-[13px] text-ios-gray block mb-1">Current Password</label>
+                                <label className="text-[13px] text-ios-gray block mb-1">Current App Password</label>
                                 <input
                                     required
                                     type="password"
@@ -111,9 +126,9 @@ export default function ChangePasswordPage() {
                         </div>
                     </div>
 
-                    {/* New Credentials */}
+                    {/* Main App Credentials */}
                     <div>
-                        <p className="ios-section-label px-0 mb-2">New Credentials</p>
+                        <p className="ios-section-label px-0 mb-2">App Login Credentials</p>
                         <div className="ios-card overflow-hidden">
                             <div className="px-4 py-3" style={{ borderBottom: '0.5px solid rgba(60,60,67,0.12)' }}>
                                 <label className="text-[13px] text-ios-gray block mb-1">New Username</label>
@@ -126,7 +141,7 @@ export default function ChangePasswordPage() {
                                 />
                             </div>
                             <div className="px-4 py-3" style={{ borderBottom: newPassword ? '0.5px solid rgba(60,60,67,0.12)' : 'none' }}>
-                                <label className="text-[13px] text-ios-gray block mb-1">New Password</label>
+                                <label className="text-[13px] text-ios-gray block mb-1">New App Password</label>
                                 <input
                                     type="password"
                                     value={newPassword}
@@ -137,14 +152,46 @@ export default function ChangePasswordPage() {
                             </div>
                             {newPassword && (
                                 <div className="px-4 py-3 ios-scale-in">
-                                    <label className="text-[13px] text-ios-gray block mb-1">Confirm Password</label>
+                                    <label className="text-[13px] text-ios-gray block mb-1">Confirm New App Password</label>
                                     <input
                                         required
                                         type="password"
                                         value={confirmPassword}
                                         onChange={e => setConfirmPassword(e.target.value)}
                                         className="w-full text-[17px] text-gray-900 bg-transparent outline-none placeholder:text-ios-gray3"
-                                        placeholder="Re-enter new password"
+                                        placeholder="Re-enter new app password"
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Hisab Kitab Password Section */}
+                    <div>
+                        <p className="ios-section-label px-0 mb-2">Hisab Kitab Dashboard Password</p>
+                        <div className="ios-card overflow-hidden">
+                            <div className="px-4 py-3" style={{ borderBottom: newHisabPassword ? '0.5px solid rgba(60,60,67,0.12)' : 'none' }}>
+                                <label className="text-[13px] text-ios-gray block mb-1">New Hisab Kitab Password</label>
+                                <input
+                                    type="password"
+                                    inputMode="numeric"
+                                    value={newHisabPassword}
+                                    onChange={e => setNewHisabPassword(e.target.value)}
+                                    className="w-full text-[17px] text-gray-900 bg-transparent outline-none placeholder:text-ios-gray3"
+                                    placeholder="Leave empty to keep current"
+                                />
+                            </div>
+                            {newHisabPassword && (
+                                <div className="px-4 py-3 ios-scale-in">
+                                    <label className="text-[13px] text-ios-gray block mb-1">Confirm Hisab Kitab Password</label>
+                                    <input
+                                        required
+                                        type="password"
+                                        inputMode="numeric"
+                                        value={confirmHisabPassword}
+                                        onChange={e => setConfirmHisabPassword(e.target.value)}
+                                        className="w-full text-[17px] text-gray-900 bg-transparent outline-none placeholder:text-ios-gray3"
+                                        placeholder="Re-enter new Hisab Kitab password"
                                     />
                                 </div>
                             )}

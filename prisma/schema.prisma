@@ -44,10 +44,11 @@ model Document {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  username  String   @unique
-  password  String
-  createdAt DateTime @default(now())
+  id            Int      @id @default(autoincrement())
+  username      String   @unique
+  password      String
+  hisabPassword String?
+  createdAt     DateTime @default(now())
 }
 
 model Package {

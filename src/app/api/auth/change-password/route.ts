@@ -19,13 +19,13 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json()
-        const { currentPassword, newPassword, newUsername } = body
+        const { currentPassword, newPassword, newUsername, newHisabPassword } = body
 
         if (!currentPassword) {
             return NextResponse.json({ error: 'Current password is required' }, { status: 400 })
         }
 
-        if (!newPassword && !newUsername) {
+        if (!newPassword && !newUsername && !newHisabPassword) {
             return NextResponse.json({ error: 'Provide at least one field to update' }, { status: 400 })
         }
 
@@ -37,12 +37,20 @@ export async function POST(request: Request) {
 
         const updateData: any = {}
 
-        // Handle Password Update
+        // Handle Main App Password Update
         if (newPassword) {
             if (newPassword.length < 6) {
-                return NextResponse.json({ error: 'New password must be at least 6 characters' }, { status: 400 })
+                return NextResponse.json({ error: 'New app password must be at least 6 characters' }, { status: 400 })
             }
             updateData.password = await bcrypt.hash(newPassword, 10)
+        }
+
+        // Handle Hisab Kitab Passcode Update
+        if (newHisabPassword) {
+            if (newHisabPassword.length < 4) {
+                return NextResponse.json({ error: 'Hisab Kitab password must be at least 4 characters' }, { status: 400 })
+            }
+            updateData.hisabPassword = await bcrypt.hash(newHisabPassword, 10)
         }
 
         // Handle Username Update

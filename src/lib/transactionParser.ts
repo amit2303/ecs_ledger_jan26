@@ -173,20 +173,27 @@ export function isPartOfCompanyName(
     // Exact match to full name or clean name
     if (d === rawComp || d === cleanComp) return true
 
-    // If description is a substring of the clean company name
-    if (cleanComp.includes(d)) return true
+    // Common transaction/fee terms should NEVER be treated as mere company name remnants!
+    const TRANSACTION_TERMS = [
+        'FEE', 'FEES', 'PAYMENT', 'ADVANCE', 'CHARGE', 'CHARGES', 
+        'BILL', 'GST', 'TAX', 'DUE', 'DUES', 'SALARY', 'INVOICE', 
+        'AMOUNT', 'RENEWAL', 'SERVICE', 'SERVICES', 'PACKAGE', 'COMMISSION'
+    ]
+    const descWords = d.split(/\s+/).filter(Boolean)
+    if (descWords.some(w => TRANSACTION_TERMS.includes(w))) {
+        return false
+    }
 
     // Normalize punctuation for comparison
     const normalize = (s: string) => s.replace(/[^A-Z0-9\s]/g, ' ').trim()
     const normD = normalize(d)
     const normC = normalize(cleanComp)
-    
-    if (normC.includes(normD)) return true
 
-    const descTokens = normD.split(/\s+/).filter(Boolean)
-    const compTokens = normC.split(/\s+/).filter(Boolean)
+    if (normD === normC) return true
 
-    if (descTokens.length > 0 && descTokens.every(t => compTokens.includes(t))) {
+    // Check if description consists purely of legal company entity suffixes
+    const LEGAL_SUFFIXES = ['PVT', 'LTD', 'PRIVATE', 'LIMITED', 'INC', 'LLP', 'CO', 'CORP', 'CORPORATION', 'COMPANY', 'ENTERPRISES', 'ENTERPRISE', 'INDUSTRIES', 'INDUSTRY', 'INFOTECH', 'SOLUTIONS', 'SERVICES']
+    if (descWords.length > 0 && descWords.every(w => LEGAL_SUFFIXES.includes(w))) {
         return true
     }
 

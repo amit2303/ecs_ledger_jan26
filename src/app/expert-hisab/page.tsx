@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { 
     TrendingUp, TrendingDown, IndianRupee, 
     ArrowRightLeft, ChevronDown, Calendar, Plus, BarChart2, LineChart,
-    Users, Clock, BookText
+    Users, Clock, BookText, Lock, LockKeyhole, ShieldCheck, Eye, EyeOff
 } from 'lucide-react'
 
 const PERSONS = [
@@ -76,6 +76,84 @@ export default function ExpertDashboardPage() {
     const [loading, setLoading] = useState(true)
     const [selectedMonth, setSelectedMonth] = useState(() => getMonthKey(new Date()))
     const [hoveredMonth, setHoveredMonth] = useState<{ month: string; income: number; expense: number; net: number; x: number; y: number } | null>(null)
+
+    // Password Protection States
+    const [isUnlocked, setIsUnlocked] = useState(false)
+    const [isCheckingAuth, setIsCheckingAuth] = useState(true)
+    const [authLoading, setAuthLoading] = useState(false)
+    const [passcode, setPasscode] = useState('')
+    const [showPasscode, setShowPasscode] = useState(false)
+    const [authError, setAuthError] = useState('')
+    const [isShaking, setIsShaking] = useState(false)
+
+    useEffect(() => {
+        try {
+            const saved = sessionStorage.getItem('hisab_kitab_unlocked')
+            if (saved === 'true') {
+                setIsUnlocked(true)
+            }
+        } catch (e) {
+            console.error(e)
+        } finally {
+            setIsCheckingAuth(false)
+        }
+    }, [])
+
+    const verifyPasscodeServer = async (code: string) => {
+        if (authLoading) return
+        try {
+            setAuthLoading(true)
+            setAuthError('')
+            const res = await fetch('/api/expert-hisab/verify-passcode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ passcode: code })
+            })
+            const data = await res.json()
+            if (res.ok && data.success) {
+                setIsUnlocked(true)
+                setAuthError('')
+                try {
+                    sessionStorage.setItem('hisab_kitab_unlocked', 'true')
+                } catch (e) {
+                    console.error(e)
+                }
+            } else {
+                setAuthError(data.error || 'Incorrect Password. Please try again.')
+                setIsShaking(true)
+                setTimeout(() => setIsShaking(false), 400)
+            }
+        } catch (err) {
+            setAuthError('Server error while verifying password')
+        } finally {
+            setAuthLoading(false)
+        }
+    }
+
+    const handleUnlock = (e?: React.FormEvent) => {
+        if (e) e.preventDefault()
+        if (!passcode) return
+        verifyPasscodeServer(passcode)
+    }
+
+    const handlePasscodeChange = (val: string) => {
+        setPasscode(val)
+        if (authError) setAuthError('')
+        if (val.length >= 6) {
+            verifyPasscodeServer(val)
+        }
+    }
+
+    const handleLock = () => {
+        try {
+            sessionStorage.removeItem('hisab_kitab_unlocked')
+        } catch (e) {
+            console.error(e)
+        }
+        setIsUnlocked(false)
+        setPasscode('')
+        setAuthError('')
+    }
 
     useEffect(() => {
         Promise.all([
@@ -311,6 +389,78 @@ export default function ExpertDashboardPage() {
         }
     }, [loading, selectedMonth, allMonthlyBreakdown])
 
+    if (isCheckingAuth) {
+        return (
+            <div className="flex-1 flex items-center justify-center bg-[#F2F2F7]">
+                <div className="text-gray-500 text-[14px] bg-white px-5 py-3 rounded-full shadow-sm border border-black/5 font-medium animate-pulse">Checking access...</div>
+            </div>
+        )
+    }
+
+    if (!isUnlocked) {
+        return (
+            <div className="flex-1 flex flex-col items-center justify-center px-4 py-8 bg-[#F2F2F7] overflow-y-auto">
+                <div className={`w-full max-w-sm bg-white rounded-3xl p-6 sm:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-black/5 space-y-6 text-center ${isShaking ? 'animate-shake' : ''}`}>
+                    <div className="mx-auto w-16 h-16 rounded-2xl bg-[#EBF5FF] flex items-center justify-center text-[#007AFF] shadow-inner">
+                        <LockKeyhole className="w-8 h-8 stroke-[2.2]" />
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <h2 className="text-[20px] font-bold text-gray-950 tracking-tight">
+                            Hisab Kitab Secured
+                        </h2>
+                        <p className="text-[13px] text-gray-500 font-medium leading-snug">
+                            Enter password to view Net Balance, Share Distribution & Financial Data.
+                        </p>
+                    </div>
+
+                    <form onSubmit={handleUnlock} className="space-y-4 pt-2">
+                        <div className="relative">
+                            <input
+                                type={showPasscode ? 'text' : 'password'}
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                maxLength={6}
+                                value={passcode}
+                                onChange={(e) => handlePasscodeChange(e.target.value)}
+                                placeholder="Enter 6-digit password"
+                                className="w-full text-center tracking-[0.25em] text-[18px] font-bold py-3.5 px-10 bg-[#F2F2F7] border border-black/10 rounded-2xl text-gray-900 placeholder:tracking-normal placeholder:text-[13px] placeholder:font-medium focus:outline-none focus:ring-2 focus:ring-[#007AFF]/40 focus:border-[#007AFF] transition-all"
+                                autoFocus
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPasscode(!showPasscode)}
+                                className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                            >
+                                {showPasscode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                        </div>
+
+                        {authError && (
+                            <p className="text-[13px] font-semibold text-[#EF4444] animate-fade-in">
+                                {authError}
+                            </p>
+                        )}
+
+                        <button
+                            type="submit"
+                            disabled={passcode.length < 1 || authLoading}
+                            className="w-full py-3.5 bg-[#007AFF] hover:bg-[#0066CC] disabled:opacity-50 text-white font-semibold rounded-2xl text-[15px] shadow-[0_4px_14px_rgba(0,122,255,0.35)] active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                        >
+                            <span>{authLoading ? 'Verifying...' : 'Unlock Dashboard'}</span>
+                            <ArrowRightLeft className="w-4 h-4 opacity-70" />
+                        </button>
+                    </form>
+
+                    <div className="pt-2 border-t border-gray-100 flex items-center justify-center gap-1.5 text-[12px] text-gray-400 font-medium">
+                        <ShieldCheck className="w-4 h-4 text-[#34C759]" />
+                        <span>Protected Hisab Kitab Dashboard</span>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className="flex-1 flex flex-col h-full overflow-y-auto ios-scroll pb-44" style={{ backgroundColor: '#F2F2F7' }}>
             {loading ? (
@@ -321,7 +471,7 @@ export default function ExpertDashboardPage() {
                 <div className="px-4 space-y-3.5 pt-3 ios-fade-in">
                     {/* 1. Monthly Overview Card (Single outer card for Net, Income & Expense) */}
                     <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-black/5 space-y-4">
-                        {/* Net on Top with Integrated Month Selector */}
+                        {/* Net on Top with Integrated Month Selector & Lock Button */}
                         <div className="flex items-center justify-between">
                             <div className="min-w-0 pr-3 flex-1">
                                 <p className="text-[12px] font-medium text-gray-500">
@@ -332,20 +482,31 @@ export default function ExpertDashboardPage() {
                                 </p>
                             </div>
                             
-                            {/* Month Selector Dropdown */}
-                            <div className="relative shrink-0">
-                                <select 
-                                    value={selectedMonth}
-                                    onChange={(e) => setSelectedMonth(e.target.value)}
-                                    className="appearance-none bg-[#F2F2F7] hover:bg-gray-200/80 border border-black/5 rounded-xl pl-3 pr-7 py-2 text-[13px] font-semibold text-gray-800 shadow-xs focus:outline-none cursor-pointer active:scale-95 transition-all"
+                            <div className="flex items-center gap-2 shrink-0">
+                                <button
+                                    onClick={handleLock}
+                                    className="flex items-center gap-1 px-2.5 py-1.5 bg-[#F2F2F7] hover:bg-gray-200/80 border border-black/5 rounded-xl text-[12px] font-semibold text-gray-700 active:scale-95 transition-all cursor-pointer"
+                                    title="Lock Hisab Kitab Dashboard"
                                 >
-                                    {availableMonths.map((mKey) => (
-                                        <option key={mKey} value={mKey}>
-                                            {shortMonthLabel(mKey)}
-                                        </option>
-                                    ))}
-                                </select>
-                                <ChevronDown className="w-3.5 h-3.5 text-gray-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                    <Lock className="w-3.5 h-3.5 text-gray-500" />
+                                    <span>Lock</span>
+                                </button>
+
+                                {/* Month Selector Dropdown */}
+                                <div className="relative shrink-0">
+                                    <select 
+                                        value={selectedMonth}
+                                        onChange={(e) => setSelectedMonth(e.target.value)}
+                                        className="appearance-none bg-[#F2F2F7] hover:bg-gray-200/80 border border-black/5 rounded-xl pl-3 pr-7 py-2 text-[13px] font-semibold text-gray-800 shadow-xs focus:outline-none cursor-pointer active:scale-95 transition-all"
+                                    >
+                                        {availableMonths.map((mKey) => (
+                                            <option key={mKey} value={mKey}>
+                                                {shortMonthLabel(mKey)}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown className="w-3.5 h-3.5 text-gray-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                </div>
                             </div>
                         </div>
 

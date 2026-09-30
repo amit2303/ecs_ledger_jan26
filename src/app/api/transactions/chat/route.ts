@@ -292,13 +292,15 @@ export async function POST(request: Request) {
 
                 if (descLower.startsWith(pkgTitleLower)) {
                     targetPackage = pkg
-                    // Extract remaining text as description
+                    // Extract remaining text as description if any exists
                     const remainder = finalDescription.substring(pkg.description.length).trim()
-                    finalDescription = remainder
+                    if (remainder) {
+                        finalDescription = remainder
+                    }
                     break
                 } else if (descLower === pkgTitleLower) {
                     targetPackage = pkg
-                    finalDescription = ''
+                    // Keep typed description as is
                     break
                 }
             }
@@ -327,7 +329,11 @@ export async function POST(request: Request) {
         if (isPartOfCompanyName(cleanEntryDescription, matchedCompany.name)) {
             cleanEntryDescription = ''
         }
-        const entryDescToSave = cleanEntryDescription || targetPackage.description
+        
+        // Always preserve custom typed description (e.g. 'fee').
+        // Only fallback to 'Payment' or 'Charge' if no description was typed at all.
+        const defaultFallbackDesc = parsed.type === 'PAYMENT' ? 'Payment' : 'Charge'
+        const entryDescToSave = cleanEntryDescription || defaultFallbackDesc
 
         let paymentId: number | null = null
         let chargeId: number | null = null
