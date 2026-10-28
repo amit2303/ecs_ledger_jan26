@@ -20,18 +20,21 @@ export function ActionSheet({ isOpen, onClose, title, actions }: ActionSheetProp
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden'
+            document.body.classList.add('modal-open')
         } else {
             document.body.style.overflow = ''
+            document.body.classList.remove('modal-open')
         }
         return () => {
             document.body.style.overflow = ''
+            document.body.classList.remove('modal-open')
         }
     }, [isOpen])
 
     if (!isOpen) return null
 
     return (
-        <div className="fixed inset-0 z-50">
+        <div className="fixed inset-0 z-[100]">
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-black/40 ios-fade-in"
@@ -39,7 +42,7 @@ export function ActionSheet({ isOpen, onClose, title, actions }: ActionSheetProp
             />
 
             {/* Sheet Container — pinned to bottom with safe area */}
-            <div className="absolute bottom-0 left-0 right-0 px-2 ios-slide-up safe-area-bottom" style={{ paddingBottom: 'max(10px, env(safe-area-inset-bottom))' }}>
+            <div className="absolute bottom-0 left-0 right-0 px-2 ios-slide-up safe-area-bottom" style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))' }}>
                 {/* Grouped Actions Card */}
                 <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.92)', backdropFilter: 'saturate(180%) blur(40px)', WebkitBackdropFilter: 'saturate(180%) blur(40px)' }}>
                     {/* Title */}

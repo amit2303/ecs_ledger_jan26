@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { Plus, ChevronRight, Pencil, Trash2, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useLongPress } from '@/hooks/useLongPress'
+import { SwipeableRow, SwipeAction } from '@/components/SwipeableRow'
 import { ActionSheet } from '@/components/ActionSheet'
 
 interface EmployeeSummary {
@@ -114,11 +114,12 @@ export default function EmployeePaymentsPage() {
         }
     }
 
-    const handleDeleteEmployee = async () => {
-        if (!selectedEmployee) return
-        if (!confirm(`Delete ${selectedEmployee.name}? This will remove all salary entries and payments.`)) return
+    const handleDeleteEmployee = async (emp?: EmployeeSummary) => {
+        const target = emp || selectedEmployee
+        if (!target) return
+        if (!confirm(`Delete ${target.name}? This will remove all salary entries and payments.`)) return
         try {
-            const res = await fetch(`/api/employees/${selectedEmployee.id}`, { method: 'DELETE' })
+            const res = await fetch(`/api/employees/${target.id}`, { method: 'DELETE' })
             if (!res.ok) throw new Error('Failed to delete employee')
             await fetchEmployees()
         } catch (err) {
@@ -133,14 +134,15 @@ export default function EmployeePaymentsPage() {
         setIsSheetOpen(true)
     }
 
-    const openEditModal = () => {
-        if (!selectedEmployee) return
-        setEditingEmployee(selectedEmployee)
+    const openEditModal = (emp?: EmployeeSummary) => {
+        const target = emp || selectedEmployee
+        if (!target) return
+        setEditingEmployee(target)
         setEditForm({
-            name: selectedEmployee.name,
-            salary: String(selectedEmployee.salary),
-            designation: selectedEmployee.designation || '',
-            address: selectedEmployee.address || '',
+            name: target.name,
+            salary: String(target.salary),
+            designation: target.designation || '',
+            address: target.address || '',
         })
         setShowEditModal(true)
     }
@@ -177,7 +179,8 @@ export default function EmployeePaymentsPage() {
                                 <EmployeeCard
                                     key={emp.id}
                                     employee={emp}
-                                    onLongPress={() => handleLongPress(emp)}
+                                    onEdit={() => openEditModal(emp)}
+                                    onDelete={() => handleDeleteEmployee(emp)}
                                     onClick={() => router.push(`/employee-payments/${emp.id}`)}
                                 />
                             ))}
@@ -221,7 +224,7 @@ export default function EmployeePaymentsPage() {
 
             {/* Add Employee Modal */}
             {showAddModal && (
-                <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 ios-fade-in">
+                <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 ios-fade-in">
                     <div className="bg-white w-full max-w-md rounded-t-2xl overflow-hidden ios-slide-up">
                         <div className="ios-handle" />
                         <div className="px-4 pt-2 pb-3 flex justify-between items-center">
@@ -272,7 +275,7 @@ export default function EmployeePaymentsPage() {
 
             {/* Edit Employee Modal */}
             {showEditModal && (
-                <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 ios-fade-in">
+                <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 ios-fade-in">
                     <div className="bg-white w-full max-w-md rounded-t-2xl overflow-hidden ios-slide-up">
                         <div className="ios-handle" />
                         <div className="px-4 pt-2 pb-3 flex justify-between items-center">
@@ -326,58 +329,83 @@ export default function EmployeePaymentsPage() {
 
 function EmployeeCard({
     employee,
-    onLongPress,
+    onEdit,
+    onDelete,
     onClick,
 }: {
     employee: EmployeeSummary
-    onLongPress: () => void
+    onEdit: () => void
+    onDelete: () => void
     onClick: () => void
 }) {
-    const bind = useLongPress(
-        () => onLongPress(),
-        () => onClick()
-    )
+    // Right slide (reveals left actions): Edit
+    const leftActions: SwipeAction[] = [
+        {
+            key: 'edit',
+            label: 'Edit',
+            icon: <Pencil className="w-5 h-5 text-white" />,
+            color: '#007AFF',
+            onClick: onEdit,
+        },
+    ]
+
+    // Left slide (reveals right actions): Delete
+    const rightActions: SwipeAction[] = [
+        {
+            key: 'delete',
+            label: 'Delete',
+            icon: <Trash2 className="w-5 h-5 text-white" />,
+            color: '#E05353',
+            onClick: onDelete,
+        },
+    ]
 
     return (
-        <div
-            {...bind}
-            className="relative overflow-hidden rounded-xl ios-press select-none cursor-pointer"
-            style={{
-                backgroundColor: '#FFFFFF',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
-            }}
+        <SwipeableRow
+            id={`employee-${employee.id}`}
+            leftActions={leftActions}
+            rightActions={rightActions}
+            onClick={onClick}
         >
-            <div className="flex items-center justify-between px-3.5 py-2.5">
-                <div className="flex-1 pr-2.5 min-w-0">
-                    <h3 className="text-[15.5px] font-semibold text-gray-900 leading-tight truncate">
-                        {employee.name}
-                    </h3>
-                    <p className="text-[12px] text-ios-gray mt-0.5 leading-tight">
-                        {employee.designation || 'No designation'} · ₹{employee.salary.toLocaleString('en-IN')}/mo
-                    </p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                    <div className="text-right">
-                        <span className="text-[11.5px] text-ios-gray block leading-tight">
-                            ₹{employee.totalSalary.toLocaleString('en-IN')}
-                        </span>
-                        <span
-                            className={`text-[15.5px] font-semibold tabular-nums block leading-tight ${
-                                employee.balance > 0
-                                    ? 'text-ios-red'
-                                    : employee.balance < 0
-                                    ? 'text-ios-green'
-                                    : 'text-ios-blue'
-                            }`}
-                        >
-                            {employee.balance < 0
-                                ? `- ₹${Math.abs(employee.balance).toLocaleString('en-IN')}`
-                                : `₹${employee.balance.toLocaleString('en-IN')}`}
-                        </span>
+            <div
+                className="relative overflow-hidden rounded-xl ios-press select-none cursor-pointer"
+                style={{
+                    backgroundColor: '#FFFFFF',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
+                }}
+            >
+                <div className="flex items-center justify-between px-3.5 py-2.5">
+                    <div className="flex-1 pr-2.5 min-w-0">
+                        <h3 className="text-[15.5px] font-semibold text-gray-900 leading-tight truncate">
+                            {employee.name}
+                        </h3>
+                        <p className="text-[12px] text-ios-gray mt-0.5 leading-tight">
+                            {employee.designation || 'No designation'} · ₹{employee.salary.toLocaleString('en-IN')}/mo
+                        </p>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-ios-gray3" />
+                    <div className="flex items-center gap-2 shrink-0">
+                        <div className="text-right">
+                            <span className="text-[11.5px] text-ios-gray block leading-tight">
+                                ₹{employee.totalSalary.toLocaleString('en-IN')}
+                            </span>
+                            <span
+                                className={`text-[15.5px] font-semibold tabular-nums block leading-tight ${
+                                    employee.balance > 0
+                                        ? 'text-ios-red'
+                                        : employee.balance < 0
+                                        ? 'text-ios-green'
+                                        : 'text-ios-blue'
+                                }`}
+                            >
+                                {employee.balance < 0
+                                    ? `- ₹${Math.abs(employee.balance).toLocaleString('en-IN')}`
+                                    : `₹${employee.balance.toLocaleString('en-IN')}`}
+                            </span>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-ios-gray3" />
+                    </div>
                 </div>
             </div>
-        </div>
+        </SwipeableRow>
     )
 }

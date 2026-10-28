@@ -301,3 +301,13 @@ body {
   border-left: 3px solid var(--color-ios-red);
   background: #FFF5F5;
 }
+
+/* ========================================
+   Modal & ActionSheet Nav Bar Handling
+   ======================================== */
+body.modal-open #bottom-nav {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(24px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}

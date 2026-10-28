@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useState, use, useRef } from 'react'
-import { ChevronLeft, Plus, Pencil, Trash2, MoreVertical } from 'lucide-react'
+import { ChevronLeft, Plus, Pencil, Trash2, MoreVertical, Calculator } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useLongPress } from '@/hooks/useLongPress'
+import { SwipeableRow, SwipeAction } from '@/components/SwipeableRow'
 import { ActionSheet } from '@/components/ActionSheet'
+import { LeaveDeductionModal } from '@/components/LeaveDeductionModal'
 
 interface SalaryEntry {
     id: number
@@ -75,6 +76,11 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
     const [isSalarySheetOpen, setIsSalarySheetOpen] = useState(false)
     const [selectedPayment, setSelectedPayment] = useState<SalaryPayment | null>(null)
     const [isPaymentSheetOpen, setIsPaymentSheetOpen] = useState(false)
+
+    // Leave Deduction Modal
+    const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false)
+    const [leaveModalTarget, setLeaveModalTarget] = useState<'ENTRY' | 'FORM'>('ENTRY')
+    const [editingSalaryEntry, setEditingSalaryEntry] = useState<SalaryEntry | null>(null)
 
     useEffect(() => {
         fetchData()
@@ -239,6 +245,72 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
         setIsSalarySheetOpen(true)
     }
 
+    const openLeaveModalForEntry = (entry: SalaryEntry) => {
+        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(50)
+        setSelectedSalaryEntry(entry)
+        setEditingSalaryEntry(entry)
+        setLeaveModalTarget('ENTRY')
+        setIsLeaveModalOpen(true)
+    }
+
+    const openLeaveModalForForm = () => {
+        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(50)
+        setEditingSalaryEntry(null)
+        setLeaveModalTarget('FORM')
+        setIsLeaveModalOpen(true)
+    }
+
+    const handleApplyLeaveDeduction = async ({
+        netSalary,
+        month,
+        description,
+    }: {
+        baseSalary: number
+        leaves: number
+        deduction: number
+        netSalary: number
+        month: string
+        description: string
+    }) => {
+        if (leaveModalTarget === 'FORM') {
+            setSalaryForm({
+                ...salaryForm,
+                amount: String(netSalary),
+                description,
+                month,
+            })
+            return
+        }
+
+        if (leaveModalTarget === 'ENTRY' && editingSalaryEntry) {
+            const res = await fetch(`/api/salary-entries/${editingSalaryEntry.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    amount: netSalary,
+                    description: description || null,
+                    month,
+                }),
+            })
+            if (!res.ok) throw new Error('Failed to update salary entry')
+            await fetchData()
+            return
+        }
+
+        // Default: NEW entry
+        const res = await fetch(`/api/employees/${id}/salary-entries`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                month,
+                amount: netSalary,
+                description: description || null,
+            }),
+        })
+        if (!res.ok) throw new Error('Failed to add salary entry')
+        await fetchData()
+    }
+
     const handlePaymentLongPress = (payment: SalaryPayment) => {
         if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(50)
         setSelectedPayment(payment)
@@ -393,16 +465,34 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
                                         value={salaryForm.month}
                                         onChange={(e) => setSalaryForm({ ...salaryForm, month: e.target.value })}
                                     />
-                                    <input
-                                        ref={salaryAmountRef}
-                                        type="number"
-                                        min="0"
-                                        placeholder="Amount"
-                                        className="ios-input"
-                                        value={salaryForm.amount}
-                                        onChange={(e) => setSalaryForm({ ...salaryForm, amount: e.target.value })}
-                                        required
-                                    />
+                                    <div className="space-y-1">
+                                        <div className="flex justify-between items-center px-0.5">
+                                            <span className="text-[12px] font-medium text-ios-gray">Salary Amount</span>
+                                            <button
+                                                type="button"
+                                                onClick={openLeaveModalForForm}
+                                                className="text-[12px] font-semibold text-ios-blue flex items-center gap-1 active:opacity-60 transition-opacity"
+                                            >
+                                                <Calculator className="w-3.5 h-3.5" />
+                                                <span>Deduct Leaves</span>
+                                            </button>
+                                        </div>
+                                        <div className="relative">
+                                            <input
+                                                ref={salaryAmountRef}
+                                                type="number"
+                                                min="0"
+                                                placeholder="Amount"
+                                                className="ios-input"
+                                                value={salaryForm.amount}
+                                                onChange={(e) => setSalaryForm({ ...salaryForm, amount: e.target.value })}
+                                                required
+                                            />
+                                        </div>
+                                        <p className="text-[11px] text-ios-gray px-0.5">
+                                            Tap &ldquo;Deduct Leaves&rdquo; above to adjust days (30 days/month)
+                                        </p>
+                                    </div>
                                     <input
                                         type="text"
                                         placeholder="Description (optional)"
@@ -442,7 +532,8 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
                                             key={entry.id}
                                             entry={entry}
                                             formatMonth={formatMonth}
-                                            onLongPress={() => handleSalaryLongPress(entry)}
+                                            onDeductLeaves={() => openLeaveModalForEntry(entry)}
+                                            onDelete={() => handleDeleteSalaryEntry(entry.id)}
                                         />
                                     ))}
                                 </div>
@@ -509,7 +600,7 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
                                         <PaymentItem
                                             key={payment.id}
                                             payment={payment}
-                                            onLongPress={() => handlePaymentLongPress(payment)}
+                                            onDelete={() => handleDeletePayment(payment.id)}
                                         />
                                     ))}
                                 </div>
@@ -576,6 +667,15 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
                 title={selectedSalaryEntry ? formatMonth(selectedSalaryEntry.month) : undefined}
                 actions={[
                     {
+                        label: 'Deduct Leaves / Adjust',
+                        icon: <Calculator className="w-5 h-5" />,
+                        onClick: () => {
+                            if (selectedSalaryEntry) {
+                                openLeaveModalForEntry(selectedSalaryEntry)
+                            }
+                        },
+                    },
+                    {
                         label: 'Delete Salary Entry',
                         icon: <Trash2 className="w-5 h-5" />,
                         variant: 'danger',
@@ -602,6 +702,27 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
                     },
                 ]}
             />
+
+            {/* Leave Deduction Modal */}
+            <LeaveDeductionModal
+                isOpen={isLeaveModalOpen}
+                onClose={() => setIsLeaveModalOpen(false)}
+                employeeName={employee.name}
+                defaultBaseSalary={employee.salary}
+                defaultMonth={
+                    editingSalaryEntry?.month ||
+                    (leaveModalTarget === 'FORM' ? salaryForm.month : undefined)
+                }
+                initialLeaves={
+                    editingSalaryEntry?.description
+                        ? parseFloat(editingSalaryEntry.description.match(/(\d+(?:\.\d+)?)\s*leave/i)?.[1] || '1')
+                        : (leaveModalTarget === 'FORM' && salaryForm.description
+                            ? parseFloat(salaryForm.description.match(/(\d+(?:\.\d+)?)\s*leave/i)?.[1] || '1')
+                            : 1)
+                }
+                isEditing={leaveModalTarget === 'ENTRY'}
+                onApply={handleApplyLeaveDeduction}
+            />
         </div>
     )
 }
@@ -609,71 +730,118 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
 function SalaryEntryItem({
     entry,
     formatMonth,
-    onLongPress,
+    onDeductLeaves,
+    onDelete,
 }: {
     entry: SalaryEntry
     formatMonth: (m: string) => string
-    onLongPress: () => void
+    onDeductLeaves: () => void
+    onDelete: () => void
 }) {
-    const bind = useLongPress(() => onLongPress())
+    // Right slide (reveals left actions): Deduct Leaves
+    const leftActions: SwipeAction[] = [
+        {
+            key: 'leaves',
+            label: 'Leaves',
+            icon: <Calculator className="w-5 h-5 text-white" />,
+            color: '#007AFF',
+            onClick: onDeductLeaves,
+        },
+    ]
+
+    // Left slide (reveals right actions): Delete
+    const rightActions: SwipeAction[] = [
+        {
+            key: 'delete',
+            label: 'Delete',
+            icon: <Trash2 className="w-5 h-5 text-white" />,
+            color: '#E05353',
+            onClick: onDelete,
+        },
+    ]
 
     return (
-        <div
-            {...bind}
+        <SwipeableRow
             id={`salary-${entry.id}`}
-            className="ios-card px-4 py-3.5 select-none"
-            style={{ cursor: 'default' }}
+            leftActions={leftActions}
+            rightActions={rightActions}
         >
-            <div className="flex items-center justify-between">
-                <div className="flex-1 min-w-0 pr-3">
-                    <h4 className="text-[15px] font-semibold text-gray-900 truncate">
-                        {formatMonth(entry.month)}
-                    </h4>
-                    {entry.description && (
-                        <p className="text-[13px] text-ios-gray mt-0.5 truncate">{entry.description}</p>
-                    )}
+            <div
+                id={`salary-${entry.id}`}
+                className="ios-card px-4 py-3.5 select-none"
+                style={{ cursor: 'default' }}
+            >
+                <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0 pr-3">
+                        <h4 className="text-[15px] font-semibold text-gray-900 truncate">
+                            {formatMonth(entry.month)}
+                        </h4>
+                        {entry.description && (
+                            <p className="text-[13px] text-ios-gray mt-0.5 truncate">{entry.description}</p>
+                        )}
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onDeductLeaves}
+                        className="p-1 -mr-1 rounded-lg active:bg-gray-100 transition-colors flex items-center cursor-pointer group"
+                        title="Tap or swipe right to deduct leaves"
+                    >
+                        <span className="text-[17px] font-semibold text-gray-900 tabular-nums shrink-0 group-hover:text-ios-blue transition-colors">
+                            ₹{entry.amount.toLocaleString('en-IN')}
+                        </span>
+                    </button>
                 </div>
-                <span className="text-[17px] font-semibold text-gray-900 tabular-nums shrink-0">
-                    ₹{entry.amount.toLocaleString('en-IN')}
-                </span>
             </div>
-        </div>
+        </SwipeableRow>
     )
 }
 
 function PaymentItem({
     payment,
-    onLongPress,
+    onDelete,
 }: {
     payment: SalaryPayment
-    onLongPress: () => void
+    onDelete: () => void
 }) {
-    const bind = useLongPress(() => onLongPress())
+    // Left slide (reveals right actions): Delete
+    const rightActions: SwipeAction[] = [
+        {
+            key: 'delete',
+            label: 'Delete',
+            icon: <Trash2 className="w-5 h-5 text-white" />,
+            color: '#E05353',
+            onClick: onDelete,
+        },
+    ]
 
     return (
-        <div
-            {...bind}
+        <SwipeableRow
             id={`payment-${payment.id}`}
-            className="ios-card px-4 py-3.5 select-none"
-            style={{ cursor: 'default' }}
+            rightActions={rightActions}
         >
-            <div className="flex items-center justify-between">
-                <div className="flex-1 min-w-0 pr-3">
-                    <h4 className="text-[15px] font-semibold text-gray-900 truncate">
-                        {payment.description || 'Payment'}
-                    </h4>
-                    <p className="text-[13px] text-ios-gray mt-0.5">
-                        {new Date(payment.date).toLocaleDateString('en-IN', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                        })}
-                    </p>
+            <div
+                id={`payment-${payment.id}`}
+                className="ios-card px-4 py-3.5 select-none"
+                style={{ cursor: 'default' }}
+            >
+                <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0 pr-3">
+                        <h4 className="text-[15px] font-semibold text-gray-900 truncate">
+                            {payment.description || 'Payment'}
+                        </h4>
+                        <p className="text-[13px] text-ios-gray mt-0.5">
+                            {new Date(payment.date).toLocaleDateString('en-IN', {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric',
+                            })}
+                        </p>
+                    </div>
+                    <span className="text-[17px] font-semibold text-ios-green tabular-nums shrink-0">
+                        ₹{payment.amount.toLocaleString('en-IN')}
+                    </span>
                 </div>
-                <span className="text-[17px] font-semibold text-ios-green tabular-nums shrink-0">
-                    ₹{payment.amount.toLocaleString('en-IN')}
-                </span>
             </div>
-        </div>
+        </SwipeableRow>
     )
 }

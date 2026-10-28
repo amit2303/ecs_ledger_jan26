@@ -5,9 +5,9 @@ import { StatCard } from '@/components/StatCard'
 import { Plus, Pencil, Trash2, PauseCircle, PlayCircle, MoreVertical, Download, ChevronRight, Search, X } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useLongPress } from '@/hooks/useLongPress'
 import { ActionSheet } from '@/components/ActionSheet'
 import { exportToExcel } from '@/utils/exportToExcel'
+import { SwipeableRow, SwipeAction } from '@/components/SwipeableRow'
 
 interface DashboardStats {
   totalClients: number
@@ -84,46 +84,69 @@ export default function Home() {
     setIsSheetOpen(true)
   }
 
-  const handleEditClick = () => {
-    if (!selectedCompany) return
-    const rawName = (selectedCompany.name || '').trim()
+  const handleEditCompany = (c: CompanySummary) => {
+    setSelectedCompany(c)
+    const rawName = (c.name || '').trim()
     const match = rawName.match(/^(\d+(?:\.\d+)?)\.?\s*(.*)$/)
     const sNo = match ? match[1] : ''
     const displayName = match && match[2] ? match[2].trim() : rawName
 
     setEditForm({
-      ...selectedCompany,
+      ...c,
       diaryNumber: sNo,
       name: displayName
     })
     setIsEditModalOpen(true)
   }
 
-  const handleDeleteClick = async () => {
-    if (!selectedCompany) return
-
-    // Client-side dependency check
-    if (selectedCompany.packageCount && selectedCompany.packageCount > 0) {
+  const handleDeleteCompany = async (c: CompanySummary) => {
+    setSelectedCompany(c)
+    if (c.packageCount && c.packageCount > 0) {
       alert('Cannot delete company because it has associated packages. Please delete packages first.')
       return
     }
 
-    if (!confirm(`Delete ${selectedCompany.name}?`)) return
+    if (!confirm(`Delete ${c.name}?`)) return
 
     try {
-      const res = await fetch(`/api/companies/${selectedCompany.id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/companies/${c.id}`, { method: 'DELETE' })
       const data = await res.json()
 
       if (!res.ok) {
         alert(data.error || 'Failed to delete company')
       } else {
         fetchCompanies()
-        // Refresh stats too
         fetch('/api/stats').then(res => res.json()).then(setStats)
       }
     } catch (err) {
       alert('Failed to delete company')
     }
+  }
+
+  const handleToggleHoldCompany = async (c: CompanySummary) => {
+    try {
+      const res = await fetch(`/api/companies/${c.id}/toggle-hold`, { method: 'POST' })
+      if (res.ok) {
+        fetchCompanies()
+        fetch('/api/stats').then(res => res.json()).then(setStats)
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Failed to toggle hold status')
+      }
+    } catch (err) {
+      console.error('Failed to toggle hold status', err)
+      alert('Failed to toggle hold status')
+    }
+  }
+
+  const handleEditClick = () => {
+    if (!selectedCompany) return
+    handleEditCompany(selectedCompany)
+  }
+
+  const handleDeleteClick = async () => {
+    if (!selectedCompany) return
+    handleDeleteCompany(selectedCompany)
   }
 
   const handleUpdateCompany = async (e: React.FormEvent) => {
@@ -292,7 +315,9 @@ export default function Home() {
                 <CompanyItem
                   key={company.id}
                   company={company}
-                  onLongPress={() => handleLongPress(company)}
+                  onHoldToggle={() => handleToggleHoldCompany(company)}
+                  onEdit={() => handleEditCompany(company)}
+                  onDelete={() => handleDeleteCompany(company)}
                 />
               ))}
 
@@ -433,64 +458,108 @@ export default function Home() {
   )
 }
 
-// Company card item — compact rounded card
-function CompanyItem({ company, onLongPress }: { company: CompanySummary, onLongPress: () => void }) {
-  const bind = useLongPress(() => {
-    onLongPress()
-  })
-
+// Company card item — compact rounded card with iPhone-style swipe actions
+function CompanyItem({
+  company,
+  onHoldToggle,
+  onEdit,
+  onDelete,
+}: {
+  company: CompanySummary
+  onHoldToggle: () => void
+  onEdit: () => void
+  onDelete: () => void
+}) {
   const isClient = company.type === 'CLIENT'
   const rawName = (company.name || '').trim()
   const match = rawName.match(/^(\d+(?:\.\d+)?)\.?\s*(.*)$/)
   const sNo = match ? match[1] : null
   const displayName = match && match[2] ? match[2].trim() : rawName
 
+  // Right slide (reveals left actions): Hold/Unhold & Edit
+  const leftActions: SwipeAction[] = [
+    {
+      key: 'hold',
+      label: company.isOnHold ? 'Unhold' : 'Hold',
+      icon: company.isOnHold ? (
+        <PlayCircle className="w-5 h-5 text-white" />
+      ) : (
+        <PauseCircle className="w-5 h-5 text-white" />
+      ),
+      color: company.isOnHold ? '#30A46C' : '#F59E0B',
+      onClick: onHoldToggle,
+    },
+    {
+      key: 'edit',
+      label: 'Edit',
+      icon: <Pencil className="w-5 h-5 text-white" />,
+      color: '#007AFF',
+      onClick: onEdit,
+    },
+  ]
+
+  // Left slide (reveals right actions): Delete
+  const rightActions: SwipeAction[] = [
+    {
+      key: 'delete',
+      label: 'Delete',
+      icon: <Trash2 className="w-5 h-5 text-white" />,
+      color: '#E05353',
+      onClick: onDelete,
+    },
+  ]
+
   return (
-    <Link
-      href={`/companies/${company.id}`}
-      {...bind}
-      className={`relative overflow-hidden rounded-xl ios-press select-none block ${company.isOnHold ? 'opacity-55' : ''}`}
-      style={{
-        backgroundColor: '#FFFFFF',
-        boxShadow: isClient
-          ? '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)'
-          : '0 1px 3px rgba(0,0,0,0.04), 0 0 0 1px rgba(224, 83, 83, 0.22)',
-      }}
+    <SwipeableRow
+      id={`company-${company.id}`}
+      leftActions={leftActions}
+      rightActions={rightActions}
     >
-      <div className="flex items-center justify-between px-3.5 py-2.5">
-        <div className="flex-1 min-w-0 pr-2.5">
-          {/* Top line: S.No + Company Name */}
-          <div className="flex items-center min-w-0">
-            <h3 className="text-[15.5px] font-semibold text-gray-900 leading-tight truncate">
-              {sNo && (
-                <span className="font-bold tabular-nums mr-1.5">{sNo}</span>
+      <Link
+        href={`/companies/${company.id}`}
+        className={`relative overflow-hidden rounded-xl ios-press select-none block ${company.isOnHold ? 'opacity-55' : ''}`}
+        style={{
+          backgroundColor: '#FFFFFF',
+          boxShadow: isClient
+            ? '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)'
+            : '0 1px 3px rgba(0,0,0,0.04), 0 0 0 1px rgba(224, 83, 83, 0.22)',
+        }}
+      >
+        <div className="flex items-center justify-between px-3.5 py-2.5">
+          <div className="flex-1 min-w-0 pr-2.5">
+            {/* Top line: S.No + Company Name */}
+            <div className="flex items-center min-w-0">
+              <h3 className="text-[15.5px] font-semibold text-gray-900 leading-tight truncate">
+                {sNo && (
+                  <span className="font-bold tabular-nums mr-1.5">{sNo}</span>
+                )}
+                {displayName}
+              </h3>
+              {company.isOnHold && (
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded text-ios-orange flex items-center gap-1 shrink-0 ml-1.5" style={{ backgroundColor: 'rgba(245,158,11,0.08)' }}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-ios-orange" />
+                  Hold
+                </span>
               )}
-              {displayName}
-            </h3>
-            {company.isOnHold && (
-              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded text-ios-orange flex items-center gap-1 shrink-0 ml-1.5" style={{ backgroundColor: 'rgba(245,158,11,0.08)' }}>
-                <span className="w-1.5 h-1.5 rounded-full bg-ios-orange" />
-                Hold
-              </span>
+            </div>
+
+            {/* Packages count below company name */}
+            {company.packageCount !== undefined && (
+              <p className="text-[12px] text-ios-gray mt-0.5 leading-tight">
+                {company.packageCount} {company.packageCount === 1 ? 'Package' : 'Packages'}
+              </p>
             )}
           </div>
 
-          {/* Packages count below company name */}
-          {company.packageCount !== undefined && (
-            <p className="text-[12px] text-ios-gray mt-0.5 leading-tight">
-              {company.packageCount} {company.packageCount === 1 ? 'Package' : 'Packages'}
-            </p>
-          )}
+          {/* Right: Due Amount + Chevron */}
+          <div className="flex items-center gap-2 shrink-0">
+            <span className={`text-[15.5px] font-semibold tabular-nums ${company.isOnHold ? 'text-ios-gray line-through' : (company.amountDue || 0) > 0 ? 'text-ios-red' : (company.amountDue || 0) < 0 ? 'text-ios-green' : 'text-ios-blue'}`}>
+              {(company.amountDue || 0) < 0 ? `- ₹${Math.abs(company.amountDue || 0).toLocaleString('en-IN')}` : `₹${(company.amountDue || 0).toLocaleString('en-IN')}`}
+            </span>
+            <ChevronRight className="w-4 h-4 text-ios-gray3" />
+          </div>
         </div>
-
-        {/* Right: Due Amount + Chevron */}
-        <div className="flex items-center gap-2 shrink-0">
-          <span className={`text-[15.5px] font-semibold tabular-nums ${company.isOnHold ? 'text-ios-gray line-through' : (company.amountDue || 0) > 0 ? 'text-ios-red' : (company.amountDue || 0) < 0 ? 'text-ios-green' : 'text-ios-blue'}`}>
-            {(company.amountDue || 0) < 0 ? `- ₹${Math.abs(company.amountDue || 0).toLocaleString('en-IN')}` : `₹${(company.amountDue || 0).toLocaleString('en-IN')}`}
-          </span>
-          <ChevronRight className="w-4 h-4 text-ios-gray3" />
-        </div>
-      </div>
-    </Link>
+      </Link>
+    </SwipeableRow>
   )
 }

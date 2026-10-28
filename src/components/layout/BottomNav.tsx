@@ -49,7 +49,8 @@ export function BottomNav() {
 
   return (
     <div 
-      className="fixed left-3.5 right-3.5 z-50 md:max-w-md lg:max-w-lg xl:max-w-xl mx-auto bg-[#F9F9F9]/92 dark:bg-[#1C1C1E]/92 backdrop-blur-xl border border-white/60 shadow-[0_6px_24px_rgba(0,0,0,0.08)] ring-1 ring-black/5 rounded-[28px] transition-all duration-300"
+      id="bottom-nav"
+      className="fixed left-3.5 right-3.5 z-30 md:max-w-md lg:max-w-lg xl:max-w-xl mx-auto bg-[#F9F9F9]/92 dark:bg-[#1C1C1E]/92 backdrop-blur-xl border border-white/60 shadow-[0_6px_24px_rgba(0,0,0,0.08)] ring-1 ring-black/5 rounded-[28px] transition-all duration-300"
       style={{ bottom: 'max(8px, env(safe-area-inset-bottom, 8px))' }}
     >
       <nav className="flex justify-around items-center h-[56px] px-1.5">

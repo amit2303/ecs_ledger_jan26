@@ -4,9 +4,9 @@ import { useEffect, useState, use, useRef } from 'react'
 import { ChevronLeft, Plus, ChevronRight, Pencil, Trash2, X, Save, Calendar, MoreVertical, Download, FileText, PauseCircle, PlayCircle } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useLongPress } from '@/hooks/useLongPress'
 import { ActionSheet } from '@/components/ActionSheet'
 import { exportToExcel, exportCompanyFullReport } from '@/utils/exportToExcel'
+import { SwipeableRow, SwipeAction } from '@/components/SwipeableRow'
 
 
 interface Transaction {
@@ -146,38 +146,32 @@ export default function CompanyDetail({ params }: { params: Promise<{ id: string
         }
     }
 
-    // Package Long Press Handlers
-    const handlePackageLongPress = (pkg: Transaction) => {
-        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(50)
+    // Package Actions (Swipe & Sheet)
+    const handleEditPackage = (pkg: Transaction) => {
         setSelectedPackage(pkg)
-        setIsSheetOpen(true)
-    }
-
-    const handleEditPackageClick = () => {
-        if (!selectedPackage) return
         setPkgEditForm({
-            description: selectedPackage.description,
-            date: selectedPackage.date.split('T')[0]
+            description: pkg.description,
+            date: pkg.date ? pkg.date.split('T')[0] : new Date().toISOString().split('T')[0]
         })
         setIsPkgEditModalOpen(true)
     }
 
-    const handleDeletePackageClick = async () => {
-        if (!selectedPackage) return
+    const handleDeletePackage = async (pkg: Transaction) => {
+        setSelectedPackage(pkg)
 
         // Client-side dependency check
-        const hasCharges = (selectedPackage.charges?.length ?? 0) > 0
-        const hasPayments = (selectedPackage.payments?.length ?? 0) > 0
+        const hasCharges = (pkg.charges?.length ?? 0) > 0
+        const hasPayments = (pkg.payments?.length ?? 0) > 0
 
         if (hasCharges || hasPayments) {
             alert('Cannot delete package because it has associated charges or payments. Please delete them first.')
             return
         }
 
-        if (!confirm('Are you sure you want to delete this package?')) return
+        if (!confirm(`Are you sure you want to delete package "${pkg.description}"?`)) return
 
         try {
-            const res = await fetch(`/api/packages/${selectedPackage.id}`, { method: 'DELETE' })
+            const res = await fetch(`/api/packages/${pkg.id}`, { method: 'DELETE' })
             const data = await res.json()
 
             if (!res.ok) {
@@ -188,6 +182,22 @@ export default function CompanyDetail({ params }: { params: Promise<{ id: string
         } catch (err: any) {
             alert('Failed to delete package')
         }
+    }
+
+    const handlePackageLongPress = (pkg: Transaction) => {
+        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(50)
+        setSelectedPackage(pkg)
+        setIsSheetOpen(true)
+    }
+
+    const handleEditPackageClick = () => {
+        if (!selectedPackage) return
+        handleEditPackage(selectedPackage)
+    }
+
+    const handleDeletePackageClick = async () => {
+        if (!selectedPackage) return
+        handleDeletePackage(selectedPackage)
     }
 
     const handleUpdatePackage = async (e: React.FormEvent) => {
@@ -364,7 +374,8 @@ export default function CompanyDetail({ params }: { params: Promise<{ id: string
                                     key={pkg.id}
                                     pkg={pkg}
                                     companyId={company.id}
-                                    onLongPress={() => handlePackageLongPress(pkg)}
+                                    onEdit={() => handleEditPackage(pkg)}
+                                    onDelete={() => handleDeletePackage(pkg)}
                                 />
                             ))}
                         </div>
@@ -517,44 +528,75 @@ export default function CompanyDetail({ params }: { params: Promise<{ id: string
     )
 }
 
-function PackageItem({ pkg, companyId, onLongPress }: { pkg: any, companyId: number, onLongPress: () => void }) {
+function PackageItem({
+    pkg,
+    companyId,
+    onEdit,
+    onDelete,
+}: {
+    pkg: any
+    companyId: number
+    onEdit: () => void
+    onDelete: () => void
+}) {
     const router = useRouter()
     const pkgAmount = pkg.charges?.reduce((sum: number, c: any) => sum + Number(c.amount), 0) || 0
     const pkgTotalPaid = pkg.payments?.reduce((sum: number, p: any) => sum + Number(p.amount), 0) || 0
     const pkgBalance = pkgAmount - pkgTotalPaid
-    const isPaid = pkgBalance <= 0
 
-    const bind = useLongPress(() => {
-        onLongPress()
-    }, () => {
-        router.push(`/companies/${companyId}/packages/${pkg.id}`)
-    })
+    // Right slide (reveals left actions): Edit
+    const leftActions: SwipeAction[] = [
+        {
+            key: 'edit',
+            label: 'Edit',
+            icon: <Pencil className="w-5 h-5 text-white" />,
+            color: '#007AFF',
+            onClick: onEdit,
+        },
+    ]
+
+    // Left slide (reveals right actions): Delete
+    const rightActions: SwipeAction[] = [
+        {
+            key: 'delete',
+            label: 'Delete',
+            icon: <Trash2 className="w-5 h-5 text-white" />,
+            color: '#E05353',
+            onClick: onDelete,
+        },
+    ]
 
     return (
-        <div
-            {...bind}
-            className="relative overflow-hidden rounded-xl ios-press select-none cursor-pointer"
-            style={{
-                backgroundColor: '#FFFFFF',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
-            }}
+        <SwipeableRow
+            id={`package-${pkg.id}`}
+            leftActions={leftActions}
+            rightActions={rightActions}
+            onClick={() => router.push(`/companies/${companyId}/packages/${pkg.id}`)}
         >
-            <div className="flex items-center justify-between px-3.5 py-2.5">
-                <div className="flex-1 pr-2.5 min-w-0">
-                    <h3 className="text-[15.5px] font-semibold text-gray-900 leading-tight truncate">{pkg.description}</h3>
-                    <p className="text-[12px] text-ios-gray mt-0.5 leading-tight">{new Date(pkg.date).toLocaleDateString()}</p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                    <div className="text-right">
-                        <span className="text-[11.5px] text-ios-gray block leading-tight">₹{pkgAmount.toLocaleString('en-IN')}</span>
-                        <span className={`text-[15.5px] font-semibold tabular-nums block leading-tight ${pkgBalance > 0 ? 'text-ios-red' : pkgBalance < 0 ? 'text-ios-green' : 'text-ios-blue'}`}>
-                            {pkgBalance < 0 ? `- ₹${Math.abs(pkgBalance).toLocaleString('en-IN')}` : `₹${pkgBalance.toLocaleString('en-IN')}`}
-                        </span>
+            <div
+                className="relative overflow-hidden rounded-xl ios-press select-none cursor-pointer"
+                style={{
+                    backgroundColor: '#FFFFFF',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
+                }}
+            >
+                <div className="flex items-center justify-between px-3.5 py-2.5">
+                    <div className="flex-1 pr-2.5 min-w-0">
+                        <h3 className="text-[15.5px] font-semibold text-gray-900 leading-tight truncate">{pkg.description}</h3>
+                        <p className="text-[12px] text-ios-gray mt-0.5 leading-tight">{new Date(pkg.date).toLocaleDateString()}</p>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-ios-gray3" />
+                    <div className="flex items-center gap-2 shrink-0">
+                        <div className="text-right">
+                            <span className="text-[11.5px] text-ios-gray block leading-tight">₹{pkgAmount.toLocaleString('en-IN')}</span>
+                            <span className={`text-[15.5px] font-semibold tabular-nums block leading-tight ${pkgBalance > 0 ? 'text-ios-red' : pkgBalance < 0 ? 'text-ios-green' : 'text-ios-blue'}`}>
+                                {pkgBalance < 0 ? `- ₹${Math.abs(pkgBalance).toLocaleString('en-IN')}` : `₹${pkgBalance.toLocaleString('en-IN')}`}
+                            </span>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-ios-gray3" />
+                    </div>
                 </div>
             </div>
-        </div>
+        </SwipeableRow>
     )
 }
 

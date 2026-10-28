@@ -4,7 +4,7 @@ import { useEffect, useState, use, useRef } from 'react'
 import { ChevronLeft, Plus, X, Save, Pencil, Trash2, MoreVertical, Download, Upload, FileText, Image as ImageIcon } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useLongPress } from '@/hooks/useLongPress'
+import { SwipeableRow, SwipeAction } from '@/components/SwipeableRow'
 import { exportStatementToExcel } from '@/utils/exportToExcel'
 import { ActionSheet } from '@/components/ActionSheet'
 import imageCompression from 'browser-image-compression'
@@ -658,31 +658,47 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                                 {(pkg.monthlyCharges || []).length > 0 ? (
                                     <div className="flex flex-col gap-1.5">
                                         {(pkg.monthlyCharges || []).map((mc: any) => (
-                                            <div
+                                            <SwipeableRow
                                                 key={mc.id}
-                                                className="relative overflow-hidden rounded-xl bg-white px-3.5 py-2.5 flex items-center justify-between select-none"
-                                                style={{
-                                                    boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
-                                                }}
+                                                id={`mc-${mc.id}`}
+                                                rightActions={[
+                                                    {
+                                                        key: 'delete',
+                                                        label: 'Delete',
+                                                        icon: <Trash2 className="w-5 h-5 text-white" />,
+                                                        color: '#E05353',
+                                                        onClick: () => handleDeleteMonthlyCharge(mc.id, mc.description),
+                                                    },
+                                                ]}
                                             >
-                                                <div className="flex-1 min-w-0 pr-2.5">
-                                                    <h4 className="text-[15.5px] font-semibold text-gray-900 leading-tight truncate">{mc.description}</h4>
-                                                    <p className="text-[12px] text-ios-gray mt-0.5 leading-tight">Repeats on 1st of every month</p>
+                                                <div
+                                                    className="relative overflow-hidden rounded-xl bg-white px-3.5 py-2.5 flex items-center justify-between select-none"
+                                                    style={{
+                                                        boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
+                                                    }}
+                                                >
+                                                    <div className="flex-1 min-w-0 pr-2.5">
+                                                        <h4 className="text-[15.5px] font-semibold text-gray-900 leading-tight truncate">{mc.description}</h4>
+                                                        <p className="text-[12px] text-ios-gray mt-0.5 leading-tight">Repeats on 1st of every month</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2.5 shrink-0">
+                                                        <span className="text-[15.5px] font-semibold text-gray-900 tabular-nums">
+                                                            ₹{Number(mc.amount).toLocaleString('en-IN')}<span className="text-[11px] text-ios-gray font-normal">/mo</span>
+                                                        </span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                handleDeleteMonthlyCharge(mc.id, mc.description)
+                                                            }}
+                                                            className="p-1 text-ios-gray hover:text-ios-red active:opacity-60 transition-colors"
+                                                            title="Delete Monthly Charge"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-center gap-2.5 shrink-0">
-                                                    <span className="text-[15.5px] font-semibold text-gray-900 tabular-nums">
-                                                        ₹{Number(mc.amount).toLocaleString('en-IN')}<span className="text-[11px] text-ios-gray font-normal">/mo</span>
-                                                    </span>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleDeleteMonthlyCharge(mc.id, mc.description)}
-                                                        className="p-1 text-ios-gray hover:text-ios-red active:opacity-60 transition-colors"
-                                                        title="Delete Monthly Charge"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </div>
+                                            </SwipeableRow>
                                         ))}
                                     </div>
                                 ) : null}
@@ -766,7 +782,8 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                                                 key={charge.id}
                                                 charge={charge}
                                                 isHighlighted={highlightedItem?.type === 'charge' && highlightedItem?.id === charge.id}
-                                                onLongPress={() => handleChargeLongPress(charge)}
+                                                onEdit={() => handleEditChargeClick(charge)}
+                                                onDelete={() => handleDeleteCharge(charge.id)}
                                             />
                                         ))}
                                     </div>
@@ -872,7 +889,8 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                                                 key={payment.id}
                                                 payment={payment}
                                                 isHighlighted={highlightedItem?.type === 'payment' && highlightedItem?.id === payment.id}
-                                                onLongPress={() => handlePaymentLongPress(payment)}
+                                                onEdit={() => handleEditPaymentClick(payment)}
+                                                onDelete={() => handleDeletePayment(payment.id)}
                                             />
                                         ))}
                                     </div>
@@ -1073,68 +1091,135 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
     )
 }
 
-function ChargeItem({ charge, isHighlighted, onLongPress }: { charge: Transaction, isHighlighted?: boolean, onLongPress: () => void }) {
-    const bind = useLongPress(onLongPress, undefined, { delay: 500 })
+function ChargeItem({
+    charge,
+    isHighlighted,
+    onEdit,
+    onDelete,
+}: {
+    charge: Transaction
+    isHighlighted?: boolean
+    onEdit: () => void
+    onDelete: () => void
+}) {
     const isDiscount = Number(charge.amount) < 0
 
+    // Right slide (reveals left actions): Edit
+    const leftActions: SwipeAction[] = [
+        {
+            key: 'edit',
+            label: 'Edit',
+            icon: <Pencil className="w-5 h-5 text-white" />,
+            color: '#007AFF',
+            onClick: onEdit,
+        },
+    ]
+
+    // Left slide (reveals right actions): Delete
+    const rightActions: SwipeAction[] = [
+        {
+            key: 'delete',
+            label: 'Delete',
+            icon: <Trash2 className="w-5 h-5 text-white" />,
+            color: '#E05353',
+            onClick: onDelete,
+        },
+    ]
+
     return (
-        <div
+        <SwipeableRow
             id={`charge-${charge.id}`}
-            {...bind}
-            className={`relative overflow-hidden rounded-xl ios-press select-none cursor-pointer transition-all duration-500 ${
-                isHighlighted 
-                    ? 'bg-amber-100 ring-2 ring-amber-500 scale-[1.02] shadow-lg' 
-                    : 'bg-white'
-            }`}
-            style={{
-                boxShadow: isHighlighted ? '0 4px 14px rgba(245,158,11,0.35)' : '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
-            }}
+            leftActions={leftActions}
+            rightActions={rightActions}
         >
-            <div className="flex items-center justify-between px-3.5 py-2.5">
-                <div className="flex-1 min-w-0 pr-2.5">
-                    <p className="text-[15.5px] font-semibold text-gray-900 leading-tight truncate">{charge.description}</p>
-                    <p className="text-[12px] text-ios-gray mt-0.5 leading-tight">{new Date(charge.date).toLocaleDateString()}</p>
+            <div
+                id={`charge-${charge.id}`}
+                className={`relative overflow-hidden rounded-xl ios-press select-none cursor-pointer transition-all duration-500 ${
+                    isHighlighted 
+                        ? 'bg-amber-100 ring-2 ring-amber-500 scale-[1.02] shadow-lg' 
+                        : 'bg-white'
+                }`}
+                style={{
+                    boxShadow: isHighlighted ? '0 4px 14px rgba(245,158,11,0.35)' : '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
+                }}
+            >
+                <div className="flex items-center justify-between px-3.5 py-2.5">
+                    <div className="flex-1 min-w-0 pr-2.5">
+                        <p className="text-[15.5px] font-semibold text-gray-900 leading-tight truncate">{charge.description}</p>
+                        <p className="text-[12px] text-ios-gray mt-0.5 leading-tight">{new Date(charge.date).toLocaleDateString()}</p>
+                    </div>
+                    <span className={`text-[15.5px] font-semibold tabular-nums shrink-0 ${isDiscount ? 'text-ios-red' : 'text-gray-900'}`}>
+                        {isDiscount ? '-' : ''}₹{Math.abs(Number(charge.amount)).toLocaleString('en-IN')}
+                    </span>
                 </div>
-                <span className={`text-[15.5px] font-semibold tabular-nums shrink-0 ${isDiscount ? 'text-ios-red' : 'text-gray-900'}`}>
-                    {isDiscount ? '-' : ''}₹{Math.abs(Number(charge.amount)).toLocaleString('en-IN')}
-                </span>
             </div>
-        </div>
+        </SwipeableRow>
     )
 }
 
-function PaymentItem({ payment, isHighlighted, onLongPress }: { payment: Transaction, isHighlighted?: boolean, onLongPress: () => void }) {
-    const bind = useLongPress(onLongPress, undefined, { delay: 500 })
+function PaymentItem({
+    payment,
+    isHighlighted,
+    onEdit,
+    onDelete,
+}: {
+    payment: Transaction
+    isHighlighted?: boolean
+    onEdit: () => void
+    onDelete: () => void
+}) {
+    // Right slide (reveals left actions): Edit
+    const leftActions: SwipeAction[] = [
+        {
+            key: 'edit',
+            label: 'Edit',
+            icon: <Pencil className="w-5 h-5 text-white" />,
+            color: '#007AFF',
+            onClick: onEdit,
+        },
+    ]
+
+    // Left slide (reveals right actions): Delete
+    const rightActions: SwipeAction[] = [
+        {
+            key: 'delete',
+            label: 'Delete',
+            icon: <Trash2 className="w-5 h-5 text-white" />,
+            color: '#E05353',
+            onClick: onDelete,
+        },
+    ]
 
     return (
-        <div
+        <SwipeableRow
             id={`payment-${payment.id}`}
-            {...bind}
-            className={`relative overflow-hidden rounded-xl ios-press select-none cursor-pointer transition-all duration-500 ${
-                isHighlighted 
-                    ? 'bg-emerald-100 ring-2 ring-emerald-500 scale-[1.02] shadow-lg' 
-                    : 'bg-white'
-            }`}
-            style={{
-                boxShadow: isHighlighted ? '0 4px 14px rgba(16,185,129,0.35)' : '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
-            }}
+            leftActions={leftActions}
+            rightActions={rightActions}
         >
-            <div className="flex items-center justify-between px-3.5 py-2.5">
-                <div className="flex-1 min-w-0 pr-2.5">
-                    <p className="text-[15.5px] font-semibold text-gray-900 leading-tight truncate">{payment.description}</p>
-                    <p className="text-[12px] text-ios-gray mt-0.5 leading-tight">{new Date(payment.date).toLocaleDateString()}</p>
+            <div
+                id={`payment-${payment.id}`}
+                className={`relative overflow-hidden rounded-xl ios-press select-none cursor-pointer transition-all duration-500 ${
+                    isHighlighted 
+                        ? 'bg-emerald-100 ring-2 ring-emerald-500 scale-[1.02] shadow-lg' 
+                        : 'bg-white'
+                }`}
+                style={{
+                    boxShadow: isHighlighted ? '0 4px 14px rgba(16,185,129,0.35)' : '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
+                }}
+            >
+                <div className="flex items-center justify-between px-3.5 py-2.5">
+                    <div className="flex-1 min-w-0 pr-2.5">
+                        <p className="text-[15.5px] font-semibold text-gray-900 leading-tight truncate">{payment.description}</p>
+                        <p className="text-[12px] text-ios-gray mt-0.5 leading-tight">{new Date(payment.date).toLocaleDateString()}</p>
+                    </div>
+                    <span className="text-[15.5px] font-semibold text-ios-green tabular-nums shrink-0">+ ₹{Number(payment.amount).toLocaleString('en-IN')}</span>
                 </div>
-                <span className="text-[15.5px] font-semibold text-ios-green tabular-nums shrink-0">+ ₹{Number(payment.amount).toLocaleString('en-IN')}</span>
             </div>
-        </div>
+        </SwipeableRow>
     )
 }
 
 function DocumentItem({ doc, onLongPress, onDelete, onPreview }: { doc: any, onLongPress: () => void, onDelete: () => void, onPreview: (doc: any) => void }) {
-    const bind = useLongPress(onLongPress, () => {
-        onPreview(doc)
-    })
-
     const isImage = doc.type?.startsWith('image/') || /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(doc.url || '')
     const uploadDate = doc.createdAt
         ? new Date(doc.createdAt).toLocaleDateString('en-IN', {
@@ -1146,7 +1231,7 @@ function DocumentItem({ doc, onLongPress, onDelete, onPreview }: { doc: any, onL
 
     return (
         <div
-            {...bind}
+            onClick={() => onPreview(doc)}
             className="group relative aspect-square rounded-2xl overflow-hidden ios-card cursor-pointer select-none ios-press"
         >
             {isImage ? (
