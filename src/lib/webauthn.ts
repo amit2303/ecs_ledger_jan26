@@ -5,35 +5,59 @@ export interface WebAuthnConfig {
     rpName: string
     rpID: string
     origin: string
+    expectedOrigins: string[]
 }
 
 export function getRpConfig(req?: Request): WebAuthnConfig {
-    let host = 'localhost:3000'
-    let proto = 'http'
+    let host = 'ledger.expertconsultancyservices.com'
+    let origin = 'https://ledger.expertconsultancyservices.com'
 
     if (req) {
+        const originHeader = req.headers.get('origin')
         const forwardedHost = req.headers.get('x-forwarded-host')
         const headerHost = req.headers.get('host')
-        host = forwardedHost || headerHost || 'localhost:3000'
+        host = forwardedHost || headerHost || 'ledger.expertconsultancyservices.com'
 
-        const forwardedProto = req.headers.get('x-forwarded-proto')
-        if (forwardedProto) {
-            proto = forwardedProto
-        } else if (host.startsWith('localhost') || host.startsWith('127.0.0.1')) {
-            proto = 'http'
+        const isLocal = host.startsWith('localhost') || host.startsWith('127.0.0.1')
+
+        if (isLocal) {
+            origin = `http://${host}`
         } else {
-            proto = 'https'
+            origin = `https://${host}`
+        }
+
+        if (originHeader) {
+            try {
+                const url = new URL(originHeader)
+                if (url.hostname === host.split(':')[0]) {
+                    origin = originHeader
+                }
+            } catch {
+                // Ignore invalid origin
+            }
         }
     }
 
     const hostname = host.split(':')[0]
     const rpID = process.env.WEBAUTHN_RP_ID || hostname
-    const origin = process.env.WEBAUTHN_ORIGIN || `${proto}://${host}`
+
+    const expectedOrigins = Array.from(
+        new Set([
+            origin,
+            `https://${hostname}`,
+            `http://${hostname}`,
+            'https://ledger.expertconsultancyservices.com',
+            'http://ledger.expertconsultancyservices.com',
+            'http://localhost:3000',
+            'https://localhost:3000',
+        ])
+    )
 
     return {
         rpName: 'ECS Ledger',
         rpID,
         origin,
+        expectedOrigins,
     }
 }
 

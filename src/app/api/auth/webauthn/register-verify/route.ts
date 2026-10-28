@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
         const verification = await verifyRegistrationResponse({
             response: body.response,
             expectedChallenge: challengeData.challenge,
-            expectedOrigin: rpConfig.origin,
+            expectedOrigin: rpConfig.expectedOrigins,
             expectedRPID: rpConfig.rpID,
             requireUserVerification: true,
         })
