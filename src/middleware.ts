@@ -10,8 +10,6 @@ export async function middleware(request: NextRequest) {
         '/login',
         '/api/auth/login',
         '/api/auth/signup',
-        '/api/auth/webauthn/login-options',
-        '/api/auth/webauthn/login-verify',
         '/logo.jpg',
         '/manifest.json',
         '/favicon.ico',

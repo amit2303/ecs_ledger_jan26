@@ -1,9 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Eye, EyeOff, Loader2 } from 'lucide-react'
-import { startAuthentication } from '@simplewebauthn/browser'
-import { FaceIDIcon } from '@/components/FaceIDIcon'
+import { Eye, EyeOff } from 'lucide-react'
 
 export default function LoginPage() {
     const [username, setUsername] = useState('')
@@ -11,8 +9,6 @@ export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false)
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
-    const [faceIDLoading, setFaceIDLoading] = useState(false)
-    const [supportsWebAuthn, setSupportsWebAuthn] = useState(true)
 
     useEffect(() => {
         // Retrieve remembered username
@@ -23,12 +19,6 @@ export default function LoginPage() {
             }
         } catch {
             // Ignore localStorage errors
-        }
-
-        // Check if WebAuthn is supported
-        if (typeof window !== 'undefined') {
-            const isSupported = Boolean(window.PublicKeyCredential)
-            setSupportsWebAuthn(isSupported)
         }
     }, [])
 
@@ -62,62 +52,6 @@ export default function LoginPage() {
         }
     }
 
-    const handleFaceIDLogin = async () => {
-        setFaceIDLoading(true)
-        setError('')
-
-        try {
-            // 1. Fetch authentication options
-            const optionsRes = await fetch('/api/auth/webauthn/login-options', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: username.trim() || undefined }),
-            })
-
-            if (!optionsRes.ok) {
-                const errData = await optionsRes.json()
-                throw new Error(errData.error || 'Failed to initialize Face ID sign-in')
-            }
-
-            const options = await optionsRes.json()
-
-            // 2. Start biometric prompt
-            const authResponse = await startAuthentication({ optionsJSON: options })
-
-            // 3. Verify response on server
-            const verifyRes = await fetch('/api/auth/webauthn/login-verify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(authResponse),
-            })
-
-            const verifyData = await verifyRes.json()
-
-            if (verifyRes.ok && verifyData.success) {
-                if (verifyData.user?.username) {
-                    try {
-                        localStorage.setItem('ecs_last_user', verifyData.user.username)
-                    } catch {
-                        // Ignore
-                    }
-                }
-                window.location.href = '/'
-            } else {
-                setError(verifyData.error || 'Face ID verification failed. Please sign in with password.')
-            }
-        } catch (err: unknown) {
-            const errorObj = err as Error
-            if (errorObj.name === 'NotAllowedError') {
-                // User cancelled the prompt
-                return
-            }
-            console.error('Face ID sign-in error:', err)
-            setError(errorObj.message || 'Face ID sign-in failed. Please sign in with password.')
-        } finally {
-            setFaceIDLoading(false)
-        }
-    }
-
     return (
         <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: '#F2F2F7' }}>
             <div className="w-full max-w-sm space-y-6">
@@ -139,37 +73,6 @@ export default function LoginPage() {
                         style={{ backgroundColor: 'rgba(255,59,48,0.08)' }}
                     >
                         {error}
-                    </div>
-                )}
-
-                {/* Primary Face ID Quick Login Button (if supported) */}
-                {supportsWebAuthn && (
-                    <div className="space-y-3">
-                        <button
-                            type="button"
-                            onClick={handleFaceIDLogin}
-                            disabled={faceIDLoading || loading}
-                            className="w-full py-3.5 px-4 bg-white text-gray-900 text-[17px] font-semibold rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] border border-black/5 flex items-center justify-center gap-3 ios-press disabled:opacity-50 transition-all hover:bg-gray-50 active:scale-[0.98]"
-                        >
-                            {faceIDLoading ? (
-                                <>
-                                    <Loader2 className="w-5 h-5 animate-spin text-ios-blue" />
-                                    <span>Scanning Face ID...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <FaceIDIcon className="w-6 h-6 text-ios-blue" />
-                                    <span>Sign in with Face ID</span>
-                                </>
-                            )}
-                        </button>
-
-                        <div className="relative flex items-center justify-center">
-                            <div className="border-t border-gray-300 w-full" />
-                            <span className="bg-[#F2F2F7] px-3 text-[13px] text-ios-gray font-medium uppercase tracking-wider">
-                                or password
-                            </span>
-                        </div>
                     </div>
                 )}
 
@@ -213,10 +116,10 @@ export default function LoginPage() {
 
                     <button
                         type="submit"
-                        disabled={loading || faceIDLoading}
+                        disabled={loading}
                         className="w-full py-[14px] bg-ios-blue text-white text-[17px] font-semibold rounded-2xl ios-press disabled:opacity-50 active:scale-[0.98] transition-all"
                     >
-                        {loading ? 'Signing in...' : 'Sign In with Password'}
+                        {loading ? 'Signing in...' : 'Sign In'}
                     </button>
                 </form>
             </div>
