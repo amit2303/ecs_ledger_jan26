@@ -730,7 +730,7 @@ export default function TransactionsPage() {
 
         // 4. Special handling if cursor is in the amount area and user types a digit over single '0'
         // e.g. input is "+0 ANJALI..." and cursor is at index 1 (+|0) or index 2 (+0|)
-        let insertChar = char
+        const insertChar = char
         let sliceStart = cursorPosition
         let sliceEnd = cursorPosition
 

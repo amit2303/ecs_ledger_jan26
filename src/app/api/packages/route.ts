@@ -6,8 +6,9 @@ export async function POST(request: Request) {
         const body = await request.json()
         const { companyId, date, description } = body
 
-        if (!companyId || !date) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+        const compId = parseInt(companyId, 10)
+        if (isNaN(compId) || !date) {
+            return NextResponse.json({ error: 'Valid companyId and date are required' }, { status: 400 })
         }
 
         const pkg = await prisma.package.create({

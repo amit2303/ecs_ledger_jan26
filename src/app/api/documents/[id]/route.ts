@@ -6,7 +6,11 @@ import path from 'path'
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const { id } = await params
-        const docId = parseInt(id)
+        const docId = parseInt(id, 10)
+
+        if (isNaN(docId)) {
+            return NextResponse.json({ error: 'Invalid Document ID' }, { status: 400 })
+        }
 
         const document = await prisma.document.findUnique({
             where: { id: docId }
@@ -16,7 +20,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
             return NextResponse.json({ error: 'Document not found' }, { status: 404 })
         }
 
-        // Delete from DB first to prevent UI sync issues if FS fails (rare)
+        // Delete from DB first
         const deletedDoc = await prisma.document.delete({
             where: { id: docId }
         })
@@ -26,35 +30,34 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
             await prisma.package.update({
                 where: { id: deletedDoc.packageId },
                 data: { hasUpdates: true }
-            })
-            // If it has a packageId, we need to find the company via package to be safe, 
-            // OR if companyId is also set on doc we can use that. 
-            // The schema has both but let's check.
-            // Actually, if packageId is present, we should update the package.
-            // If companyId is present, update company.
-            // But usually a document belongs to a package OR a company.
+            }).catch(() => {})
         }
 
         if (deletedDoc.companyId) {
             await prisma.company.update({
                 where: { id: deletedDoc.companyId },
                 data: { hasUpdates: true }
-            })
+            }).catch(() => {})
         } else if (deletedDoc.packageId) {
-            // If linked to package, update company via package
             const pkg = await prisma.package.findUnique({ where: { id: deletedDoc.packageId } })
             if (pkg) {
                 await prisma.company.update({
                     where: { id: pkg.companyId },
                     data: { hasUpdates: true }
-                })
+                }).catch(() => {})
             }
         }
 
-        // Try deleting from filesystem
+        // Try deleting from filesystem securely
         try {
-            const filePath = path.join(process.cwd(), 'public', document.url)
-            await unlink(filePath)
+            const uploadsBase = path.resolve(process.cwd(), 'public', 'uploads')
+            const cleanUrl = (document.url || '').replace(/^\/+/, '')
+            const targetPath = path.resolve(process.cwd(), 'public', cleanUrl)
+
+            // Strictly ensure file is inside public/uploads before deleting
+            if (targetPath.startsWith(uploadsBase + path.sep)) {
+                await unlink(targetPath)
+            }
         } catch (fsError) {
             console.error('Filesystem delete error (ignored):', fsError)
         }

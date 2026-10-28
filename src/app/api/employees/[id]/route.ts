@@ -8,9 +8,14 @@ export async function GET(
     { params }: { params: Promise<{ id: string }> }
 ) {
     const { id } = await params
+    const empId = parseInt(id, 10)
+    if (isNaN(empId)) {
+        return NextResponse.json({ error: 'Invalid Employee ID' }, { status: 400 })
+    }
+
     try {
         const employee = await prisma.employee.findUnique({
-            where: { id: Number(id) },
+            where: { id: empId },
             include: {
                 salaryEntries: { orderBy: { month: 'asc' } },
                 salaryPayments: { orderBy: { date: 'asc' } },
@@ -62,12 +67,17 @@ export async function PUT(
     { params }: { params: Promise<{ id: string }> }
 ) {
     const { id } = await params
+    const empId = parseInt(id, 10)
+    if (isNaN(empId)) {
+        return NextResponse.json({ error: 'Invalid Employee ID' }, { status: 400 })
+    }
+
     try {
         const body = await request.json()
         const { name, salary, designation, address } = body
 
         const employee = await prisma.employee.update({
-            where: { id: Number(id) },
+            where: { id: empId },
             data: {
                 ...(name !== undefined && { name: name.trim() }),
                 ...(salary !== undefined && { salary: Number(salary) }),
@@ -95,9 +105,14 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string }> }
 ) {
     const { id } = await params
+    const empId = parseInt(id, 10)
+    if (isNaN(empId)) {
+        return NextResponse.json({ error: 'Invalid Employee ID' }, { status: 400 })
+    }
+
     try {
         await prisma.employee.delete({
-            where: { id: Number(id) },
+            where: { id: empId },
         })
         return NextResponse.json({ success: true })
     } catch (error: any) {

@@ -6,20 +6,25 @@ export async function POST(
     { params }: { params: Promise<{ id: string }> }
 ) {
     const { id } = await params
+    const empId = parseInt(id, 10)
+    if (isNaN(empId)) {
+        return NextResponse.json({ error: 'Invalid Employee ID' }, { status: 400 })
+    }
+
     try {
         const body = await request.json()
         const { amount, description, date } = body
 
-        if (amount === undefined) {
+        if (amount === undefined || isNaN(Number(amount))) {
             return NextResponse.json(
-                { error: 'Amount is required' },
+                { error: 'Valid amount is required' },
                 { status: 400 }
             )
         }
 
         const payment = await prisma.salaryPayment.create({
             data: {
-                employeeId: Number(id),
+                employeeId: empId,
                 amount: Number(amount),
                 description: description?.trim() || null,
                 date: date ? new Date(date) : new Date(),

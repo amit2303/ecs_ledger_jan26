@@ -16,8 +16,9 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
         const body = await request.json()
         const { packageId } = body
 
-        if (!packageId) {
-            return NextResponse.json({ error: 'Target packageId is required' }, { status: 400 })
+        const targetPkgId = parseInt(packageId, 10)
+        if (isNaN(targetPkgId)) {
+            return NextResponse.json({ error: 'Valid target packageId is required' }, { status: 400 })
         }
 
         // Get the current payment to find old package

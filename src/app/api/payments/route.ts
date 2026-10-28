@@ -6,8 +6,9 @@ export async function POST(request: Request) {
         const body = await request.json()
         const { packageId, date, description, amount } = body
 
-        if (!packageId || !date || !amount) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+        const pkgId = parseInt(packageId, 10)
+        if (isNaN(pkgId) || !date || amount === undefined || amount === null || isNaN(Number(amount))) {
+            return NextResponse.json({ error: 'Valid packageId, date, and amount are required' }, { status: 400 })
         }
 
         const payment = await prisma.payment.create({

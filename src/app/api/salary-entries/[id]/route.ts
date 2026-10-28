@@ -6,19 +6,24 @@ export async function PUT(
     { params }: { params: Promise<{ id: string }> }
 ) {
     const { id } = await params
+    const entryId = parseInt(id, 10)
+    if (isNaN(entryId)) {
+        return NextResponse.json({ error: 'Invalid Salary Entry ID' }, { status: 400 })
+    }
+
     try {
         const body = await request.json()
         const { amount, description, month } = body
 
-        if (amount === undefined) {
+        if (amount === undefined || isNaN(Number(amount))) {
             return NextResponse.json(
-                { error: 'Amount is required' },
+                { error: 'Valid amount is required' },
                 { status: 400 }
             )
         }
 
         const updated = await prisma.salaryEntry.update({
-            where: { id: Number(id) },
+            where: { id: entryId },
             data: {
                 amount: Number(amount),
                 ...(description !== undefined && { description: description?.trim() || null }),
@@ -41,9 +46,14 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string }> }
 ) {
     const { id } = await params
+    const entryId = parseInt(id, 10)
+    if (isNaN(entryId)) {
+        return NextResponse.json({ error: 'Invalid Salary Entry ID' }, { status: 400 })
+    }
+
     try {
         await prisma.salaryEntry.delete({
-            where: { id: Number(id) },
+            where: { id: entryId },
         })
         return NextResponse.json({ success: true })
     } catch (error: any) {

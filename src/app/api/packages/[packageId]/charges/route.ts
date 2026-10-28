@@ -11,8 +11,8 @@ export async function POST(request: Request, props: { params: Promise<{ packageI
         const body = await request.json()
         const { description, amount, date } = body
 
-        if (!amount) {
-            return NextResponse.json({ error: 'Amount is required' }, { status: 400 })
+        if (amount === undefined || amount === null || isNaN(Number(amount))) {
+            return NextResponse.json({ error: 'Valid amount is required' }, { status: 400 })
         }
 
         const charge = await prisma.charge.create({

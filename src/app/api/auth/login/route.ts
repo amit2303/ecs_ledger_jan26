@@ -8,12 +8,14 @@ export async function POST(request: Request) {
         const body = await request.json()
         const { username, password } = body
 
-        if (!username || !password) {
+        if (!username || !password || typeof username !== 'string' || typeof password !== 'string') {
             return NextResponse.json({ error: 'Missing credentials' }, { status: 400 })
         }
 
-        const user = await prisma.user.findUnique({
-            where: { username }
+        const trimmedUsername = username.trim()
+
+        const user = await prisma.user.findFirst({
+            where: { username: trimmedUsername }
         })
 
         if (!user) {

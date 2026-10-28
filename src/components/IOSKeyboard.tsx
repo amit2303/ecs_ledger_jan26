@@ -155,13 +155,13 @@ export function IOSKeyboard({
     onSelectExpense?: () => void
 }) {
     const [mode, setMode] = useState<KeyboardMode>('numbers')
-    
-    // Reset to numbers mode when keyboard opens
-    useEffect(() => {
+    const [prevIsOpen, setPrevIsOpen] = useState(isOpen)
+    if (isOpen !== prevIsOpen) {
+        setPrevIsOpen(isOpen)
         if (isOpen) {
             setMode('numbers')
         }
-    }, [isOpen])
+    }
     
     // Trackpad mode for spacebar long press
     const [isTrackpadMode, setIsTrackpadMode] = useState(false)

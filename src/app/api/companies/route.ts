@@ -41,7 +41,7 @@ export async function GET(request: Request) {
             WHERE 1=1
         `
         const params: any[] = []
-        if (type) {
+        if (type && (type === 'CLIENT' || type === 'VENDOR')) {
             query += ` AND c.type = ?`
             params.push(type)
         }

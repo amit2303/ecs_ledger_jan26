@@ -1,20 +1,18 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { writeFile, mkdir, appendFile } from 'fs/promises'
+import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 
-async function log(msg: string) {
-    try {
-        await appendFile('debug.log', `[${new Date().toISOString()}] ${msg}\n`)
-    } catch { }
-}
+const MAX_FILE_SIZE = 25 * 1024 * 1024 // 25MB
+const ALLOWED_EXTENSIONS = new Set([
+    '.jpg', '.jpeg', '.png', '.webp', '.gif', '.pdf', '.heic',
+    '.doc', '.docx', '.xls', '.xlsx', '.csv', '.txt'
+])
 
 export async function POST(request: Request, props: { params: Promise<{ packageId: string }> }) {
     try {
-        await log('POST /api/packages/[packageId]/documents hit')
-
         const params = await props.params
-        const packageId = parseInt(params.packageId)
+        const packageId = parseInt(params.packageId, 10)
 
         if (isNaN(packageId)) {
             return NextResponse.json({ error: 'Invalid Package ID' }, { status: 400 })
@@ -34,16 +32,36 @@ export async function POST(request: Request, props: { params: Promise<{ packageI
         }
 
         // Store in /public/uploads/packages/[packageId]
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'packages', params.packageId)
+        const uploadDir = path.resolve(process.cwd(), 'public', 'uploads', 'packages', String(packageId))
         await mkdir(uploadDir, { recursive: true })
 
         const savedDocuments = []
 
         for (const file of files) {
+            if (file.size > MAX_FILE_SIZE) {
+                return NextResponse.json(
+                    { error: `File '${file.name}' exceeds the 25MB maximum size limit.` },
+                    { status: 400 }
+                )
+            }
+
+            const ext = path.extname(file.name).toLowerCase()
+            if (!ALLOWED_EXTENSIONS.has(ext)) {
+                return NextResponse.json(
+                    { error: `File type '${ext || 'unknown'}' is not allowed for security reasons. Allowed: PDF, Images, Word, Excel, CSV.` },
+                    { status: 400 }
+                )
+            }
+
             const buffer = Buffer.from(await file.arrayBuffer())
-            const safeName = file.name.replace(/[^a-z0-9.]/gi, '_').toLowerCase()
-            const fileName = `${Date.now()}_${safeName}`
-            const filePath = path.join(uploadDir, fileName)
+            const safeBaseName = path.basename(file.name, ext).replace(/[^a-z0-9_-]/gi, '_').toLowerCase()
+            const fileName = `${Date.now()}_${safeBaseName}${ext}`
+            const filePath = path.resolve(uploadDir, fileName)
+
+            // Ensure filePath stays within uploadDir
+            if (!filePath.startsWith(uploadDir + path.sep)) {
+                return NextResponse.json({ error: 'Invalid file path' }, { status: 400 })
+            }
 
             await writeFile(filePath, buffer)
 
@@ -51,7 +69,7 @@ export async function POST(request: Request, props: { params: Promise<{ packageI
                 data: {
                     packageId,
                     name: file.name,
-                    url: `/uploads/packages/${params.packageId}/${fileName}`,
+                    url: `/uploads/packages/${packageId}/${fileName}`,
                     type: file.type || 'application/octet-stream'
                 }
             })
@@ -61,29 +79,26 @@ export async function POST(request: Request, props: { params: Promise<{ packageI
 
         // Update company hasUpdates flag
         if (savedDocuments.length > 0) {
-            const pkg = await prisma.package.findUnique({
+            const pkgData = await prisma.package.findUnique({
                 where: { id: packageId },
                 select: { companyId: true }
             })
 
-            if (pkg) {
-                // Update Package hasUpdates
+            if (pkgData) {
                 await prisma.package.update({
                     where: { id: packageId },
                     data: { hasUpdates: true }
-                })
+                }).catch(() => {})
 
-                // Update Company hasUpdates
                 await prisma.company.update({
-                    where: { id: pkg.companyId },
+                    where: { id: pkgData.companyId },
                     data: { hasUpdates: true }
-                })
+                }).catch(() => {})
             }
         }
 
         return NextResponse.json(savedDocuments)
     } catch (error: any) {
-        await log(`Error: ${error.message}`)
         console.error('Upload Error:', error)
         return NextResponse.json({ error: 'Failed to upload files', details: error.message }, { status: 500 })
     }
@@ -92,7 +107,7 @@ export async function POST(request: Request, props: { params: Promise<{ packageI
 export async function GET(request: Request, props: { params: Promise<{ packageId: string }> }) {
     try {
         const params = await props.params
-        const packageId = parseInt(params.packageId)
+        const packageId = parseInt(params.packageId, 10)
 
         if (isNaN(packageId)) {
             return NextResponse.json({ error: 'Invalid Package ID' }, { status: 400 })
