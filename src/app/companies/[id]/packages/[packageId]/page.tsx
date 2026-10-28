@@ -661,22 +661,20 @@ export default function PackagePage({ params }: { params: Promise<{ id: string, 
                                             <SwipeableRow
                                                 key={mc.id}
                                                 id={`mc-${mc.id}`}
+                                                style={{
+                                                    boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
+                                                }}
                                                 rightActions={[
                                                     {
                                                         key: 'delete',
                                                         label: 'Delete',
                                                         icon: <Trash2 className="w-5 h-5 text-white" />,
-                                                        color: '#E05353',
+                                                        color: '#FF3B30',
                                                         onClick: () => handleDeleteMonthlyCharge(mc.id, mc.description),
                                                     },
                                                 ]}
                                             >
-                                                <div
-                                                    className="relative overflow-hidden rounded-xl bg-white px-3.5 py-2.5 flex items-center justify-between select-none"
-                                                    style={{
-                                                        boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
-                                                    }}
-                                                >
+                                                <div className="px-3.5 py-2.5 flex items-center justify-between select-none">
                                                     <div className="flex-1 min-w-0 pr-2.5">
                                                         <h4 className="text-[15.5px] font-semibold text-gray-900 leading-tight truncate">{mc.description}</h4>
                                                         <p className="text-[12px] text-ios-gray mt-0.5 leading-tight">Repeats on 1st of every month</p>
@@ -1121,7 +1119,7 @@ function ChargeItem({
             key: 'delete',
             label: 'Delete',
             icon: <Trash2 className="w-5 h-5 text-white" />,
-            color: '#E05353',
+            color: '#FF3B30',
             onClick: onDelete,
         },
     ]
@@ -1131,17 +1129,15 @@ function ChargeItem({
             id={`charge-${charge.id}`}
             leftActions={leftActions}
             rightActions={rightActions}
+            style={{
+                boxShadow: isHighlighted ? '0 4px 14px rgba(245,158,11,0.35)' : '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
+            }}
         >
             <div
                 id={`charge-${charge.id}`}
-                className={`relative overflow-hidden rounded-xl ios-press select-none cursor-pointer transition-all duration-500 ${
-                    isHighlighted 
-                        ? 'bg-amber-100 ring-2 ring-amber-500 scale-[1.02] shadow-lg' 
-                        : 'bg-white'
+                className={`select-none cursor-pointer transition-all duration-500 ${
+                    isHighlighted ? 'bg-amber-100 ring-2 ring-amber-500' : 'bg-white'
                 }`}
-                style={{
-                    boxShadow: isHighlighted ? '0 4px 14px rgba(245,158,11,0.35)' : '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
-                }}
             >
                 <div className="flex items-center justify-between px-3.5 py-2.5">
                     <div className="flex-1 min-w-0 pr-2.5">
@@ -1185,7 +1181,7 @@ function PaymentItem({
             key: 'delete',
             label: 'Delete',
             icon: <Trash2 className="w-5 h-5 text-white" />,
-            color: '#E05353',
+            color: '#FF3B30',
             onClick: onDelete,
         },
     ]
@@ -1195,17 +1191,15 @@ function PaymentItem({
             id={`payment-${payment.id}`}
             leftActions={leftActions}
             rightActions={rightActions}
+            style={{
+                boxShadow: isHighlighted ? '0 4px 14px rgba(16,185,129,0.35)' : '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
+            }}
         >
             <div
                 id={`payment-${payment.id}`}
-                className={`relative overflow-hidden rounded-xl ios-press select-none cursor-pointer transition-all duration-500 ${
-                    isHighlighted 
-                        ? 'bg-emerald-100 ring-2 ring-emerald-500 scale-[1.02] shadow-lg' 
-                        : 'bg-white'
+                className={`select-none cursor-pointer transition-all duration-500 ${
+                    isHighlighted ? 'bg-emerald-100 ring-2 ring-emerald-500' : 'bg-white'
                 }`}
-                style={{
-                    boxShadow: isHighlighted ? '0 4px 14px rgba(16,185,129,0.35)' : '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
-                }}
             >
                 <div className="flex items-center justify-between px-3.5 py-2.5">
                     <div className="flex-1 min-w-0 pr-2.5">

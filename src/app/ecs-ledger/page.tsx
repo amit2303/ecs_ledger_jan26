@@ -487,7 +487,7 @@ function CompanyItem({
       ) : (
         <PauseCircle className="w-5 h-5 text-white" />
       ),
-      color: company.isOnHold ? '#30A46C' : '#F59E0B',
+      color: company.isOnHold ? '#34C759' : '#FF9500',
       onClick: onHoldToggle,
     },
     {
@@ -505,7 +505,7 @@ function CompanyItem({
       key: 'delete',
       label: 'Delete',
       icon: <Trash2 className="w-5 h-5 text-white" />,
-      color: '#E05353',
+      color: '#FF3B30',
       onClick: onDelete,
     },
   ]
@@ -516,49 +516,45 @@ function CompanyItem({
       leftActions={leftActions}
       rightActions={rightActions}
       onClick={() => router.push(`/companies/${company.id}`)}
+      className={company.isOnHold ? 'opacity-55' : ''}
+      style={{
+        boxShadow: isClient
+          ? '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)'
+          : '0 1px 3px rgba(0,0,0,0.04), 0 0 0 1px rgba(224, 83, 83, 0.22)',
+      }}
     >
-      <div
-        className={`relative overflow-hidden rounded-xl ios-press select-none cursor-pointer ${company.isOnHold ? 'opacity-55' : ''}`}
-        style={{
-          backgroundColor: '#FFFFFF',
-          boxShadow: isClient
-            ? '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)'
-            : '0 1px 3px rgba(0,0,0,0.04), 0 0 0 1px rgba(224, 83, 83, 0.22)',
-        }}
-      >
-        <div className="flex items-center justify-between px-3.5 py-2.5">
-          <div className="flex-1 min-w-0 pr-2.5">
-            {/* Top line: S.No + Company Name */}
-            <div className="flex items-center min-w-0">
-              <h3 className="text-[15.5px] font-semibold text-gray-900 leading-tight truncate">
-                {sNo && (
-                  <span className="font-bold tabular-nums mr-1.5">{sNo}</span>
-                )}
-                {displayName}
-              </h3>
-              {company.isOnHold && (
-                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded text-ios-orange flex items-center gap-1 shrink-0 ml-1.5" style={{ backgroundColor: 'rgba(245,158,11,0.08)' }}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-ios-orange" />
-                  Hold
-                </span>
+      <div className="flex items-center justify-between px-3.5 py-2.5 select-none cursor-pointer">
+        <div className="flex-1 min-w-0 pr-2.5">
+          {/* Top line: S.No + Company Name */}
+          <div className="flex items-center min-w-0">
+            <h3 className="text-[15.5px] font-semibold text-gray-900 leading-tight truncate">
+              {sNo && (
+                <span className="font-bold tabular-nums mr-1.5">{sNo}</span>
               )}
-            </div>
-
-            {/* Packages count below company name */}
-            {company.packageCount !== undefined && (
-              <p className="text-[12px] text-ios-gray mt-0.5 leading-tight">
-                {company.packageCount} {company.packageCount === 1 ? 'Package' : 'Packages'}
-              </p>
+              {displayName}
+            </h3>
+            {company.isOnHold && (
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded text-ios-orange flex items-center gap-1 shrink-0 ml-1.5" style={{ backgroundColor: 'rgba(245,158,11,0.08)' }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-ios-orange" />
+                Hold
+              </span>
             )}
           </div>
 
-          {/* Right: Due Amount + Chevron */}
-          <div className="flex items-center gap-2 shrink-0">
-            <span className={`text-[15.5px] font-semibold tabular-nums ${company.isOnHold ? 'text-ios-gray line-through' : (company.amountDue || 0) > 0 ? 'text-ios-red' : (company.amountDue || 0) < 0 ? 'text-ios-green' : 'text-ios-blue'}`}>
-              {(company.amountDue || 0) < 0 ? `- ₹${Math.abs(company.amountDue || 0).toLocaleString('en-IN')}` : `₹${(company.amountDue || 0).toLocaleString('en-IN')}`}
-            </span>
-            <ChevronRight className="w-4 h-4 text-ios-gray3" />
-          </div>
+          {/* Packages count below company name */}
+          {company.packageCount !== undefined && (
+            <p className="text-[12px] text-ios-gray mt-0.5 leading-tight">
+              {company.packageCount} {company.packageCount === 1 ? 'Package' : 'Packages'}
+            </p>
+          )}
+        </div>
+
+        {/* Right: Due Amount + Chevron */}
+        <div className="flex items-center gap-2 shrink-0">
+          <span className={`text-[15.5px] font-semibold tabular-nums ${company.isOnHold ? 'text-ios-gray line-through' : (company.amountDue || 0) > 0 ? 'text-ios-red' : (company.amountDue || 0) < 0 ? 'text-ios-green' : 'text-ios-blue'}`}>
+            {(company.amountDue || 0) < 0 ? `- ₹${Math.abs(company.amountDue || 0).toLocaleString('en-IN')}` : `₹${(company.amountDue || 0).toLocaleString('en-IN')}`}
+          </span>
+          <ChevronRight className="w-4 h-4 text-ios-gray3" />
         </div>
       </div>
     </SwipeableRow>

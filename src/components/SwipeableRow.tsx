@@ -6,7 +6,7 @@ export interface SwipeAction {
     key: string
     label: string
     icon: React.ReactNode
-    color: string // e.g. '#007AFF', '#E05353', '#F59E0B', '#30A46C'
+    color: string // e.g. '#007AFF', '#FF3B30', '#FF9500', '#34C759'
     textColor?: string
     onClick: (e: React.MouseEvent) => void
 }
@@ -22,7 +22,8 @@ interface SwipeableRowProps {
     disabled?: boolean
 }
 
-const ACTION_WIDTH = 74 // Width of each action button in pixels
+// Apple iOS standard compact action button width
+const ACTION_WIDTH = 64
 
 export function SwipeableRow({
     id,
@@ -66,6 +67,21 @@ export function SwipeableRow({
         }
     }, [id])
 
+    // Close on any window scroll (native iOS behavior)
+    useEffect(() => {
+        const handleScroll = () => {
+            if (currentOffset.current !== 0) {
+                setOffset(0)
+                currentOffset.current = 0
+            }
+        }
+
+        window.addEventListener('scroll', handleScroll, { capture: true, passive: true })
+        return () => {
+            window.removeEventListener('scroll', handleScroll, { capture: true })
+        }
+    }, [])
+
     const closeRow = useCallback(() => {
         setOffset(0)
         currentOffset.current = 0
@@ -90,7 +106,7 @@ export function SwipeableRow({
         if (isHorizontalSwipe.current === null) {
             const absX = Math.abs(deltaX)
             const absY = Math.abs(deltaY)
-            if (absX > 4 || absY > 4) {
+            if (absX > 5 || absY > 5) {
                 if (absX >= absY) {
                     isHorizontalSwipe.current = true
                     setIsDragging(true)
@@ -122,13 +138,13 @@ export function SwipeableRow({
         const base = wasOpenBeforeDrag.current ? currentOffset.current : 0
         let newOffset = base + deltaX
 
-        // Resistance damping when pulling past the action buttons
+        // Rubber-band resistance when pulling past the action buttons (iOS style)
         if (newOffset > totalLeftWidth) {
             const overflow = newOffset - totalLeftWidth
-            newOffset = totalLeftWidth + overflow * 0.2
+            newOffset = totalLeftWidth + overflow * 0.18
         } else if (newOffset < -totalRightWidth) {
             const overflow = -newOffset - totalRightWidth
-            newOffset = -totalRightWidth - overflow * 0.2
+            newOffset = -totalRightWidth - overflow * 0.18
         }
 
         // Don't pull left if there are no right actions
@@ -156,21 +172,21 @@ export function SwipeableRow({
         let targetOffset = 0
 
         if (current > 0 && totalLeftWidth > 0) {
-            // Swiped right -> reveal left actions (snaps easily)
-            if (current > Math.min(totalLeftWidth * 0.25, 35)) {
+            // Swiped right -> reveal left actions (snaps smoothly)
+            if (current > Math.min(totalLeftWidth * 0.32, 34)) {
                 targetOffset = totalLeftWidth
                 if (typeof navigator !== 'undefined' && navigator.vibrate) {
-                    navigator.vibrate(12)
+                    navigator.vibrate(10)
                 }
             } else {
                 targetOffset = 0
             }
         } else if (current < 0 && totalRightWidth > 0) {
-            // Swiped left -> reveal right actions (snaps easily)
-            if (-current > Math.min(totalRightWidth * 0.25, 30)) {
+            // Swiped left -> reveal right actions (snaps smoothly)
+            if (-current > Math.min(totalRightWidth * 0.32, 28)) {
                 targetOffset = -totalRightWidth
                 if (typeof navigator !== 'undefined' && navigator.vibrate) {
-                    navigator.vibrate(12)
+                    navigator.vibrate(10)
                 }
             } else {
                 targetOffset = 0
@@ -181,7 +197,7 @@ export function SwipeableRow({
         setOffset(targetOffset)
     }, [disabled, totalLeftWidth, totalRightWidth])
 
-    // Native touch listeners with { passive: false } for rock-solid iOS touch prevention
+    // Native touch listeners with { passive: false } for iOS touch prevention
     useEffect(() => {
         const el = foregroundRef.current
         if (!el) return
@@ -234,7 +250,7 @@ export function SwipeableRow({
         window.addEventListener('mouseup', onMouseUp)
     }
 
-    // Capture phase: Suppress child click events (like <Link>) if user swiped or row is open
+    // Capture phase: Suppress child click events if user swiped or row is open
     const handleClickCapture = (e: React.MouseEvent) => {
         if (hasMoved.current) {
             e.preventDefault()
@@ -266,17 +282,25 @@ export function SwipeableRow({
         action.onClick(e)
     }
 
+    // Dynamic edge shadow when sliding to create seamless card layering
+    const edgeShadow = offset > 0
+        ? '-3px 0 10px rgba(0, 0, 0, 0.08)'
+        : offset < 0
+        ? '3px 0 10px rgba(0, 0, 0, 0.08)'
+        : 'none'
+
     return (
         <div
             ref={containerRef}
             className={`relative overflow-hidden rounded-xl select-none ${className}`}
             style={{
                 touchAction: 'pan-y',
+                backgroundColor: '#FFFFFF',
                 ...style,
             }}
         >
-            {/* Background Actions Container */}
-            <div className="absolute inset-0 flex justify-between items-stretch rounded-xl overflow-hidden pointer-events-auto">
+            {/* Background Actions Tray (flush with outer card edges) */}
+            <div className="absolute inset-0 flex justify-between items-stretch overflow-hidden pointer-events-auto">
                 {/* Left Actions (revealed when swiping right) */}
                 <div 
                     className="flex h-full items-stretch"
@@ -290,15 +314,17 @@ export function SwipeableRow({
                             key={action.key}
                             type="button"
                             onClick={(e) => handleActionClick(action, e)}
-                            className="flex flex-col items-center justify-center px-3.5 active:brightness-90 transition-all cursor-pointer"
+                            className="flex flex-col items-center justify-center px-2 active:opacity-85 transition-opacity cursor-pointer border-0 outline-none"
                             style={{
                                 width: `${ACTION_WIDTH}px`,
                                 backgroundColor: action.color,
                                 color: action.textColor || '#FFFFFF',
                             }}
                         >
-                            <span className="shrink-0 mb-1">{action.icon}</span>
-                            <span className="text-[11px] font-semibold tracking-tight uppercase leading-none">
+                            <span className="shrink-0 mb-1 opacity-95 [&>svg]:w-[18px] [&>svg]:h-[18px] [&>svg]:stroke-[2]">
+                                {action.icon}
+                            </span>
+                            <span className="text-[11.5px] font-medium tracking-tight leading-none">
                                 {action.label}
                             </span>
                         </button>
@@ -318,15 +344,17 @@ export function SwipeableRow({
                             key={action.key}
                             type="button"
                             onClick={(e) => handleActionClick(action, e)}
-                            className="flex flex-col items-center justify-center px-3.5 active:brightness-90 transition-all cursor-pointer"
+                            className="flex flex-col items-center justify-center px-2 active:opacity-85 transition-opacity cursor-pointer border-0 outline-none"
                             style={{
                                 width: `${ACTION_WIDTH}px`,
                                 backgroundColor: action.color,
                                 color: action.textColor || '#FFFFFF',
                             }}
                         >
-                            <span className="shrink-0 mb-1">{action.icon}</span>
-                            <span className="text-[11px] font-semibold tracking-tight uppercase leading-none">
+                            <span className="shrink-0 mb-1 opacity-95 [&>svg]:w-[18px] [&>svg]:h-[18px] [&>svg]:stroke-[2]">
+                                {action.icon}
+                            </span>
+                            <span className="text-[11.5px] font-medium tracking-tight leading-none">
                                 {action.label}
                             </span>
                         </button>
@@ -334,20 +362,21 @@ export function SwipeableRow({
                 </div>
             </div>
 
-            {/* Foreground Content Card (slides horizontally) */}
+            {/* Foreground Content Card (slides smoothly with Apple spring dynamics) */}
             <div
                 ref={foregroundRef}
                 onMouseDown={onMouseDown}
                 onClickCapture={handleClickCapture}
                 onClick={handleContentClick}
-                className="relative z-10 w-full"
+                className="relative z-10 w-full bg-white"
                 style={{
                     transform: `translate3d(${offset}px, 0, 0)`,
                     transition: isDragging
                         ? 'none'
-                        : 'transform 0.28s cubic-bezier(0.25, 1, 0.5, 1)',
+                        : 'transform 0.32s cubic-bezier(0.16, 1, 0.3, 1)',
                     willChange: 'transform',
                     touchAction: 'pan-y',
+                    boxShadow: edgeShadow,
                 }}
             >
                 {children}

@@ -561,7 +561,7 @@ function PackageItem({
             key: 'delete',
             label: 'Delete',
             icon: <Trash2 className="w-5 h-5 text-white" />,
-            color: '#E05353',
+            color: '#FF3B30',
             onClick: onDelete,
         },
     ]
@@ -572,28 +572,23 @@ function PackageItem({
             leftActions={leftActions}
             rightActions={rightActions}
             onClick={() => router.push(`/companies/${companyId}/packages/${pkg.id}`)}
+            style={{
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
+            }}
         >
-            <div
-                className="relative overflow-hidden rounded-xl ios-press select-none cursor-pointer"
-                style={{
-                    backgroundColor: '#FFFFFF',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
-                }}
-            >
-                <div className="flex items-center justify-between px-3.5 py-2.5">
-                    <div className="flex-1 pr-2.5 min-w-0">
-                        <h3 className="text-[15.5px] font-semibold text-gray-900 leading-tight truncate">{pkg.description}</h3>
-                        <p className="text-[12px] text-ios-gray mt-0.5 leading-tight">{new Date(pkg.date).toLocaleDateString()}</p>
+            <div className="flex items-center justify-between px-3.5 py-2.5 select-none cursor-pointer">
+                <div className="flex-1 pr-2.5 min-w-0">
+                    <h3 className="text-[15.5px] font-semibold text-gray-900 leading-tight truncate">{pkg.description}</h3>
+                    <p className="text-[12px] text-ios-gray mt-0.5 leading-tight">{new Date(pkg.date).toLocaleDateString()}</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                    <div className="text-right">
+                        <span className="text-[11.5px] text-ios-gray block leading-tight">₹{pkgAmount.toLocaleString('en-IN')}</span>
+                        <span className={`text-[15.5px] font-semibold tabular-nums block leading-tight ${pkgBalance > 0 ? 'text-ios-red' : pkgBalance < 0 ? 'text-ios-green' : 'text-ios-blue'}`}>
+                            {pkgBalance < 0 ? `- ₹${Math.abs(pkgBalance).toLocaleString('en-IN')}` : `₹${pkgBalance.toLocaleString('en-IN')}`}
+                        </span>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                        <div className="text-right">
-                            <span className="text-[11.5px] text-ios-gray block leading-tight">₹{pkgAmount.toLocaleString('en-IN')}</span>
-                            <span className={`text-[15.5px] font-semibold tabular-nums block leading-tight ${pkgBalance > 0 ? 'text-ios-red' : pkgBalance < 0 ? 'text-ios-green' : 'text-ios-blue'}`}>
-                                {pkgBalance < 0 ? `- ₹${Math.abs(pkgBalance).toLocaleString('en-IN')}` : `₹${pkgBalance.toLocaleString('en-IN')}`}
-                            </span>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-ios-gray3" />
-                    </div>
+                    <ChevronRight className="w-4 h-4 text-ios-gray3" />
                 </div>
             </div>
         </SwipeableRow>

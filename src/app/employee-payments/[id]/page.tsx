@@ -744,7 +744,7 @@ function SalaryEntryItem({
             key: 'leaves',
             label: 'Leaves',
             icon: <Calculator className="w-5 h-5 text-white" />,
-            color: '#007AFF',
+            color: '#FF9500',
             onClick: onDeductLeaves,
         },
     ]
@@ -755,7 +755,7 @@ function SalaryEntryItem({
             key: 'delete',
             label: 'Delete',
             icon: <Trash2 className="w-5 h-5 text-white" />,
-            color: '#E05353',
+            color: '#FF3B30',
             onClick: onDelete,
         },
     ]
@@ -765,10 +765,13 @@ function SalaryEntryItem({
             id={`salary-${entry.id}`}
             leftActions={leftActions}
             rightActions={rightActions}
+            style={{
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
+            }}
         >
             <div
                 id={`salary-${entry.id}`}
-                className="ios-card px-4 py-3.5 select-none"
+                className="px-4 py-3.5 select-none"
                 style={{ cursor: 'default' }}
             >
                 <div className="flex items-center justify-between">
@@ -809,7 +812,7 @@ function PaymentItem({
             key: 'delete',
             label: 'Delete',
             icon: <Trash2 className="w-5 h-5 text-white" />,
-            color: '#E05353',
+            color: '#FF3B30',
             onClick: onDelete,
         },
     ]
@@ -818,10 +821,13 @@ function PaymentItem({
         <SwipeableRow
             id={`payment-${payment.id}`}
             rightActions={rightActions}
+            style={{
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
+            }}
         >
             <div
                 id={`payment-${payment.id}`}
-                className="ios-card px-4 py-3.5 select-none"
+                className="px-4 py-3.5 select-none"
                 style={{ cursor: 'default' }}
             >
                 <div className="flex items-center justify-between">
