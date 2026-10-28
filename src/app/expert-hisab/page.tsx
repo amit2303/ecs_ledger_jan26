@@ -397,6 +397,64 @@ export default function ExpertDashboardPage() {
         )
     }
 
+    if (!isUnlocked) {
+        return (
+            <div className="flex-1 flex flex-col items-center justify-center px-4 bg-[#F2F2F7] select-none">
+                <div className={`w-full max-w-sm bg-white rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.08)] border border-black/5 space-y-4 text-center ${isShaking ? 'animate-shake' : ''}`}>
+                    <div className="w-14 h-14 rounded-2xl bg-[#007AFF]/10 flex items-center justify-center mx-auto text-[#007AFF]">
+                        <Lock className="w-7 h-7 stroke-[2.2]" />
+                    </div>
+
+                    <div>
+                        <h2 className="text-[18px] font-bold text-gray-950 tracking-tight">
+                            Enter password to unlock dashboard
+                        </h2>
+                        <p className="text-[13px] text-gray-500 mt-1">
+                            Expert Hisab Kitab is protected
+                        </p>
+                    </div>
+
+                    <form onSubmit={handleUnlock} className="space-y-3 pt-1">
+                        <div className="relative">
+                            <input
+                                type={showPasscode ? 'text' : 'password'}
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                maxLength={6}
+                                value={passcode}
+                                onChange={(e) => handlePasscodeChange(e.target.value)}
+                                placeholder="Enter password"
+                                className="w-full text-center tracking-[0.2em] text-[18px] font-bold py-3.5 px-9 bg-[#F2F2F7] border border-black/10 rounded-2xl text-gray-900 placeholder:tracking-normal placeholder:text-[14px] placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#007AFF]/40 focus:border-[#007AFF] transition-all"
+                                autoFocus
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPasscode(!showPasscode)}
+                                className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                            >
+                                {showPasscode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                        </div>
+
+                        {authError && (
+                            <p className="text-[13px] font-semibold text-[#EF4444] animate-fade-in">
+                                {authError}
+                            </p>
+                        )}
+
+                        <button
+                            type="submit"
+                            disabled={passcode.length < 1 || authLoading}
+                            className="w-full py-3.5 bg-[#007AFF] hover:bg-[#0066CC] disabled:opacity-50 text-white font-semibold rounded-2xl text-[16px] shadow-[0_4px_14px_rgba(0,122,255,0.35)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                        >
+                            <span>{authLoading ? 'Verifying...' : 'Unlock'}</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className="flex-1 flex flex-col h-full overflow-y-auto ios-scroll pb-44 relative" style={{ backgroundColor: '#F2F2F7' }}>
             {loading ? (
@@ -405,8 +463,8 @@ export default function ExpertDashboardPage() {
                 </div>
             ) : (
                 <>
-                    {/* Dashboard Cards Container (Blurred when locked) */}
-                    <div className={`px-4 space-y-3.5 pt-3 ios-fade-in transition-all duration-300 ${!isUnlocked ? 'blur-2xl opacity-20 select-none pointer-events-none filter' : ''}`}>
+                    {/* Dashboard Cards Container */}
+                    <div className="px-4 space-y-3.5 pt-3 ios-fade-in transition-all duration-300">
                     {/* 1. Monthly Overview Card (Single outer card for Net, Income & Expense) */}
                     <div className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-black/5 space-y-4">
                         {/* Net on Top with Integrated Month Selector & Lock Button */}
@@ -978,54 +1036,6 @@ export default function ExpertDashboardPage() {
                         {totals.entryCount} entries this month
                     </p>
                 </div>
-
-                {/* Fixed Simple Password Unlock Field (Only when locked) */}
-                {!isUnlocked && (
-                    <div className="fixed inset-0 z-30 flex items-center justify-center px-4 pointer-events-none">
-                        <div className={`w-full max-w-sm bg-white/95 backdrop-blur-2xl rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.15)] border border-black/10 space-y-4 text-center pointer-events-auto ${isShaking ? 'animate-shake' : ''}`}>
-                            <h2 className="text-[16px] font-bold text-gray-950 tracking-tight">
-                                Enter password to unlock dashboard
-                            </h2>
-
-                            <form onSubmit={handleUnlock} className="space-y-3 pt-1">
-                                <div className="relative">
-                                    <input
-                                        type={showPasscode ? 'text' : 'password'}
-                                        inputMode="numeric"
-                                        pattern="[0-9]*"
-                                        maxLength={6}
-                                        value={passcode}
-                                        onChange={(e) => handlePasscodeChange(e.target.value)}
-                                        placeholder="Enter password"
-                                        className="w-full text-center tracking-[0.2em] text-[18px] font-bold py-3 px-9 bg-[#F2F2F7] border border-black/10 rounded-2xl text-gray-900 placeholder:tracking-normal placeholder:text-[13px] placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#007AFF]/40 focus:border-[#007AFF] transition-all"
-                                        autoFocus
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPasscode(!showPasscode)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
-                                    >
-                                        {showPasscode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                    </button>
-                                </div>
-
-                                {authError && (
-                                    <p className="text-[13px] font-semibold text-[#EF4444] animate-fade-in">
-                                        {authError}
-                                    </p>
-                                )}
-
-                                <button
-                                    type="submit"
-                                    disabled={passcode.length < 1 || authLoading}
-                                    className="w-full py-3 bg-[#007AFF] hover:bg-[#0066CC] disabled:opacity-50 text-white font-semibold rounded-2xl text-[15px] shadow-[0_4px_14px_rgba(0,122,255,0.35)] active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
-                                >
-                                    <span>{authLoading ? 'Verifying...' : 'Unlock'}</span>
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                )}
             </>
         )}
 
