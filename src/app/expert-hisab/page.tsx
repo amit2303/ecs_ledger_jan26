@@ -7,6 +7,7 @@ import {
     ArrowRightLeft, ChevronDown, Calendar, Plus, BarChart2, LineChart,
     Users, Clock, BookText, Lock, LockKeyhole, ShieldCheck, Eye, EyeOff
 } from 'lucide-react'
+import { isSectionUnlocked, setSectionUnlocked, lockProtectedSections } from '@/components/ProtectedSection'
 
 const PERSONS = [
     { canonical: 'Amit Mishra',         display: 'Amit',   group: 'SSM',    color: '#007AFF', bg: '#EBF5FF' },
@@ -87,16 +88,10 @@ export default function ExpertDashboardPage() {
     const [isShaking, setIsShaking] = useState(false)
 
     useEffect(() => {
-        try {
-            const saved = sessionStorage.getItem('hisab_kitab_unlocked')
-            if (saved === 'true') {
-                setIsUnlocked(true)
-            }
-        } catch (e) {
-            console.error(e)
-        } finally {
-            setIsCheckingAuth(false)
+        if (isSectionUnlocked()) {
+            setIsUnlocked(true)
         }
+        setIsCheckingAuth(false)
     }, [])
 
     const verifyPasscodeServer = async (code: string) => {
@@ -111,13 +106,9 @@ export default function ExpertDashboardPage() {
             })
             const data = await res.json()
             if (res.ok && data.success) {
+                setSectionUnlocked()
                 setIsUnlocked(true)
                 setAuthError('')
-                try {
-                    sessionStorage.setItem('hisab_kitab_unlocked', 'true')
-                } catch (e) {
-                    console.error(e)
-                }
             } else {
                 setAuthError(data.error || 'Incorrect Password. Please try again.')
                 setIsShaking(true)
@@ -145,11 +136,7 @@ export default function ExpertDashboardPage() {
     }
 
     const handleLock = () => {
-        try {
-            sessionStorage.removeItem('hisab_kitab_unlocked')
-        } catch (e) {
-            console.error(e)
-        }
+        lockProtectedSections()
         setIsUnlocked(false)
         setPasscode('')
         setAuthError('')

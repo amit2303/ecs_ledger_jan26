@@ -3,16 +3,13 @@
 import { LogOut, Key } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { lockProtectedSections } from '@/components/ProtectedSection'
 
 export function HeaderActions() {
     const router = useRouter()
 
     const handleLogout = async () => {
-        try {
-            sessionStorage.removeItem('hisab_kitab_unlocked')
-        } catch {
-            // Ignore
-        }
+        lockProtectedSections()
         await fetch('/api/auth/logout', { method: 'POST' })
         router.refresh()
         router.push('/login')

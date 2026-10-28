@@ -8,7 +8,7 @@ export async function encrypt(payload: Record<string, unknown>) {
     return await new SignJWT(payload)
         .setProtectedHeader({ alg: 'HS256' })
         .setIssuedAt()
-        .setExpirationTime('30d')
+        .setExpirationTime('365d')
         .sign(key)
 }
 
@@ -31,12 +31,14 @@ export async function getSession() {
 }
 
 export async function login(userData: { id: number; username: string }) {
-    const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+    const maxAge = 365 * 24 * 60 * 60 // 1 year persistent login
+    const expires = new Date(Date.now() + maxAge * 1000)
     const session = await encrypt({ user: userData, expires })
     const cookieStore = await cookies()
 
     cookieStore.set('auth_token', session, {
         expires,
+        maxAge,
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
@@ -46,5 +48,12 @@ export async function login(userData: { id: number; username: string }) {
 
 export async function logout() {
     const cookieStore = await cookies()
-    cookieStore.delete('auth_token')
+    cookieStore.set('auth_token', '', {
+        maxAge: 0,
+        expires: new Date(0),
+        path: '/',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+    })
 }

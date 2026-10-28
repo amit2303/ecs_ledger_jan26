@@ -9,9 +9,30 @@ interface ProtectedSectionProps {
     sectionSubtitle?: string
 }
 
+export function isSectionUnlocked() {
+    try {
+        return (
+            localStorage.getItem('hisab_kitab_unlocked') === 'true' ||
+            sessionStorage.getItem('hisab_kitab_unlocked') === 'true'
+        )
+    } catch {
+        return false
+    }
+}
+
 export function lockProtectedSections() {
     try {
+        localStorage.removeItem('hisab_kitab_unlocked')
         sessionStorage.removeItem('hisab_kitab_unlocked')
+    } catch (e) {
+        console.error(e)
+    }
+}
+
+export function setSectionUnlocked() {
+    try {
+        localStorage.setItem('hisab_kitab_unlocked', 'true')
+        sessionStorage.setItem('hisab_kitab_unlocked', 'true')
     } catch (e) {
         console.error(e)
     }
@@ -31,16 +52,10 @@ export function ProtectedSection({
     const [isShaking, setIsShaking] = useState(false)
 
     useEffect(() => {
-        try {
-            const saved = sessionStorage.getItem('hisab_kitab_unlocked')
-            if (saved === 'true') {
-                setIsUnlocked(true)
-            }
-        } catch (e) {
-            console.error(e)
-        } finally {
-            setIsCheckingAuth(false)
+        if (isSectionUnlocked()) {
+            setIsUnlocked(true)
         }
+        setIsCheckingAuth(false)
     }, [])
 
     const verifyPasscodeServer = async (code: string) => {
@@ -55,13 +70,9 @@ export function ProtectedSection({
             })
             const data = await res.json()
             if (res.ok && data.success) {
+                setSectionUnlocked()
                 setIsUnlocked(true)
                 setAuthError('')
-                try {
-                    sessionStorage.setItem('hisab_kitab_unlocked', 'true')
-                } catch (e) {
-                    console.error(e)
-                }
             } else {
                 setAuthError(data.error || 'Incorrect password')
                 setIsShaking(true)
@@ -94,7 +105,7 @@ export function ProtectedSection({
 
     if (isCheckingAuth) {
         return (
-            <div className="flex-1 w-full min-h-[70vh] flex items-center justify-center bg-[#F2F2F7]">
+            <div className="flex-1 w-full min-h-[calc(100vh-140px)] flex items-center justify-center bg-[#F2F2F7]">
                 <div className="text-gray-500 text-[14px] bg-white px-5 py-3 rounded-full shadow-sm border border-black/5 font-medium animate-pulse">
                     Checking access...
                 </div>
@@ -104,7 +115,7 @@ export function ProtectedSection({
 
     if (!isUnlocked) {
         return (
-            <div className="flex-1 w-full min-h-[70vh] flex flex-col items-center justify-center px-4 py-8 bg-[#F2F2F7] select-none">
+            <div className="flex-1 w-full min-h-[calc(100vh-140px)] flex flex-col items-center justify-center px-4 py-8 bg-[#F2F2F7] select-none">
                 <div
                     className={`w-full max-w-sm bg-white rounded-3xl p-6 shadow-[0_12px_40px_rgba(0,0,0,0.08)] border border-black/5 space-y-4 text-center ${
                         isShaking ? 'animate-shake' : ''
