@@ -6,7 +6,17 @@ export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl
 
     // Public paths that don't require auth
-    const publicPaths = ['/login', '/api/auth/login', '/api/auth/signup', '/logo.jpg', '/manifest.json', '/favicon.ico', '/sw.js']
+    const publicPaths = [
+        '/login',
+        '/api/auth/login',
+        '/api/auth/signup',
+        '/api/auth/webauthn/login-options',
+        '/api/auth/webauthn/login-verify',
+        '/logo.jpg',
+        '/manifest.json',
+        '/favicon.ico',
+        '/sw.js'
+    ]
     if (publicPaths.some(path => pathname.startsWith(path)) ||
         pathname.startsWith('/_next') ||
         pathname.startsWith('/static')) {

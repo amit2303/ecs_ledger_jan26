@@ -44,11 +44,28 @@ model Document {
 }
 
 model User {
-  id            Int      @id @default(autoincrement())
-  username      String   @unique
+  id            Int       @id @default(autoincrement())
+  username      String    @unique
   password      String
   hisabPassword String?
-  createdAt     DateTime @default(now())
+  createdAt     DateTime  @default(now())
+  passkeys      Passkey[]
+}
+
+model Passkey {
+  id          String   @id // base64url credentialID
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  publicKey   Bytes
+  counter     BigInt   @default(0)
+  deviceType  String   @default("singleDevice")
+  backedUp    Boolean  @default(false)
+  transports  String?
+  name        String?
+  createdAt   DateTime @default(now())
+  lastUsedAt  DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Package {
