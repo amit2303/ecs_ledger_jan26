@@ -470,6 +470,7 @@ function CompanyItem({
   onEdit: () => void
   onDelete: () => void
 }) {
+  const router = useRouter()
   const isClient = company.type === 'CLIENT'
   const rawName = (company.name || '').trim()
   const match = rawName.match(/^(\d+(?:\.\d+)?)\.?\s*(.*)$/)
@@ -514,10 +515,10 @@ function CompanyItem({
       id={`company-${company.id}`}
       leftActions={leftActions}
       rightActions={rightActions}
+      onClick={() => router.push(`/companies/${company.id}`)}
     >
-      <Link
-        href={`/companies/${company.id}`}
-        className={`relative overflow-hidden rounded-xl ios-press select-none block ${company.isOnHold ? 'opacity-55' : ''}`}
+      <div
+        className={`relative overflow-hidden rounded-xl ios-press select-none cursor-pointer ${company.isOnHold ? 'opacity-55' : ''}`}
         style={{
           backgroundColor: '#FFFFFF',
           boxShadow: isClient
@@ -559,7 +560,7 @@ function CompanyItem({
             <ChevronRight className="w-4 h-4 text-ios-gray3" />
           </div>
         </div>
-      </Link>
+      </div>
     </SwipeableRow>
   )
 }

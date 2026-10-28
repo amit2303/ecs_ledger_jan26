@@ -64,6 +64,12 @@ export function BottomNav() {
             <Link
               key={tab.name}
               href={tab.href}
+              onClick={(e) => {
+                if (isActive) {
+                  e.preventDefault();
+                  window.location.href = tab.href;
+                }
+              }}
               className={`flex flex-col items-center justify-center flex-1 py-1 space-y-0.5 transition-all duration-150 active:scale-90 select-none ${
                 isActive ? "text-[#1D68F2]" : "text-gray-400 hover:text-gray-700"
               }`}

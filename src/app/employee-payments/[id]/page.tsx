@@ -451,7 +451,7 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
 
             {/* Content */}
             <div className="flex-1 flex flex-col min-h-0">
-                <div className="flex-1 overflow-y-auto ios-scroll px-4 pt-3 pb-36">
+                <div className="flex-1 overflow-y-auto ios-scroll px-4 pt-3 pb-44">
                     {activeTab === 'SALARY' ? (
                         <div className="space-y-4">
                             {/* Add Salary Form */}

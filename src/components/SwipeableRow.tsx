@@ -36,7 +36,8 @@ export function SwipeableRow({
 }: SwipeableRowProps) {
     const [offset, setOffset] = useState<number>(0)
     const [isDragging, setIsDragging] = useState<boolean>(false)
-    const rowRef = useRef<HTMLDivElement>(null)
+    const containerRef = useRef<HTMLDivElement>(null)
+    const foregroundRef = useRef<HTMLDivElement>(null)
 
     // Touch & pointer tracking refs
     const startX = useRef<number>(0)
@@ -70,17 +71,17 @@ export function SwipeableRow({
         currentOffset.current = 0
     }, [])
 
-    // --- Touch / Mouse Drag handlers ---
-    const handleStart = (clientX: number, clientY: number) => {
+    // --- Gesture handlers ---
+    const handleStart = useCallback((clientX: number, clientY: number) => {
         if (disabled) return
         startX.current = clientX
         startY.current = clientY
         isHorizontalSwipe.current = null
         hasMoved.current = false
         wasOpenBeforeDrag.current = currentOffset.current !== 0
-    }
+    }, [disabled])
 
-    const handleMove = (clientX: number, clientY: number, e?: TouchEvent | MouseEvent) => {
+    const handleMove = useCallback((clientX: number, clientY: number, e?: Event) => {
         if (disabled) return
         const deltaX = clientX - startX.current
         const deltaY = clientY - startY.current
@@ -89,8 +90,8 @@ export function SwipeableRow({
         if (isHorizontalSwipe.current === null) {
             const absX = Math.abs(deltaX)
             const absY = Math.abs(deltaY)
-            if (absX > 6 || absY > 6) {
-                if (absX > absY) {
+            if (absX > 4 || absY > 4) {
+                if (absX >= absY) {
                     isHorizontalSwipe.current = true
                     setIsDragging(true)
                     // Notify other rows to close
@@ -108,7 +109,11 @@ export function SwipeableRow({
 
         // Prevent page scroll when swiping horizontally
         if (e && e.cancelable) {
-            e.preventDefault()
+            try {
+                e.preventDefault()
+            } catch {
+                // ignore
+            }
         }
 
         hasMoved.current = true
@@ -137,9 +142,9 @@ export function SwipeableRow({
 
         currentOffset.current = newOffset
         setOffset(newOffset)
-    }
+    }, [disabled, id, totalLeftWidth, totalRightWidth])
 
-    const handleEnd = () => {
+    const handleEnd = useCallback(() => {
         if (disabled) return
         setIsDragging(false)
 
@@ -151,8 +156,8 @@ export function SwipeableRow({
         let targetOffset = 0
 
         if (current > 0 && totalLeftWidth > 0) {
-            // Swiped right -> reveal left actions
-            if (current > totalLeftWidth * 0.38) {
+            // Swiped right -> reveal left actions (snaps easily)
+            if (current > Math.min(totalLeftWidth * 0.25, 35)) {
                 targetOffset = totalLeftWidth
                 if (typeof navigator !== 'undefined' && navigator.vibrate) {
                     navigator.vibrate(12)
@@ -161,8 +166,8 @@ export function SwipeableRow({
                 targetOffset = 0
             }
         } else if (current < 0 && totalRightWidth > 0) {
-            // Swiped left -> reveal right actions
-            if (-current > totalRightWidth * 0.38) {
+            // Swiped left -> reveal right actions (snaps easily)
+            if (-current > Math.min(totalRightWidth * 0.25, 30)) {
                 targetOffset = -totalRightWidth
                 if (typeof navigator !== 'undefined' && navigator.vibrate) {
                     navigator.vibrate(12)
@@ -174,28 +179,45 @@ export function SwipeableRow({
 
         currentOffset.current = targetOffset
         setOffset(targetOffset)
-    }
+    }, [disabled, totalLeftWidth, totalRightWidth])
 
-    // Touch event listeners
-    const onTouchStart = (e: React.TouchEvent) => {
-        if (e.touches.length === 1) {
-            handleStart(e.touches[0].clientX, e.touches[0].clientY)
+    // Native touch listeners with { passive: false } for rock-solid iOS touch prevention
+    useEffect(() => {
+        const el = foregroundRef.current
+        if (!el) return
+
+        const onTouchStartNative = (e: TouchEvent) => {
+            if (e.touches.length === 1) {
+                handleStart(e.touches[0].clientX, e.touches[0].clientY)
+            }
         }
-    }
 
-    const onTouchMove = (e: React.TouchEvent) => {
-        if (e.touches.length === 1) {
-            handleMove(e.touches[0].clientX, e.touches[0].clientY, e.nativeEvent)
+        const onTouchMoveNative = (e: TouchEvent) => {
+            if (e.touches.length === 1) {
+                handleMove(e.touches[0].clientX, e.touches[0].clientY, e)
+            }
         }
-    }
 
-    const onTouchEnd = () => {
-        handleEnd()
-    }
+        const onTouchEndNative = () => {
+            handleEnd()
+        }
 
-    // Mouse drag support for desktop/browser
+        el.addEventListener('touchstart', onTouchStartNative, { passive: true })
+        el.addEventListener('touchmove', onTouchMoveNative, { passive: false })
+        el.addEventListener('touchend', onTouchEndNative, { passive: true })
+        el.addEventListener('touchcancel', onTouchEndNative, { passive: true })
+
+        return () => {
+            el.removeEventListener('touchstart', onTouchStartNative)
+            el.removeEventListener('touchmove', onTouchMoveNative)
+            el.removeEventListener('touchend', onTouchEndNative)
+            el.removeEventListener('touchcancel', onTouchEndNative)
+        }
+    }, [handleStart, handleMove, handleEnd])
+
+    // Mouse drag support for desktop browsers
     const onMouseDown = (e: React.MouseEvent) => {
-        if (e.button !== 0) return // Only main left click
+        if (e.button !== 0) return
         handleStart(e.clientX, e.clientY)
 
         const onMouseMove = (ev: MouseEvent) => {
@@ -212,19 +234,25 @@ export function SwipeableRow({
         window.addEventListener('mouseup', onMouseUp)
     }
 
-    const handleContentClick = (e: React.MouseEvent) => {
-        // If the row was dragged or swiped, suppress inner link navigation
+    // Capture phase: Suppress child click events (like <Link>) if user swiped or row is open
+    const handleClickCapture = (e: React.MouseEvent) => {
         if (hasMoved.current) {
             e.preventDefault()
             e.stopPropagation()
             return
         }
 
-        // If row is currently open and clicked, just close it
         if (offset !== 0) {
             e.preventDefault()
             e.stopPropagation()
             closeRow()
+        }
+    }
+
+    const handleContentClick = (e: React.MouseEvent) => {
+        if (hasMoved.current || offset !== 0) {
+            e.preventDefault()
+            e.stopPropagation()
             return
         }
 
@@ -240,10 +268,10 @@ export function SwipeableRow({
 
     return (
         <div
-            ref={rowRef}
+            ref={containerRef}
             className={`relative overflow-hidden rounded-xl select-none ${className}`}
             style={{
-                touchAction: 'pan-y', // allows vertical scrolling while letting us handle horizontal swipe
+                touchAction: 'pan-y',
                 ...style,
             }}
         >
@@ -308,11 +336,9 @@ export function SwipeableRow({
 
             {/* Foreground Content Card (slides horizontally) */}
             <div
-                onTouchStart={onTouchStart}
-                onTouchMove={onTouchMove}
-                onTouchEnd={onTouchEnd}
-                onTouchCancel={onTouchEnd}
+                ref={foregroundRef}
                 onMouseDown={onMouseDown}
+                onClickCapture={handleClickCapture}
                 onClick={handleContentClick}
                 className="relative z-10 w-full"
                 style={{
@@ -321,6 +347,7 @@ export function SwipeableRow({
                         ? 'none'
                         : 'transform 0.28s cubic-bezier(0.25, 1, 0.5, 1)',
                     willChange: 'transform',
+                    touchAction: 'pan-y',
                 }}
             >
                 {children}
