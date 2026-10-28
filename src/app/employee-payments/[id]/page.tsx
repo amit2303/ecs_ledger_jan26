@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { SwipeableRow, SwipeAction } from '@/components/SwipeableRow'
 import { ActionSheet } from '@/components/ActionSheet'
 import { LeaveDeductionModal } from '@/components/LeaveDeductionModal'
+import { ProtectedSection } from '@/components/ProtectedSection'
 
 interface SalaryEntry {
     id: number
@@ -323,12 +324,16 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
         return date.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })
     }
 
-    if (loading) return <div className="flex h-screen items-center justify-center text-ios-gray text-[17px]">Loading...</div>
-    if (error) return <div className="flex h-screen items-center justify-center text-ios-red text-[15px]">{error}</div>
-    if (!employee) return <div className="flex h-screen items-center justify-center text-ios-gray text-[17px]">Employee not found</div>
-
     return (
-        <div className="absolute inset-0 flex flex-col w-full h-full overflow-hidden" style={{ backgroundColor: '#F2F2F7' }}>
+        <ProtectedSection sectionName="Employee Details" sectionSubtitle="Employee records are protected">
+            {loading ? (
+                <div className="flex h-screen items-center justify-center text-ios-gray text-[17px]">Loading...</div>
+            ) : error ? (
+                <div className="flex h-screen items-center justify-center text-ios-red text-[15px]">{error}</div>
+            ) : !employee ? (
+                <div className="flex h-screen items-center justify-center text-ios-gray text-[17px]">Employee not found</div>
+            ) : (
+                <div className="absolute inset-0 flex flex-col w-full h-full overflow-hidden" style={{ backgroundColor: '#F2F2F7' }}>
             <header className="shrink-0 z-10" style={{ backgroundColor: '#F2F2F7' }}>
                 {/* Nav Row */}
                 <div className="flex items-center gap-1 px-1 py-2">
@@ -723,7 +728,9 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
                 isEditing={leaveModalTarget === 'ENTRY'}
                 onApply={handleApplyLeaveDeduction}
             />
-        </div>
+                </div>
+            )}
+        </ProtectedSection>
     )
 }
 

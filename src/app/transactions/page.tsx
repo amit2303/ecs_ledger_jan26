@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { extractMiscDescription } from '@/lib/transactionParser'
 import { IOSKeyboard } from '@/components/IOSKeyboard'
+import { ProtectedSection } from '@/components/ProtectedSection'
 
 // ─── Person Config ────────────────────────────────────────────
 const PERSONS = [
@@ -1622,7 +1623,8 @@ export default function TransactionsPage() {
     }
 
     return (
-        <div className="flex flex-col h-full relative font-sans overflow-hidden select-none" style={{ backgroundColor: '#EFEAE2' }}>
+        <ProtectedSection sectionName="Transactions" sectionSubtitle="Expert Transactions Ledger is protected">
+            <div className="flex flex-col h-full relative font-sans overflow-hidden select-none" style={{ backgroundColor: '#EFEAE2' }}>
             {/* iOS WhatsApp Header */}
             <header className="shrink-0 z-20 px-3.5 py-3 flex items-center justify-between bg-[#F6F6F6]/95  border-b border-gray-300/80 shadow-xs min-h-[68px]">
                 {isSearchOpen ? (
@@ -2686,7 +2688,8 @@ export default function TransactionsPage() {
                     </div>
                 </div>
             )}
-        </div>
+            </div>
+        </ProtectedSection>
     )
 }
 

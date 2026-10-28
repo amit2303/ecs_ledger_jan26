@@ -5,6 +5,7 @@ import { Plus, ChevronRight, Pencil, Trash2, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { SwipeableRow, SwipeAction } from '@/components/SwipeableRow'
 import { ActionSheet } from '@/components/ActionSheet'
+import { ProtectedSection } from '@/components/ProtectedSection'
 
 interface EmployeeSummary {
     id: number
@@ -147,10 +148,12 @@ export default function EmployeePaymentsPage() {
         setShowEditModal(true)
     }
 
-    if (loading) return <div className="flex h-screen items-center justify-center text-ios-gray text-[17px]">Loading...</div>
-
     return (
-        <div className="flex flex-col h-full relative overflow-hidden" style={{ backgroundColor: '#F2F2F7' }}>
+        <ProtectedSection sectionName="Employee Payments" sectionSubtitle="Employee Salaries & Balances are protected">
+            {loading ? (
+                <div className="flex h-screen items-center justify-center text-ios-gray text-[17px]">Loading...</div>
+            ) : (
+                <div className="flex flex-col h-full relative overflow-hidden" style={{ backgroundColor: '#F2F2F7' }}>
             {/* Header */}
             <header className="shrink-0 z-10" style={{ backgroundColor: '#F2F2F7' }}>
                 <div className="flex items-center justify-center px-4 py-3">
@@ -323,7 +326,9 @@ export default function EmployeePaymentsPage() {
                     </div>
                 </div>
             )}
-        </div>
+                </div>
+            )}
+        </ProtectedSection>
     )
 }
 

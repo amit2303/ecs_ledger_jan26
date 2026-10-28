@@ -8,6 +8,11 @@ export function HeaderActions() {
     const router = useRouter()
 
     const handleLogout = async () => {
+        try {
+            sessionStorage.removeItem('hisab_kitab_unlocked')
+        } catch {
+            // Ignore
+        }
         await fetch('/api/auth/logout', { method: 'POST' })
         router.refresh()
         router.push('/login')
